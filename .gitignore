@@ -1,4 +1,5 @@
 *.env
+!/EnvExample/*.env
 
 .venv
 
