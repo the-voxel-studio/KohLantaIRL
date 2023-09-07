@@ -1,0 +1,7 @@
+Here is the link to the GitHub repository containing Denis Brogniart's source code:
+
+https://github.com/tuturd/DenisBrogniart
+
+If you're interested, all of the source code (except for Discords unique IDs, security tokens, and passwords) is publicly available via the link above.
+
+If you have any questions about the code, do not hesitate to contact the creator of GitHub who will be happy to answer you.

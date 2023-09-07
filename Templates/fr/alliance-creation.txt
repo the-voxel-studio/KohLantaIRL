@@ -1,0 +1,12 @@
+Créer une alliance:
+
+Pour cela, il est nécessaire d'envoyer un message directement au robot <@ID_DU_ROBOT> en message privé sous la forme suivante:
+ 
+`/alliance nom-de-l-alliance`
+
+L'expression "nom-de-l-alliance" est à remplacer par ce que vous souhaitez, le reste doit être recopié tel-quel.
+L'expression remplaçant "nom-de-l-alliance" ne peut pas contenir d'espace ou de caractère spécial autre que "-".
+
+Il est impératif de communiquer avec le robot en discussion privée car dans le cas contraire, cela enverra une notification à tous les joueurs annonçant que vous créez une alliance et son nom.
+
+Exemple: `/alliance la-super-alliance`

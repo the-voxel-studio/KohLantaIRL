@@ -1,0 +1,7 @@
+Tout est fait pour que le robot soit fonctionnel 24h/24h et 7j/7 pendant toute la durée du jeu.
+Néanmoins, des interruptions de ce service pourront être engendrées par des bugs de fonctionnement ou bien des événements extérieurs sur une ou plusieurs des platformes assurant son fonctionnement (GitHub, MongoDb, Amazon Web Services, Discord Dev, etc).
+
+Pour vérifier son bon fonctionnement, rien de plus simple. Il vous suffit de vous rendre dans un des salons du serveur de jeu et d'afficher la liste des personnes connectées. Si un utilisateur nommé "Denis Brogniart" est connecté, alors le robot est fonctionnel.
+Dans le cas contraire, ne pas hésiter à le signaler à <@ID_DE_L_ADMIN> par message privé.
+
+Pour toute question, contacter <@ID_DE_L_ADMIN>

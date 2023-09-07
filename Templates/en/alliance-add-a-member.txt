@@ -1,0 +1,10 @@
+Create an alliance:
+
+To do this, it is necessary to send a message to the said alliance group in the following form:
+ 
+`/add First name I`
+
+The expression "First name" should be replaced by the first name of the user concerned on the server.
+The expression "I" must be replaced by the initial of the user concerned on the server.
+
+Example: /add Léon A

@@ -1,0 +1,7 @@
+Voici le lien du dépôt GitHub contenant le code source de Denis Brogniart:
+
+https://github.com/tuturd/DenisBrogniart
+
+Si cela vous intéresse, l'ensemble du code source (à l'exception des identifiants uniques Discords, tokens de sécurité et mots de passe) est disponible publiquement via le lien ci-dessus.
+
+Si vous avez des questions sur le code, n'hésitez pas à contacter le créateur du GitHub qui se fera un plaisir de vous répondre.

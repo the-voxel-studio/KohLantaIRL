@@ -1,0 +1,10 @@
+Créer une alliance:
+
+Pour cela, il est nécessaire d'envoyer un message sur le groupe de ladite alliance sous la forme suivante:
+ 
+`/ajouter Prenom I`
+
+L'expression "Prenom" est à remplacer par le prénom de l'utilisateur concerné sur le serveur.
+L'expression "I" est à remplacer par l'initiale de l'utilisateur concerné sur le serveur.
+
+Exemple: /ajouter Léon A

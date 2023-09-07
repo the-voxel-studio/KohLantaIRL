@@ -1,0 +1,10 @@
+Create an alliance:
+
+To do this, it is necessary to send a message to the said alliance group in the following form:
+ 
+`/delete @player`
+
+The expression "<@&ID_DU_ROLE_JOUEUR>" must be replaced by "@"+ the user concerned, the rest must be copied as is.
+To replace the expression "<@&ID_DU_ROLE_PLAYER>", type @, possibly the first letters of the user name, and select the player you want to delete from the menu that opens.
+
+Example: /remove <@ID_DE_L_ADMIN>

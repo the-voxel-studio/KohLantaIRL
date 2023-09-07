@@ -1,0 +1,1 @@
+Pour compléter ce channel, executer la commande python (main.py) : set_inscription_infos()

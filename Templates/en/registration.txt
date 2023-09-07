@@ -1,0 +1,1 @@
+To complete this channel, execute the python command (main.py): set_inscription_infos()

@@ -1,0 +1,12 @@
+Create an alliance:
+
+For this, it is necessary to send a message directly to the robot <@ID_DU_ROBOT> in private message in the following form:
+ 
+`/alliance alliance-name`
+
+The expression "name-of-the-alliance" is to be replaced by what you wish, the rest must be copied as is.
+The replacing expression "alliance-name" cannot contain spaces or special characters other than "-".
+
+It is imperative to communicate with the robot in private chat because otherwise, it will send a notification to all players announcing that you are creating an alliance and its name.
+
+Example: `/alliance the-super-alliance`

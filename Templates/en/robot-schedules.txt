@@ -1,0 +1,7 @@
+Everything is done to ensure that the robot is functional 24/7 for the duration of the game.
+Nevertheless, interruptions to this service may be caused by operating bugs or external events on one or more of the platforms ensuring its operation (GitHub, MongoDb, Amazon Web Services, Discord Dev, etc.).
+
+To check its proper functioning, nothing could be simpler. All you have to do is go to one of the game server lobbies and view the list of people connected. If a user named "Denis Brogniart" is connected, then the robot is functional.
+Otherwise, do not hesitate to report it to <@ID_DE_L_ADMIN> by private message.
+
+For any questions, contact <@ID_DE_L_ADMIN>

@@ -1,0 +1,10 @@
+Créer une alliance:
+
+Pour cela, il est nécessaire d'envoyer un message sur le groupe de ladite alliance sous la forme suivante:
+ 
+`/supprimer @joueur`
+
+L'expression "<@&ID_DU_ROLE_JOUEUR>" est à remplacer par "@"+ l'utilisateur concerné, le reste doit être recopié tel-quel.
+Pour remplacer l'expression "<@&ID_DU_ROLE_JOUEUR>", tapez @, eventuellement les premières lettre du nom d'utilisateur, et sélectionner dans le menu qui s'ouvre le joueur que vous souhaitez supprimer.
+
+Exemple: /supprimer <@ID_DE_L_ADMIN>
