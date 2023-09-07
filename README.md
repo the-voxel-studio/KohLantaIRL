@@ -14,12 +14,12 @@ Project is created with:
 
 ## Setup
 To run this project:
-* Download it
-* Create the Server [Discord architecture](#discord-server-architecture) as defined below.
-* Create the [roles](#discord-roles-architecture) as defined below.
-* Configure a discord bot on the [Discord Dev Portal](https://discord.com/developers/)
-* Complete the "EnvExample/.env" file with the unique ids and tokens specific to your server. Then rename this file to exactly ".env" (nothing before the dot) and move it to the root of the project.
-* Complete the discussion channels with templates from the [Templates](/Templates/) folder
+1. Download it
+2. Create the Server [Discord architecture](#discord-server-architecture) as defined below.
+3. Create the [roles](#discord-roles-architecture) as defined below.
+4. Configure a discord bot on the [Discord Dev Portal](https://discord.com/developers/)
+5. Complete the "EnvExample/.env" file with the unique ids and tokens specific to your server. Then rename this file to exactly ".env" (nothing before the dot) and move it to the root of the project.
+6. Complete the discussion channels with templates from the [Templates](/Templates/) folder
 
 ## Discord server architecture
 ### The server must meet a certain architecture for the bot to function properly.
@@ -46,10 +46,11 @@ But also two categories:
 ## Discord roles architecture
 ### The server roles must meet a certain architecture for the bot to function properly. It is imperative to respect the order of roles below.
 
-* Maitre du jeu (en: game master)
-* Admin
-* Finaliste (en: finalist)
-* Joueur (en: player)
-* Votant Final (en: final voter)
-* Eliminé (en: eliminated)
+1. Maitre du jeu (en: game master) only for the bot
+2. Admin
+3. Finaliste (en: finalist)
+4. Joueur (en: player)
+6. Votant Final (en: final voter)
+7. Eliminé (en: eliminated)
+
 It's up to you to then configure the permissions so that access works correctly and according to your wishes.
