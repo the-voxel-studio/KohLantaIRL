@@ -6,7 +6,7 @@ from models import Player, Alliance, Variables, NewPlayer, NewAlliance
 
 intents = (intents) = discord.Intents.all()  # Importation des capacités de controle du robot
 bot = commands.Bot(command_prefix="/", description=f"Bot maitre du jeu", intents=intents)  # Définition du préfixe des commandes, de la description Discord du bot et  application de ses capacités
-emojis_list = ["🇦","🇧","🇨","🇩","🇪","🇫","🇬","🇭","🇮","🇯","🇰","🇱","🇲","🇳","🇴","🇵","🇶","🇷","🇸","🇹","🇺","🇻","🇼","🇽","🇾","🇿"] # Définition de la liste des émojis de réaction pour les votes
+emojis = ["🇦","🇧","🇨","🇩","🇪","🇫","🇬","🇭","🇮","🇯","🇰","🇱","🇲","🇳","🇴","🇵","🇶","🇷","🇸","🇹","🇺","🇻","🇼","🇽","🇾","🇿"] # Définition de la liste des émojis de réaction pour les votes
 last_vote_date = None
 
 # ***** CONSTANTES *****
@@ -25,14 +25,6 @@ TOKEN = environ.get("TOKEN")
 COLOR_GREEN = 0x008000
 COLOR_ORANGE = 0xff7f00
 COLOR_RED = 0xf00020
-
-# ***** DECORATORS *****
-def in_category(category_name):
-    async def check(ctx):
-        category_id = ctx.channel.category_id
-        category = ctx.guild.get_channel(category_id)
-        return category and category.name == category_name
-    return commands.check(check)
 
 # ***** BOT EVENTS *****
 @bot.event
@@ -68,24 +60,17 @@ async def on_message(message):
 @bot.event
 async def on_command_error(ctx, error):
     print(error)
-    if isinstance(error, commands.errors.CommandNotFound):
+    if isinstance(error, discord.ext.commands.errors.CommandNotFound):
         if ctx.message.guild: await ctx.message.delete()
         embed=discord.Embed(title=f":robot: Commande inconnue :moyai:", description=f":warning: Veuillez vérifier l'orthographe", color=COLOR_ORANGE)
         await ctx.author.send(embed=embed)
-    elif isinstance(error, commands.errors.MissingPermissions) or isinstance(error, discord.ext.commands.errors.MissingRole) or isinstance(error, discord.ext.commands.errors.MissingAnyRole):
+    elif isinstance(error, discord.ext.commands.errors.MissingPermissions) or isinstance(error, discord.ext.commands.errors.MissingRole) or isinstance(error, discord.ext.commands.errors.MissingAnyRole):
         if ctx.message.guild: await ctx.message.delete()
         command = ctx.message.content.split(' ')[0]
         embed=discord.Embed(title=f":robot: Commande interdite :moyai:", description=f":no_entry: Vous n'avez pas les permissions nécessaires pour utiliser la commande !\n\nCommande : {command}", color=COLOR_RED)
         embed.set_footer(text=f"Essayer à plusieurs reprises d'utiliser une commande interdite ou y parvenir sans autorisation des administrateurs entrainera systématiquement un bannissement temporaire ou définitif du joueur.")
         await ctx.author.send(embed=embed)
         embed=discord.Embed(title=f":robot: Commande bloquée :moyai:", description=f"sent by **{ctx.author.display_name}**\nattempted to use the command **{command}**", color=COLOR_RED)
-        await bot.get_channel(CHANNEL_ID_BOT).send(embed=embed)
-    elif isinstance(error, commands.errors.NoPrivateMessage):
-        command = ctx.message.content.split(' ')[0]
-        embed=discord.Embed(title=f":robot: Commande de serveur :moyai:", description=f":no_entry: Cette commande n'est pas disponible en message privé.\n\nCommande : {command}", color=COLOR_ORANGE)
-        embed.set_footer(text=f"Essayer à plusieurs reprises d'utiliser une commande interdite ou y parvenir sans autorisation des administrateurs entrainera systématiquement un bannissement temporaire ou définitif du joueur.")
-        await ctx.author.send(embed=embed)
-        embed=discord.Embed(title=f":robot: Commande MP bloquée :moyai:", description=f"sent by **{ctx.author.display_name}**\nattempted to use the command **{command}**", color=COLOR_ORANGE)
         await bot.get_channel(CHANNEL_ID_BOT).send(embed=embed)
     else:
         try: await ctx.message.delete()
@@ -148,8 +133,6 @@ async def alliance(ctx, *args):
         await ctx.author.send(embed=embed)
 
 @bot.command(pass_context=True)
-@commands.guild_only()
-@in_category("Alliances")
 async def ajouter(ctx, *args):
     if ctx.message.guild: await ctx.message.delete()
     if len(args) == 2:
@@ -177,8 +160,6 @@ async def ajouter(ctx, *args):
         await ctx.send(embed=embed)
 
 @bot.command(pass_context=True)
-@commands.guild_only()
-@in_category("Alliances")
 async def supprimer(ctx, member: discord.Member, *args):
     if ctx.message.guild: await ctx.message.delete()
     player = Player(id=member.id)
@@ -191,36 +172,31 @@ async def supprimer(ctx, member: discord.Member, *args):
     embed=discord.Embed(title=f":robot: Expulsion :moyai:", description=f":warning: <@{ctx.author.id}> a supprimé <@{player.id}> de l'alliance !", color=COLOR_ORANGE)
     await ctx.send(embed=embed)
 
-@bot.command(pass_context=True)
-@commands.guild_only()
+@bot.command()
 @commands.has_any_role("Admin")
 async def clear(ctx, amount=1):
     if ctx.message.guild: await ctx.message.delete()
     await ctx.channel.purge(limit=amount)
 
-@bot.command(pass_context=True)
-@commands.guild_only()
+@bot.command()
 @commands.has_any_role("Admin")
 async def open_vote(ctx): 
     await ctx.message.delete()
     await show_vote_msg()
 
-@bot.command(pass_context=True)
-@commands.guild_only()
+@bot.command()
 @commands.has_any_role("Admin")
 async def close_vote(ctx): 
     await ctx.message.delete()
     await retrieval_of_results()
 
 @bot.command(pass_context = True)
-@commands.guild_only()
 @commands.has_any_role("Admin")
 async def mute(ctx, member: discord.Member, minutes=10, reason=None):
     await ctx.message.delete()
     await timeout(member,author=ctx.author,minutes=minutes,reason=reason)
 
 @bot.command(pass_context = True)
-@commands.guild_only()
 @commands.has_any_role("Admin")
 async def unmute(ctx, member: discord.Member, minutes=10, reason=None):
     await ctx.message.delete()
@@ -229,7 +205,6 @@ async def unmute(ctx, member: discord.Member, minutes=10, reason=None):
     await bot.get_channel(CHANNEL_ID_BOT).send(embed=embed)
 
 @bot.command(pass_context=True)
-@commands.guild_only()
 @commands.has_any_role("Admin")
 async def send(ctx, channel: discord.TextChannel, content: str, color: str ="green"):
     await ctx.message.delete()
@@ -237,7 +212,6 @@ async def send(ctx, channel: discord.TextChannel, content: str, color: str ="gre
     await channel.send(embed=embed)
 
 @bot.command(pass_context=True)
-@commands.guild_only()
 @commands.has_any_role("Admin")
 async def eliminer(ctx, member: discord.Member):
     await ctx.message.delete()
@@ -263,7 +237,6 @@ async def eliminer(ctx, member: discord.Member):
     eliminated.eliminate()
 
 @bot.command(pass_context=True)
-@commands.guild_only()
 @commands.has_any_role("Admin")
 async def start(ctx):
     await ctx.message.delete()
@@ -304,14 +277,13 @@ class Schedules(commands.Cog):
 
 # ***** FONCTIONS *****
 async def timeout(member: discord.User, **kwargs):
-    if member.id not in [USER_ID_ADMIN,BOT_ID]:
-        author = kwargs.get("author", "Denis Brogniart")
-        reason_arg = kwargs.get("reason", "unknown")
-        reason = reason_arg if reason_arg else "unknown"
-        delta = datetime.timedelta(minutes=kwargs.get("minutes",10))
-        await member.timeout(delta,reason=reason)
-        embed=discord.Embed(title=f":robot: {member} Muted! :moyai:", description=f"by **{author}**\nbecause of **{reason}**\nfor **{delta}**", color=COLOR_RED)
-        await bot.get_channel(CHANNEL_ID_BOT).send(embed=embed)
+    author = kwargs.get("author", "Denis Brogniart")
+    reason_arg = kwargs.get("reason", "unknown")
+    reason = reason_arg if reason_arg else "unknown"
+    delta = datetime.timedelta(minutes=kwargs.get("minutes",10))
+    await member.timeout(delta,reason=reason)
+    embed=discord.Embed(title=f":robot: {member} Muted! :moyai:", description=f"by **{author}**\nbecause of **{reason}**\nfor **{delta}**", color=COLOR_RED)
+    await bot.get_channel(CHANNEL_ID_BOT).send(embed=embed)
 
 async def show_vote_msg():
     players = Player(option="living")
@@ -341,9 +313,9 @@ async def show_vote_msg():
     embed.set_footer(text="Choisissez la personne pour qui vous votez en cliquant sur une des cases ci-dessous.\nVous souhaitez savoir combien de personnes ont voté pour une personne ? Il suffit de soustraire 1 aux nombres inscrits ci-dessous. ")
     reactions = []
     for i, pl in enumerate(players_list):
-        embed.add_field(name=pl.get("nickname", "unknown"), value=f"Choisir le logo {emojis_list[i]}", inline=True)
+        embed.add_field(name=pl.get("nickname", "unknown"), value=f"Choisir le logo {emojis[i]}", inline=True)
         Player(id=pl.get("id")).set_letter(chr(i+65))
-        reactions.append(emojis_list[i])
+        reactions.append(emojis[i])
     channel = bot.get_channel(CHANNEL_ID_VOTE)
     msg = await channel.send(embed=embed)
     Variables.set_vote_msg_id(msg.id)
@@ -375,18 +347,14 @@ async def retrieval_of_results():
             member = guild.get_member(uid)
             await timeout(member,reason=f"Tentative de triche au vote.",minutes=30)
     max_reactions = [] ; max_count = 0
-    print("reactions : ",reactions)
     for reaction in reactions:
         if reaction.count > max_count:
             max_count = reaction.count
             max_reactions = [reaction.emoji]
         elif reaction.count == max_count:
             max_reactions.append(reaction.emoji)
-    print("max_reactions : ", max_reactions)
-    print("max_count : ", max_count)
-    print("letter : ",chr(emojis_list.index(max_reactions[0])+65))
     if len(max_reactions) == 1:
-        eliminated = Player(letter=chr(emojis_list.index(max_reactions[0])+65))
+        eliminated = Player(letter=chr(emojis.index(max_reactions[0])+65))
         embed = discord.Embed(
             title=f"**{eliminated.nickname}**",
             description=f"Les aventuriers de la tribu ont décidé de l'éliminer et leur sentence est irrévocable !",
