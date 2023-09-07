@@ -13,4 +13,4 @@ Project is created with:
 * [Amazon Web Services](https://aws.amazon.com)
 
 ## Setup
-To run this project, install it locally, Complete the "example.env" file with the unique ids and tokens specific to your server. Then rename this file to exactly ".env" (nothing before the dot).
+To run this project, install it locally, Complete the "EnvExample/.env" file with the unique ids and tokens specific to your server. Then rename this file to exactly ".env" (nothing before the dot) and move it to the root of the project.
