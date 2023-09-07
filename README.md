@@ -15,11 +15,13 @@ Project is created with:
 ## Setup
 To run this project:
 1. Download it
-2. Create the Server [Discord architecture](#discord-server-architecture) as defined below.
-3. Create the [roles](#discord-roles-architecture) as defined below.
-4. Configure a discord bot on the [Discord Dev Portal](https://discord.com/developers/)
-5. Complete the "EnvExample/.env" file with the unique ids and tokens specific to your server. Then rename this file to exactly ".env" (nothing before the dot) and move it to the root of the project.
-6. Complete the discussion channels with templates from the [Templates](/Templates/) folder
+2. Setup a Python Virtual Environnement with the [requirements.txt file](/requirements.txt).
+3. Create the Server [Discord architecture](#discord-server-architecture) as defined below.
+4. Create the [roles](#discord-roles-architecture) as defined below.
+5. Configure a discord bot on the [Discord Dev Portal](https://discord.com/developers/).
+6. Create an empty database en [MongoDb](https://mongodb.com) and copy/create the connection url.
+7. Complete the [.env](/EnvExample/.env) file with the unique ids and tokens specific to your server. Then move it to the root of the project.
+8. Complete the discussion channels with templates from the [Templates](/Templates/) folder
 
 ## Discord server architecture
 ### The server must meet a certain architecture for the bot to function properly.
