@@ -23,10 +23,8 @@ To run this project:
 7. Complete the [.env](/EnvExample/.env) file with the unique ids and tokens specific to your server. Then move it to the root of the project.
 8. Complete the discussion channels with templates from the [Templates](/Templates/) folder
 
-> [!NOTE]  
-> Highlights information that users should take into account, even when skimming.
-
-Some functions, names and variables are written in French. You are free to change them to their English equivalent or any other language. Just be careful that the operation of the robot is not affected, especially in the channel names and roles.
+> [!INFO]  
+> Some functions, names and variables are written in French. You are free to change them to their English equivalent or any other language. Just be careful that the operation of the robot is not affected, especially in the channel names and roles.
 
 ## Discord server architecture
 ### The server must meet a certain architecture for the bot to function properly.
@@ -60,8 +58,8 @@ But also two categories:
 6. Votant Final (en: final voter)
 7. Eliminé (en: eliminated)
 
-[!NOTE]
-I do not share with you the configuration of each role. It's up to you to then configure the permissions so that access works correctly and according to your wishes.
+> [!NOTE]
+> I do not share with you the configuration of each role. It's up to you to then configure the permissions so that access works correctly and according to your wishes.
 
-[!WARNING]
-The robot (and therefore the Game Master role) must have administrator rights.
+> [!WARNING]
+> The robot (and therefore the Game Master role) must have administrator rights.
