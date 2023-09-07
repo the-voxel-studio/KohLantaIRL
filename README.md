@@ -24,6 +24,7 @@ To run this project:
 8. Complete the discussion channels with templates from the [Templates](/Templates/) folder
 
 [!WARNING]
+
 Some functions, names and variables are written in French. You are free to change them to their English equivalent or any other language. Just be careful that the operation of the robot is not affected, especially in the channel names and roles.
 
 ## Discord server architecture
