@@ -375,16 +375,12 @@ async def retrieval_of_results():
             member = guild.get_member(uid)
             await timeout(member,reason=f"Tentative de triche au vote.",minutes=30)
     max_reactions = [] ; max_count = 0
-    print("reactions : ",reactions)
     for reaction in reactions:
         if reaction.count > max_count:
             max_count = reaction.count
             max_reactions = [reaction.emoji]
         elif reaction.count == max_count:
             max_reactions.append(reaction.emoji)
-    print("max_reactions : ", max_reactions)
-    print("max_count : ", max_count)
-    print("letter : ",chr(emojis_list.index(max_reactions[0])+65))
     if len(max_reactions) == 1:
         eliminated = Player(letter=chr(emojis_list.index(max_reactions[0])+65))
         embed = discord.Embed(
