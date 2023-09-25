@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands, tasks
 import datetime
-from os import environ, name as os_name 
+from os import environ, name as os_name, system
 from models import Player, Alliance, Variables, NewPlayer, NewAlliance
 
 intents = (intents) = discord.Intents.all()  # Importation des capacités de controle du robot
@@ -158,14 +158,16 @@ async def ajouter(ctx, *args):
         if player.id != 0:
             if player.alive:
                 user = bot.get_user(player.id)
-		alliance = Alliance(text_id=ctx.channel.id)
+                alliance = Alliance(text_id=ctx.channel.id)
                 perms = ctx.channel.overwrites_for(user)
                 perms.read_messages = True
                 await ctx.channel.set_permissions(user, overwrite=perms)
-		voice_channel = bot.get_channel(alliance.voice_id)
-		perms = voice_channel.overwrites_for(user)
-		perms.connect = True
-		await voice_channel.set_permissions(user, overwrites=perms)
+                voice_channel = bot.get_channel(alliance.voice_id)
+                test = voice_channel.overwrites.copy()
+                print(test)
+                perms = voice_channel.overwrites_for(user)
+                perms.read_messages = True
+                await voice_channel.set_permissions(user, overwrite=perms)
                 alliance.add_member(player._id)
                 embed=discord.Embed(title=f":robot: Nouvelle alliance :moyai:", description=f":new: Vous avez été ajouté à l'alliance <#{ctx.channel.id}> par <@{ctx.author.id}> !", color=COLOR_GREEN)
                 await user.send(embed=embed)
@@ -187,10 +189,10 @@ async def ajouter(ctx, *args):
 async def supprimer(ctx, member: discord.Member, *args):
     if ctx.message.guild: await ctx.message.delete()
     player = Player(id=member.id)
-    perms = ctx.channel.overwrites_for(member)
-    perms.read_messages = False
-    await ctx.channel.set_permissions(member, overwrite=perms)
-    Alliance(text_id=ctx.channel.id).remove_member(player._id)
+    alliance = Alliance(text_id=ctx.channel.id)
+    await ctx.channel.set_permissions(member, overwrite=None)
+    await bot.get_channel(alliance.voice_id).set_permissions(member, overwrite=None)
+    alliance.remove_member(player._id)
     embed=discord.Embed(title=f":robot: Expulsion d'une alliance :moyai:", description=f":warning: Vous avez été supprimé de l'alliance *{ctx.channel.name}* par <@{ctx.author.id}> !", color=COLOR_ORANGE)
     await member.send(embed=embed)
     embed=discord.Embed(title=f":robot: Expulsion :moyai:", description=f":warning: <@{ctx.author.id}> a supprimé <@{player.id}> de l'alliance !", color=COLOR_ORANGE)
@@ -281,8 +283,7 @@ class Schedules(commands.Cog):
     def __init__(self):
         self.action_performed = None
         try: self.last_vote_date = datetime.datetime.strptime(Variables.get_last_vote_date(), "%Y/%m/%d")
-        except: self.last_vote_date = None
-        if not self.last_vote_date:
+        except:
             self.last_vote_date = datetime.datetime.now()
             bot.loop.create_task(self.send_message())
         self.verification.start()
@@ -306,6 +307,9 @@ class Schedules(commands.Cog):
         elif self.hour == "21:00" and self.action_performed == 18:
             self.vote_in_progress = 21
             await retrieval_of_results()
+        elif self.hour == "01:00" and os_name == 'posix':
+            system("sudo reboot")
+
 
 # ***** FONCTIONS *****
 async def timeout(member: discord.User, **kwargs):
