@@ -86,7 +86,7 @@ class Player:
 		db.Players.update_one({"_id": self._id},{"$set": {"letter":letter}}, upsert=False)
 
 	def eliminate(self):
-		db.Players.update_one({"_id": self._id},{"$set": {"alive":False}}, upsert=False)
+		db.Players.update_one({"_id": self._id},{"$set": {"alive":False,"letter":""}}, upsert=False)
 		
 class Variables:
 	
