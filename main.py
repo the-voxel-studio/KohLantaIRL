@@ -158,10 +158,15 @@ async def ajouter(ctx, *args):
         if player.id != 0:
             if player.alive:
                 user = bot.get_user(player.id)
+		alliance = Alliance(text_id=ctx.channel.id)
                 perms = ctx.channel.overwrites_for(user)
                 perms.read_messages = True
                 await ctx.channel.set_permissions(user, overwrite=perms)
-                Alliance(text_id=ctx.channel.id).add_member(player._id)
+		voice_channel = bot.get_channel(alliance.voice_id)
+		perms = voice_channel.overwrites_for(user)
+		perms.connect = True
+		await voice_channel.set_permissions(user, overwrites=perms)
+                alliance.add_member(player._id)
                 embed=discord.Embed(title=f":robot: Nouvelle alliance :moyai:", description=f":new: Vous avez été ajouté à l'alliance <#{ctx.channel.id}> par <@{ctx.author.id}> !", color=COLOR_GREEN)
                 await user.send(embed=embed)
                 embed=discord.Embed(title=f":robot: Nouveau membre :moyai:", description=f":new: <@{ctx.author.id}> a ajouté <@{player.id}> à l'alliance !", color=COLOR_GREEN)
