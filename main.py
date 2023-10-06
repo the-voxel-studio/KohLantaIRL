@@ -276,6 +276,16 @@ async def start(ctx):
     await ctx.message.delete()
     Variables.start_game()    
 
+@bot.command(pass_context=True)
+@commands.guild_only()
+@commands.has_any_role("Admin")
+async def restart(ctx):
+    await ctx.message.delete()
+    bot_channel = bot.get_channel(CHANNEL_ID_BOT)
+    embed=discord.Embed(title=f":robot: Redémarrage en cours :moyai:", color=eval("COLOR_ORANGE"))
+    await bot_channel.send(embed=embed)
+    system("sudo reboot")
+
 # ***** SHEDULES LOOP *****
 async def shedules_loop(): schedules = Schedules()
 
@@ -373,7 +383,7 @@ async def retrieval_of_results():
                     reactions_list[u.id].append(r.emoji)
     await msg.delete()
     embed=discord.Embed(title=f":robot: Tricherie détectée :moyai:", description=f":no_entry: Vous avez voté pour plusieurs personnes en même temps.\nTous vos votes ont donc été annulés pour ce dernier vote.\nPar ailleurs, vous reçevez une sanction de type ban pendant 30 minutes.", color=COLOR_RED)
-    embed.set_footer(text="Cette décision automatique n'est pas contestable. Vous pouvez néanmoins contacter un administrateur en MP pour signaler le problème.")
+    embed.set_footer(text="Cette décision automatique n'est pas contestable. Vous pouvez néanmoins contacter un administrateur en MP pour signaler un éventuel problème.")
     for uid, emojis in reactions_list.items():
         if len(emojis) > 1:
             for react in reactions:
@@ -409,6 +419,11 @@ async def retrieval_of_results():
         await member.remove_roles(role)
         await member.add_roles(new_role)
         eliminated.eliminate()
+        # FIXME sup membre éliminé de ses alliances
+        # TODO save "death_council_number" in models
+        # TODO send MP to eliminated player
+        # TODO send who voted to this player
+        # TODO sup alliances à membre unique
     else:
         embed = discord.Embed(
             title=f"**Egalité**",

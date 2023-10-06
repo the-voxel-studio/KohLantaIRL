@@ -1,6 +1,7 @@
 from pymongo.mongo_client import MongoClient
 import dns.resolver
 from bson.objectid import ObjectId
+from datetime import datetime
 from dotenv import load_dotenv   #for python-dotenv method
 load_dotenv()                    #for python-dotenv method
 from os import environ
@@ -148,7 +149,49 @@ class Alliance:
 	def add_member(self,_id: int):
 		self.members.append(ObjectId(str(_id)))
 		db.Alliances.update_one({"_id": self._id},{"$set": {"members":self.members}}, upsert=False)
-	
+
 	def remove_member(self,_id: int):
 		self.members.remove(ObjectId(str(_id)))
 		db.Alliances.update_one({"_id": self._id},{"$set": {"members":self.members}}, upsert=False)
+
+# TODO alliance log : member, council number of join, council number of leave, add_by
+
+class NewVoteLog:# XXX Continuer NewVoteLog
+	def __init__(self,**kwargs):
+		self.votes = kwargs.get("votes", None)
+		self.eliminated_discord_id = kwargs.get("eliminated", None)
+		self.date = datetime.now().strftime("%d/%m/%Y")
+		self.votes_logs = db.VoteLogs
+		self.number = len(self.votes_logs.list_indexes()) + 1 
+		self.players_list = db.Players.list_indexes()
+		self.eliminated_db_id = None
+		
+	def save(self):
+		db.Alliances.insert_one({
+			"votes": self.votes,
+			"date": self.date,
+			"number": self.number,
+			"eliminated": [ObjectId(str(self.eliminated_db_id))]
+		})
+
+class VoteLog:
+	def __init__(self, **kwargs):
+		self._id = kwargs.get("_id",None)
+		self.number = kwargs.get("number",None)
+		self.date = kwargs.get("date",None)
+		self.votes = self.filter = {}
+		self.find()
+	
+	def find(self):
+		if self._id != None:
+			self.filter = {"_id":self._id}
+		elif self.number != 0:
+			self.filter = {"number":self.number}
+		elif self.date != 0:
+			self.filter = {"filter":self.filter}
+		self.vote_log = db.VoteLogs.find_one(filter=self.filter)
+		if self.vote_log:
+			self._id = self.vote_log.get("_id",None) if not self._id else self._id
+			self.number = self.vote_log.get("number",None) if not self.number else self.number
+			self.date = self.vote_log.get("date",None) if not self.date else self.date
+			self.votes = self.vote_log.get("votes",None)
