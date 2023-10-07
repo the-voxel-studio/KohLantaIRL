@@ -50,6 +50,11 @@ async def on_ready():
         embed=discord.Embed(title=":robot: Bot restarted and ready :moyai:", description=f":white_check_mark: mode : **PRODUCTION**\n:clock: time   : {time}", color=COLOR_GREEN)
         await bot_channel.send(embed=embed)
     await shedules_loop()
+    t = datetime.datetime.now()
+    if t.strftime("%d/%m") == "09/10" and Variables.get_state() == 2:
+        Variables.set_last_vote_date(t.strftime("%Y/%m/%d"))
+        Variables.start_last_vote()
+        await show_vote_msg()
 
 @bot.event
 async def on_message(message):
@@ -282,7 +287,7 @@ async def start(ctx):
 async def restart(ctx):
     await ctx.message.delete()
     bot_channel = bot.get_channel(CHANNEL_ID_BOT)
-    embed=discord.Embed(title=f":robot: Redémarrage en cours :moyai:", color=eval("COLOR_ORANGE"))
+    embed=discord.Embed(title=f":robot: Redémarrage en cours :moyai:", description=f"by **{ctx.author.display_name}**", color=eval("COLOR_ORANGE"))
     await bot_channel.send(embed=embed)
     system("sudo reboot")
 
@@ -302,24 +307,32 @@ class Schedules(commands.Cog):
         self.embed=discord.Embed(title=f":robot: Dernier vote introuvable :moyai:", description=f":warning: Impossible d'obtenir la date du dernier vote dans la base de donnée.\nDate appliquée : **{self.last_vote_date.strftime('%d/%m/%Y')}**", color=COLOR_ORANGE)
         await bot.get_channel(CHANNEL_ID_BOT).send(embed=self.embed)
 
+    # TODO change last_vote system
+    # TODO review auto vote system with dates ?
     @tasks.loop(seconds=5)
     async def verification(self):
         self.time = datetime.datetime.now()
         self.hour = self.time.strftime("%H:%M")
         if self.hour == "18:00" and self.action_performed != 18:
-            if (self.time - self.last_vote_date).days > 1 and Variables.get_state():
+            if (self.time - self.last_vote_date).days > 1 and Variables.get_state() == 1:
                 self.action_performed = 18
                 self.last_vote_date = self.time
                 Variables.set_last_vote_date(self.time.strftime("%Y/%m/%d"))
                 await show_vote_msg()
             else:
                 self.action_performed = None
-        elif self.hour == "21:00" and self.action_performed == 18:
-            self.vote_in_progress = 21
+        elif self.hour == "21:00" and self.action_performed == 18 and Variables.get_state() == 1:
+            self.action_performed = 21
+            await retrieval_of_results()
+        elif self.hour == "00:00" and Variables.get_state() == 3:
+            self.action_performed = 0
+            Variables.game_end()
             await retrieval_of_results()
         elif self.hour == "01:00" and os_name == 'posix':
+            bot_channel = bot.get_channel(CHANNEL_ID_BOT)
+            embed=discord.Embed(title=f":robot: Redémarrage automatique en cours :moyai:", color=eval("COLOR_ORANGE"))
+            await bot_channel.send(embed=embed)
             system("sudo reboot")
-
 
 # ***** FONCTIONS *****
 async def timeout(member: discord.User, **kwargs):
@@ -339,7 +352,7 @@ async def show_vote_msg():
         embed = discord.Embed(title=f"Qui souhaitez-vous éliminer ce soir ?",description=f"Vous avez jusqu'à 21h ce soir pour choisir la personne que vous souhaitez éliminer en réagissant à ce message.",color=0x109319)
         embed.set_author(name="Le conseil",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
     else:
-        embed = discord.Embed(title=f"Qui doit remporter cette saison ?",description=f"Vous avez jusqu'à 21h ce soir pour choisir la personne que remportera cette saison en réagissant à ce message.",color=0x109319)
+        embed = discord.Embed(title=f"Qui doit remporter cette saison ?",description=f"Vous avez jusqu'à 23h59 ce soir pour choisir la personne que remportera cette saison en réagissant à ce message.",color=0x109319)
         embed.set_author(name="La Finale",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
         guild = bot.get_guild(GUILD_ID)
         v_role = discord.utils.get(guild.roles, name="Votant Final") # Récupération du role "Votant final"
@@ -402,6 +415,7 @@ async def retrieval_of_results():
             max_reactions.append(reaction.emoji)
     if len(max_reactions) == 1:
         eliminated = Player(letter=chr(emojis_list.index(max_reactions[0])+65))
+        nb_remaining_players = len(reactions)-1
         embed = discord.Embed(
             title=f"**{eliminated.nickname}**",
             description=f"Les aventuriers de la tribu ont décidé de l'éliminer et leur sentence est irrévocable !",
@@ -409,7 +423,8 @@ async def retrieval_of_results():
         )
         embed.set_author(name="Résultat du conseil",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
         embed.set_thumbnail(url="https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp")
-        embed.add_field(name=f"Cet aventurier a reçu {max_count-1} votes.", value=f"Il reste {len(reactions)-1} aventuriers en jeu.", inline=True)
+        value = f"Il reste {nb_remaining_players} aventuriers en jeu." if nb_remaining_players != 1 else ""
+        embed.add_field(name=f"Cet aventurier a reçu {max_count-1} votes.", value=value, inline=True)
         channel = bot.get_channel(CHANNEL_ID_RESULTATS)
         await channel.send(embed=embed)
         guild = bot.get_guild(GUILD_ID)
@@ -419,6 +434,7 @@ async def retrieval_of_results():
         await member.remove_roles(role)
         await member.add_roles(new_role)
         eliminated.eliminate()
+        if nb_remaining_players == 1 : Variables.wait_for_last_vote()
         # FIXME sup membre éliminé de ses alliances
         # TODO save "death_council_number" in models
         # TODO send MP to eliminated player
@@ -452,7 +468,7 @@ async def join(message):
     """
     args = message.content.split(" ") # Découpe du texte du contenu en fonciton des espaces
     player = message.author # Récupère le joueur ayant envoyé la commande
-    if Variables.get_state(): # Vérification du statut du jeu : les isncriptions ne doivent pas être closes
+    if Variables.get_state(): # Vérification du statut du jeu : les inscriptions ne doivent pas être closes
         embed=discord.Embed(title=f":robot: Action impossible :moyai:", description=f":warning: La partie a déjà débutée", color=COLOR_ORANGE)
         await player.send(embed=embed)
     elif Player(id=player.id).exists: # Recherche de l'identifiant unique Discord du joueur pour vérifier qu'il n'est pas déjà inscrit
@@ -490,4 +506,7 @@ async def set_inscription_infos():
     channel = bot.get_channel(CHANNEL_ID_INSCRIPTION)
     await channel.send(embed=embed)
 
+async def write_log(content: str):
+    bot_channel = bot.get_channel(CHANNEL_ID_BOT)
+    await bot_channel.send(content)
 bot.run(TOKEN) # Lancement du robot

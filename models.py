@@ -94,6 +94,15 @@ class Variables:
 	def start_game() -> None:
 		db.Variables.update_one({"id": 0},{"$set": {"state":1}}, upsert=False)
 
+	def wait_for_last_vote() -> None:
+		db.Variables.update_one({"id": 0},{"$set": {"state":2}}, upsert=False)
+
+	def start_last_vote() -> None:
+		db.Variables.update_one({"id": 0},{"$set": {"state":3}}, upsert=False)
+
+	def game_end() -> None:
+		db.Variables.update_one({"id": 0},{"$set": {"state":4}}, upsert=False)
+
 	def get_state() -> int:
 		return db.Variables.find_one({"id":0}).get("state", 0)
 	
