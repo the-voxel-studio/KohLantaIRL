@@ -395,6 +395,7 @@ async def retrieval_of_results():
                 elif r.emoji not in reactions_list[u.id]:
                     reactions_list[u.id].append(r.emoji)
     await msg.delete()
+    Variables.set_vote_msg_id(0)
     embed=discord.Embed(title=f":robot: Tricherie détectée :moyai:", description=f":no_entry: Vous avez voté pour plusieurs personnes en même temps.\nTous vos votes ont donc été annulés pour ce dernier vote.\nPar ailleurs, vous reçevez une sanction de type ban pendant 30 minutes.", color=COLOR_RED)
     embed.set_footer(text="Cette décision automatique n'est pas contestable. Vous pouvez néanmoins contacter un administrateur en MP pour signaler un éventuel problème.")
     for uid, emojis in reactions_list.items():
