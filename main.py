@@ -1,12 +1,17 @@
-import discord
-from discord.ext import commands, tasks
 import datetime
-from os import environ, name as os_name, system
-from models import Player, Alliance, Variables, NewPlayer, NewAlliance, setup_db_connection
-from threading import Timer
 import signal
 import sys
+from os import environ
+from os import name as os_name
+from os import system
+from threading import Timer
+
+import discord
+from discord.ext import commands, tasks
+
 from logging_setup import get_logger, setup_logger
+from models import (Alliance, NewAlliance, NewPlayer, Player, Variables,
+                    setup_db_connection)
 
 last_vote_date = None
 timer_thread = None

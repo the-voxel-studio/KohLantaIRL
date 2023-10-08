@@ -1,10 +1,13 @@
-from pymongo.mongo_client import MongoClient
+from datetime import datetime
+
 import dns.resolver
 from bson.objectid import ObjectId
-from datetime import datetime
-from dotenv import load_dotenv   #for python-dotenv method
+from dotenv import load_dotenv  # for python-dotenv method
+from pymongo.mongo_client import MongoClient
+
 load_dotenv()                    #for python-dotenv method
 from os import environ
+
 from logging_setup import get_logger
 
 logger = get_logger(__name__)

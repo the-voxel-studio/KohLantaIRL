@@ -1,5 +1,5 @@
 import logging
-from termcolor import colored
+
 from colorama import Fore, Style
 
 # LOG_FORMAT = '%(asctime)s %(levelname)s %(name)s %(message)s'
