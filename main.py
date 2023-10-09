@@ -7,8 +7,9 @@ from os import system
 from threading import Timer
 
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands
 
+import pdf
 from logging_setup import get_logger, setup_logger
 from models import (Alliance, NewAlliance, NewPlayer, Player, Variables,
                     setup_db_connection)
@@ -326,6 +327,17 @@ async def restart(ctx):
     await send_log("Redémarrage manuel en cours", f"by **{ctx.author.display_name}**", color="orange")
     logger.info("Ready to reboot.")
     system("sudo reboot")
+
+@BOT.command()
+# @commands.has_any_role("Admin")
+async def test_pdf(ctx, vote_number: str = "5"):
+    try: await ctx.message.delete()
+    except: pass
+    logger.info(f"Test PDF > start | vote_number: {vote_number}")
+    pdf_name = pdf.generate(int(vote_number))
+    file = discord.File(f"D:\dodin\OneDrive\Documents\Informatique\KohLanta\pdf\{pdf_name}")
+    await ctx.send(file=file)
+    logger.info(f"Test PDF > OK | vote_number: {vote_number} | PDF name: {pdf_name}")
 
 # ***** TIMER THREAD *****
 async def timed_action():
