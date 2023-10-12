@@ -1,6 +1,8 @@
 *.env
-!/EnvExample/*.env
+!/Example/.env
 
+pdf
+logs
 .venv
 
 logs
