@@ -8,6 +8,7 @@ Thus, its missions are diverse: management of votes, results, fight against chea
 ## Technologies
 Project is created with:
 * Python 3.10.11
+    * match/case syntax support is required (min 3.10)
 * [Discord Dev Portal](https://discord.com/developers/)
 * [MongoDb](https://mongodb.com)
 * [Amazon Web Services](https://aws.amazon.com)
