@@ -36,6 +36,7 @@ It should have the following list of chat channels, which can be placed however 
 * general: in which players can discuss
 * eliminated: in which the eliminated can discuss
 * bot: in which Denis Brogniart can send messages to admins
+* bot-logs : in wich Denis Brogniart will send at every launch (and when you command it) his bot.log file
 
 But also two categories:
 * Help:
