@@ -13,7 +13,6 @@ frozenlist==1.4.0
 h11==0.14.0
 httpcore==0.17.3
 idna==3.4
-logging==0.4.9.6
 multidict==6.0.4
 pymongo==4.5.0
 python-dotenv==1.0.0
