@@ -10,7 +10,7 @@ LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 class ColoredFormatter(logging.Formatter):
     LEVEL_COLORS = {
         'DEBUG': Fore.GREEN,
-        'INFO': Fore.CYAN,
+        'INFO': Fore.BLUE,
         'WARNING': Fore.YELLOW,
         'ERROR': Fore.RED,
         'CRITICAL': Fore.MAGENTA,
@@ -63,7 +63,7 @@ def get_logger(name):
     console_handler.setFormatter(ColoredFormatter(CONSOLE_LOG_FORMAT, datefmt=LOG_DATE_FORMAT))
     logger.addHandler(console_handler)
 
-    file_handler = logging.FileHandler('logs/test.log')
+    file_handler = logging.FileHandler('logs/bot.log')
     file_handler.setFormatter(FileFormatter(FILE_LOG_FORMAT, datefmt=LOG_DATE_FORMAT))
     logger.addHandler(file_handler)
 

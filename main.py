@@ -1,13 +1,17 @@
 import datetime
 import signal
 import sys
-from os import environ
+from os import environ, path
 from os import name as os_name
 from os import system
 from threading import Timer
+import asyncio
+import time
+import typing
 
 import discord
 from discord.ext import commands
+# from discord import app_commands
 
 import pdf
 from logging_setup import get_logger, setup_logger
@@ -19,9 +23,10 @@ timer_thread = None
 
 # ***** CONSTANTES *****
 INTENTS = (intents) = discord.Intents.all()  # Importation des capacités de controle du robot
-BOT = commands.Bot(command_prefix="/", description=f"Bot maitre du jeu", intents=INTENTS)  # Définition du préfixe des commandes, de la description Discord du bot et  application de ses capacités
+BOT = commands.Bot(command_prefix="/", description=f"Bot maitre du jeu", intents=INTENTS, application_id=1139673903678095400)  # Définition du préfixe des commandes, de la description Discord du bot et  application de ses capacités
 EMOJIS_LIST = ["🇦","🇧","🇨","🇩","🇪","🇫","🇬","🇭","🇮","🇯","🇰","🇱","🇲","🇳","🇴","🇵","🇶","🇷","🇸","🇹","🇺","🇻","🇼","🇽","🇾","🇿"] # Définition de la liste des émojis de réaction pour les votes
 CHANNEL_ID_BOT = int(environ.get("CHANNEL_BOT"))
+CHANNEL_ID_BOT_LOGS = int(environ.get("CHANNEL_BOT_LOGS"))
 CHANNEL_ID_GENERAL = int(environ.get("CHANNEL_GENERAL"))
 CHANNEL_ID_INSCRIPTION = int(environ.get("CHANNEL_INSCRIPTION"))
 CHANNEL_ID_VOTE = int(environ.get("CHANNEL_VOTE"))
@@ -36,6 +41,7 @@ TOKEN = environ.get("TOKEN")
 COLOR_GREEN = 0x008000
 COLOR_ORANGE = 0xff7f00
 COLOR_RED = 0xf00020
+DIRNAME = path.dirname(__file__)
 
 # ***** LOGGING *****
 setup_logger()
@@ -52,6 +58,7 @@ def in_category(category_name):
 # ***** BOT EVENTS *****
 @BOT.event
 async def on_ready():
+    global tree
     """Envoi d'un message de mise en ligne
     
     Cette fonction envoie simplement un message sur le channel de discussion du BOT pour informer les admin de sa mise en ligne.
@@ -63,7 +70,10 @@ async def on_ready():
         await send_log("BOT restarted and ready", ":tools: mode : **DEV**", f":clock: time   : {time}", color="orange")
     else:
         await send_log("BOT restarted and ready", ":tools: mode : **PRODUCTION**", f":clock: time   : {time}", color="green")
+    await send_logs_file()
+    BOT.tree.copy_global_to(guild=discord.Object(id=GUILD_ID))
     logger.info("Bot started and ready.")
+    await BOT.tree.sync(guild=discord.Object(id=GUILD_ID))
 
 @BOT.event
 async def on_message(message):
@@ -110,8 +120,47 @@ async def on_command_error(ctx, error):
         try: await ctx.message.delete()
         except: pass
         logger.error(f"Command error | Sent by {ctx.author} (id:{ctx.author.id}) | {error}")
-        embed=discord.Embed(title=f":robot: Erreur :moyai:", description=f":warning: Une erreur est surveue lors de l'execution de cette commande.\n\nCommande : {ctx.message.content}", color=COLOR_ORANGE)
+        embed=discord.Embed(title=f":robot: Erreur :moyai:", description=f":warning: Une erreur est survenue lors de l'execution de cette commande.\n\nCommande : {ctx.message.content}", color=COLOR_ORANGE)
         await ctx.author.send(embed=embed)
+
+@BOT.tree.error
+async def on_app_command_error(interaction: discord.Interaction, error):
+    if isinstance(error, commands.errors.CommandNotFound):
+        logger.warning(f"CommandNotFound | Sent by {interaction.user} (id:{interaction.user.id}) | Content: {interaction.message.content}")
+        embed=discord.Embed(title=f":robot: Commande inconnue :moyai:", description=f":warning: Veuillez vérifier l'orthographe", color=COLOR_ORANGE)
+        if interaction.response.responded:
+            await interaction.response.send_message(embed=embed)
+        else:
+            await interaction.followup.send(embed=embed)
+    elif isinstance(error, commands.errors.MissingPermissions) or isinstance(error, discord.ext.commands.errors.MissingRole) or isinstance(error, discord.ext.commands.errors.MissingAnyRole):
+        command = interaction.message.content.split(' ')[0]
+        logger.warning(f"MissingPermissions | Sent by {interaction.user} (id:{interaction.user.id}) | Attempted to use the command: {command}")
+        embed=discord.Embed(title=f":robot: Commande interdite :moyai:", description=f":no_entry: Vous n'avez pas les permissions nécessaires pour utiliser la commande !", color=COLOR_RED)
+        embed.set_footer(text=f"Essayer à plusieurs reprises d'utiliser une commande interdite ou y parvenir sans autorisation des administrateurs entrainera systématiquement un bannissement temporaire ou définitif du joueur.")
+        if interaction.response.is_done():
+            await interaction.followup.send(embed=embed)
+        else:
+            await interaction.response.send_message(embed=embed)
+        embed=discord.Embed(title=f":robot: Commande bloquée :moyai:", description=f"sent by **{interaction.user.display_name}**\nattempted to use the command **{command}**", color=COLOR_RED)
+        await BOT.get_channel(CHANNEL_ID_BOT).send(embed=embed)
+    elif isinstance(error, commands.errors.NoPrivateMessage):
+        command = interaction.message.content.split(' ')[0]
+        logger.warning(f"NoPrivateMessage | Sent by {interaction.user} (id:{interaction.user.id}) | Attempted to use the command: {command}")
+        embed=discord.Embed(title=f":robot: Commande de serveur :moyai:", description=f":no_entry: Cette commande n'est pas disponible en message privé.", color=COLOR_ORANGE)
+        embed.set_footer(text=f"Essayer à plusieurs reprises d'utiliser une commande interdite ou y parvenir sans autorisation des administrateurs entrainera systématiquement un bannissement temporaire ou définitif du joueur.")
+        if interaction.response.is_done():
+            await interaction.followup.send(embed=embed)
+        else:
+            await interaction.response.send_message(embed=embed)
+        embed=discord.Embed(title=f":robot: Commande MP bloquée :moyai:", description=f"sent by **{interaction.user.display_name}**\nattempted to use the command **{command}**", color=COLOR_ORANGE)
+        await BOT.get_channel(CHANNEL_ID_BOT).send(embed=embed)
+    else:
+        logger.error(f"Command error | Sent by {interaction.user} (id:{interaction.user.id}) | {error}")
+        embed=discord.Embed(title=f":robot: Erreur :moyai:", description=f":warning: Une erreur est survenue lors de l'execution de cette commande.", color=COLOR_ORANGE)
+        if interaction.response.is_done():
+            await interaction.followup.send(embed=embed)
+        else:
+            await interaction.response.send_message(embed=embed)
 
 @BOT.event
 async def on_raw_reaction_add(payload):
@@ -230,63 +279,72 @@ async def supprimer(ctx, member: discord.Member, *args):
     await ctx.send(embed=embed)
     logger.info(f"Alliance member removed | Requested by {ctx.author} (id:{ctx.author.id}) | Member: {member} (id:{member.id}) | Alliance text channel id: {ctx.channel.id}")
 
-@BOT.command(pass_context=True)
+@BOT.tree.command(name = "clear", description = "Supprimer un certain nombre de messages")
 @commands.guild_only()
 @commands.has_any_role("Admin")
-async def clear(ctx, amount=1):
-    if ctx.message.guild: await ctx.message.delete()
-    logger.info(f"Partial channel clearing | Requested by {ctx.author} (id:{ctx.author.id}) | Number: {amount} | Channel id: {ctx.channel.id}")
-    await ctx.channel.purge(limit=amount)
+async def clear(interaction: discord.Interaction, amount: int):
+    logger.info(f"Partial channel clearing | Requested by {interaction.user} (id:{interaction.user.id}) | Number: {amount} | Channel id: {interaction.channel.id}")
+    await interaction.message.delete()
+    await interaction.channel.purge(limit=amount)
 
-@BOT.command(pass_context=True)
+@BOT.tree.command(name = "open_vote", description = "Ouverture d'un nouveau vote")
 @commands.guild_only()
 @commands.has_any_role("Admin")
-async def open_vote(ctx):
-    await ctx.message.delete()
-    logger.info(f"Vote opening | Requested by {ctx.author} (id:{ctx.author.id}).")
-    await show_vote_msg()
+async def open_vote(interaction: discord.Interaction):
+    logger.info(f"Vote opening | Requested by {interaction.user} (id:{interaction.user.id}).")
+    await interaction.response.defer()
+    await show_vote_msg(interaction)
 
-@BOT.command(pass_context=True)
+@BOT.tree.command(name = "close_vote", description = "Fermeture du vote en cours")
 @commands.guild_only()
 @commands.has_any_role("Admin")
-async def close_vote(ctx): 
-    await ctx.message.delete()
-    logger.info(f"Vote closing | Requested by {ctx.author} (id:{ctx.author.id}).")
-    await retrieval_of_results()
+async def close_vote(interaction: discord.Interaction): 
+    logger.info(f"Vote closing | Requested by {interaction.user} (id:{interaction.user.id}).")
+    await interaction.response.defer()
+    await retrieval_of_results(interaction)
 
-@BOT.command(pass_context = True)
+@BOT.tree.command(name = "mute", description = "Rendre muet un membre")
 @commands.guild_only()
 @commands.has_any_role("Admin")
-async def mute(ctx, member: discord.Member, minutes=10, reason=None):
-    await ctx.message.delete()
-    logger.info(f"Member muting | Requested by {ctx.author} (id:{ctx.author.id}) | Member: {member} (id:{member.id})")
-    await timeout(member,author=ctx.author,minutes=minutes,reason=reason)
+async def mute(interaction: discord.Interaction, member: discord.Member, timedelta: typing.Literal["60s","10min","1h","12h","1j","2j","10j"], reason: str = None):
+    logger.info(f"Member muting | Requested by {interaction.user} (id:{interaction.user.id}) | Member: {member} (id:{member.id})")
+    await interaction.response.defer()
+    match timedelta:
+        case "60s": minutes = 1
+        case "10min": minutes = 10
+        case "1h": minutes = 60
+        case "12h": minutes = 720
+        case "1j": minutes = 1440
+        case "2j": minutes = 2880
+        case "10j": minutes = 14400
+        case _: minutes = 10
+    await timeout(member,author=interaction.user,minutes=minutes,reason=reason,interaction=interaction)
 
-@BOT.command(pass_context = True)
+@BOT.tree.command(name = "unmute", description = "Rendre la parole à un membre")
 @commands.guild_only()
 @commands.has_any_role("Admin")
-async def unmute(ctx, member: discord.Member, minutes=10, reason=None):
-    await ctx.message.delete()
-    logger.info(f"Member unmuting | Requested by {ctx.author} (id:{ctx.author.id}) | Member: {member} (id:{member.id})")
+async def unmute(interaction: discord.Interaction, member: discord.Member):
+    logger.info(f"Member unmuting | Requested by {interaction.user} (id:{interaction.user.id}) | Member: {member} (id:{member.id})")
     await member.timeout(None)
-    embed=discord.Embed(title=f":robot: {member} Unmuted :moyai:", description=f"by **{ctx.author}**", color=COLOR_GREEN)
+    embed=discord.Embed(title=f":robot: {member} Unmuted :moyai:", description=f"by **{interaction.user}**", color=COLOR_GREEN)
     await BOT.get_channel(CHANNEL_ID_BOT).send(embed=embed)
+    await interaction.response.send_message(embed=embed)
 
-@BOT.command(pass_context=True)
+
+@BOT.tree.command(name = "send", description = "Envoyer un message depuis Denis Brogniart")
 @commands.guild_only()
 @commands.has_any_role("Admin")
-async def send(ctx, channel: discord.TextChannel, content: str, color: str ="green"):
-    await ctx.message.delete()
-    logger.info(f"Important message sending | Requested by {ctx.author} (id:{ctx.author.id}) | Channel id: {channel.id} | Color: {color} | Content: {content}")
-    embed=discord.Embed(title=f":robot: Information de {ctx.author.display_name} :moyai:", description=content, color=eval("COLOR_"+color.upper()))
+async def send(interaction: discord.Interaction, channel: discord.TextChannel, content: str, color: typing.Literal["green","orange","red"]):
+    logger.info(f"Important message sending | Requested by {interaction.user} (id:{interaction.user.id}) | Channel id: {channel.id} | Color: {color} | Content: {content}")
+    embed=discord.Embed(title=f":robot: Information de {interaction.user.display_name} :moyai:", description=content, color=eval("COLOR_"+color.upper()))
     await channel.send(embed=embed)
+    await interaction.response.send_message(content=f"Message envoyé dans <#{channel.id}>")
 
-@BOT.command(pass_context=True)
+@BOT.tree.command(name = "eliminate", description = "Elimine un joueur après le choix du dernier éliminé")
 @commands.guild_only()
 @commands.has_any_role("Admin")
-async def eliminer(ctx, member: discord.Member):
-    await ctx.message.delete()
-    logger.info(f"Member elimination started | Requested by {ctx.author} (id:{ctx.author.id}) | Member: {member} (id:{member.id})")
+async def eliminate(interaction: discord.Interaction, member: discord.Member):
+    logger.info(f"Member elimination started | Requested by {interaction.user} (id:{interaction.user.id}) | Member: {member} (id:{member.id})")
     eliminated = Player(id=member.id)
     players = Player(option="living")
     players_list = players.list
@@ -307,41 +365,55 @@ async def eliminer(ctx, member: discord.Member):
     await member.remove_roles(role)
     await member.add_roles(new_role)
     eliminated.eliminate()
-    logger.info(f"Member eliminated | Requested by {ctx.author} (id:{ctx.author.id}) | Member: {member} (id:{member.id})")
+    logger.info(f"Member eliminated | Requested by {interaction.user} (id:{interaction.user.id}) | Member: {member} (id:{member.id})")
 
-@BOT.command(pass_context=True)
+@BOT.tree.command(name = "start-game", description = "Démarre la partie de KohLanta (fermeture des inscriptions)")
 @commands.guild_only()
 @commands.has_any_role("Admin")
-async def start(ctx):
-    await ctx.message.delete()
-    logger.info(f"Game start | Requested by {ctx.author} (id:{ctx.author.id}).")
-    Variables.start_game()    
+async def start(interaction: discord.Interaction):
+    logger.info(f"Game start | Requested by {interaction.user} (id:{interaction.user.id}).")
+    Variables.start_game()
+    embed=discord.Embed(title=f":robot: Partie démarrée :moyai:", color=COLOR_GREEN)
+    await interaction.response.send_message(embed=embed)
 
-@BOT.command(pass_context=True)
+@BOT.tree.command(name = "reboot", description = "Redémarre le serveur de Denis Brogniart")
 @commands.guild_only()
 @commands.has_any_role("Admin")
-async def restart(ctx):
-    await ctx.message.delete()
-    logger.info(f"Preparing for manual reboot. | Requested by {ctx.author} (id:{ctx.author.id})")
+async def reboot(interaction: discord.Interaction):
+    logger.info(f"Preparing for manual reboot. | Requested by {interaction.user} (id:{interaction.user.id})")
     timer_thread.cancel()
-    await send_log("Redémarrage manuel en cours", f"by **{ctx.author.display_name}**", color="orange")
+    await send_log("Redémarrage manuel en cours", f"by **{interaction.user.display_name}**", color="orange")
     logger.info("Ready to reboot.")
     system("sudo reboot")
 
-@BOT.command()
+# @BOT.command()
 # @commands.has_any_role("Admin")
-async def test_pdf(ctx, vote_number: str = "5"):
-    try: await ctx.message.delete()
-    except: pass
-    logger.info(f"Test PDF > start | vote_number: {vote_number}")
-    pdf_name = pdf.generate(int(vote_number))
-    file = discord.File(f"D:\dodin\OneDrive\Documents\Informatique\KohLanta\pdf\{pdf_name}")
-    await ctx.send(file=file)
-    logger.info(f"Test PDF > OK | vote_number: {vote_number} | PDF name: {pdf_name}")
+# async def test_pdf(ctx, vote_number: str = "5"):
+#     try: await ctx.message.delete()
+#     except: pass
+#     logger.info(f"Test PDF > start | vote_number: {vote_number} | requested by: {ctx.author} (id:{ctx.author.id})")
+#     pdf_name = pdf.generate(int(vote_number))
+#     if os_name == "nt":
+#         file = discord.File(f"{DIRNAME}\\pdf\\{pdf_name}")
+#     else:
+#         file = discord.File(f"{DIRNAME}/pdf/{pdf_name}")
+#     await ctx.send(file=file)
+#     logger.info(f"Test PDF > OK | vote_number: {vote_number} | PDF name: {pdf_name} | requested by: {ctx.author} (id:{ctx.author.id})")
+
+@BOT.tree.command(name = "logs", description = "To receive the bot.log file.")
+@commands.has_any_role("Admin")
+async def logs(interaction: discord.Interaction):
+    logger.info(f"Send Logs File > start | requested by: {interaction.user} (id:{interaction.user.id})")
+    await interaction.response.defer()
+    await send_logs_file()
+    embed=discord.Embed(title=f":robot: Logs disponible :moyai:", description=f":file_folder: Le fichier contenant mes logs est disponible dans ce channel: <#{CHANNEL_ID_BOT_LOGS}>.", color=COLOR_GREEN)
+    embed.set_footer(text="Ce fichier est strictement confidentiel et son accès est réservé aux administrateurs du serveur.")
+    await interaction.followup.send(embed=embed)
+    logger.info(f"Send Logs File > OK | requested by: {interaction.user} (id:{interaction.user.id})")
 
 # ***** TIMER THREAD *****
 async def timed_action():
-    logger.info('A thread timer has ended.')
+    logger.info('fn > Timer Loop > A thread timer has ended.')
     time = datetime.datetime.now()
     hour = int(time.strftime("%H"))
     if hour == 1:
@@ -359,6 +431,10 @@ async def timed_action():
         await retrieval_of_results()
     await start_new_timer()
 
+def timed_action_sync():
+    coro = timed_action()
+    asyncio.run_coroutine_threadsafe(coro, BOT.loop)
+
 # ***** FONCTIONS *****
 async def timeout(member: discord.User, **kwargs):
     if member.id not in [USER_ID_ADMIN,BOT_ID]:
@@ -371,9 +447,12 @@ async def timeout(member: discord.User, **kwargs):
         await member.timeout(delta,reason=reason)
         embed=discord.Embed(title=f":robot: {member} Muted! :moyai:", description=f"by **{author}**\nbecause of **{reason}**\nfor **{delta}**", color=COLOR_RED)
         await BOT.get_channel(CHANNEL_ID_BOT).send(embed=embed)
+        interaction = kwargs.get("interaction",None)
+        if interaction:
+            await interaction.followup.send(embed=embed)
         logger.info(f"fn > timeout > OK | Member: {member} (id:{member.id})")
 
-async def show_vote_msg():# TODO add logs
+async def show_vote_msg(interaction: discord.Interaction = None):# TODO add logs
     players = Player(option="living")
     players_list = players.list
     if len(players_list) > 2:
@@ -409,8 +488,11 @@ async def show_vote_msg():# TODO add logs
     Variables.set_vote_msg_id(msg.id)
     for r in reactions:
         await msg.add_reaction(r)
+    if interaction:
+        embed=discord.Embed(title=f":robot: Le vote est ouvert :moyai:", color=COLOR_GREEN)
+        await interaction.followup.send(embed=embed)
 
-async def retrieval_of_results():# TODO add logs
+async def retrieval_of_results(interaction: discord.Interaction = None):# TODO add logs
     channel = BOT.get_channel(CHANNEL_ID_VOTE)
     # try:
     msg = await channel.fetch_message(Variables.get_vote_msg_id())
@@ -480,6 +562,9 @@ async def retrieval_of_results():# TODO add logs
         embed.add_field(name="La dernière personne éliminée va être contactée pas un administrateur afin de trancher entre les personnes atant actuellement à égalité.", value=f"Vous serez avertis via ce canal dès la décision prise et saisie.", inline=True)
         channel = BOT.get_channel(CHANNEL_ID_RESULTATS)
         await channel.send(embed=embed)
+    if interaction : 
+        embed=discord.Embed(title=f":robot: Le vote est clos :moyai:", color=COLOR_GREEN)
+        await interaction.followup.send(embed=embed)
     # except:
     #     pass
 
@@ -551,20 +636,38 @@ async def send_log(title: str, *args, **kwargs):
     else:
         await bot_channel.send(title)
 
+async def send_logs_file():
+    logger.info(f"fn > send_logs_file > start")
+    bot_logs_channel = BOT.get_channel(CHANNEL_ID_BOT_LOGS)
+    if os_name == "nt":
+        file = discord.File(f"{DIRNAME}\\logs\\bot.log")
+    else:
+        file = discord.File(f"{DIRNAME}/logs/bot.log")
+    
+    await bot_logs_channel.send(file=file)
+    logger.info(f"fn > send_logs_file > OK")
+
 async def start_new_timer():
     global timer_thread
     time = datetime.datetime.today()
     next_time = time.replace(day=time.day, hour=time.hour, minute=0, second=0, microsecond=0) + datetime.timedelta(hours=1)
     delta = (next_time - time).total_seconds()
-    timer_thread = Timer(delta, timed_action)
+    if delta == 0:
+        logger.info(f'fn > Timer Loop > Waiting for {time.hour+1}:00:00 to start a new thread timer')
+        while delta == 0:
+            next_time = time.replace(day=time.day, hour=time.hour, minute=0, second=0, microsecond=0) + datetime.timedelta(hours=1)
+            delta = (next_time - time).total_seconds()
+    timer_thread = Timer(delta, timed_action_sync)
     timer_thread.start()
-    logger.info('New thread timer triggered.')
+    logger.info(f'fn > Timer Loop > New thread timer triggered | delta: {delta}')
 
 def signal_handler(sig, frame):
     logger.warning("Start of shutdown procedure.")
     timer_thread.cancel()
+    coro1 = send_log("Extinction en cours", "by **KeyboardInterrupt**")
+    asyncio.run_coroutine_threadsafe(coro1, BOT.loop)
     logger.warning("Complete shutdown procedure.")
     sys.exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
-BOT.run(TOKEN) # Lancement du roBOT
+BOT.run(TOKEN) # Lancement du robot
