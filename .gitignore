@@ -1,5 +1,5 @@
 *.env
-!/Example/.env
+!/Example/.example.env
 
 pdf
 logs
