@@ -51,9 +51,6 @@ class FileFormatter(logging.Formatter):
         formatted_message = formatted_message.replace('{levelname}', record.levelname + spacing)
 
         return formatted_message
-    
-def setup_logger():
-    pass
 
 def get_logger(name):
     logger = logging.getLogger(name)

@@ -8,7 +8,7 @@ from pymongo.mongo_client import MongoClient
 load_dotenv()                    #for python-dotenv method
 from os import environ
 
-from logging_setup import get_logger
+from utils.logging import get_logger
 
 logger = get_logger(__name__)
 client = None
