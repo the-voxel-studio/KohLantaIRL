@@ -1,11 +1,12 @@
-import discord
-
-from utils.bot import bot
-from config.values import CHANNEL_ID_BOT, COLOR_GREEN, COLOR_ORANGE, COLOR_RED, CHANNEL_ID_BOT_LOGS #COULEURS OBLIGATOIRES (utilisation de la fonction eval)
-from utils.logging import get_logger
-
 import os
 from pathlib import Path
+
+import discord
+
+from config.values import (  # COULEURS OBLIGATOIRES (utilisation de la fonction eval)
+    CHANNEL_ID_BOT, CHANNEL_ID_BOT_LOGS, COLOR_GREEN, COLOR_ORANGE, COLOR_RED)
+from utils.bot import bot
+from utils.logging import get_logger
 
 logger = get_logger(__name__)
 # DIRNAME = os.path.dirname(__file__)

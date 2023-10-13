@@ -11,7 +11,7 @@ from config.values import (BOT_ID, CHANNEL_ID_BOT, CHANNEL_ID_INSCRIPTION,
                            EMOJI_ID_COLLIER, GUILD_ID, TOKEN)
 from utils.bot import bot
 from utils.game.players import join
-from utils.game.timer import start_new_timer, cancel_timer
+from utils.game.timer import cancel_timer, start_new_timer
 from utils.log import send_log, send_logs_file
 from utils.logging import get_logger
 from utils.models import Player, setup_db_connection
@@ -19,8 +19,8 @@ from utils.punishments import timeout
 
 # ***** CONSTANTES *****
 logger = get_logger(__name__)
-# DIRNAME = os.path.dirname(__file__)
-COGS = ["cogs.admin", "cogs.game.alliances", "cogs.game.steps", "cogs.game.votes","cogs.punishments.muting","cogs.mycog"]
+# bot.remove_command('alliance')
+COGS = ["cogs.admin", "cogs.game.alliances", "cogs.game.steps", "cogs.game.votes", "cogs.help", "cogs.punishments.muting"]
 
 @bot.event
 async def on_ready():
@@ -87,16 +87,14 @@ async def on_command_error(ctx, error):
         await ctx.author.send(embed=embed)
 
 @bot.tree.error
+# @bot.event
 async def on_app_command_error(interaction: discord.Interaction, error):
-    if isinstance(error, commands.errors.CommandNotFound):
-        logger.warning(f"CommandNotFound | Sent by {interaction.user} (id:{interaction.user.id}) | Content: {interaction.message.content}")
+    if isinstance(error, discord.app_commands.errors.CommandNotFound):
+        logger.warning(f"CommandNotFound | Sent by {interaction.user} (id:{interaction.user.id}) | Content: {error}")
         embed=discord.Embed(title=f":robot: Commande inconnue :moyai:", description=f":warning: Veuillez vérifier l'orthographe", color=COLOR_ORANGE)
-        if interaction.response.responded:
-            await interaction.response.send_message(embed=embed)
-        else:
-            await interaction.followup.send(embed=embed)
-    elif isinstance(error, commands.errors.MissingPermissions) or isinstance(error, discord.ext.commands.errors.MissingRole) or isinstance(error, discord.ext.commands.errors.MissingAnyRole):
-        command = interaction.message.content.split(' ')[0]
+        await interaction.response.send_message(embed=embed)
+    elif isinstance(error.original, commands.errors.MissingPermissions) or isinstance(error.original, discord.ext.commands.errors.MissingRole) or isinstance(error.original, discord.ext.commands.errors.MissingAnyRole):
+        command = "/"+interaction.command.name
         logger.warning(f"MissingPermissions | Sent by {interaction.user} (id:{interaction.user.id}) | Attempted to use the command: {command}")
         embed=discord.Embed(title=f":robot: Commande interdite :moyai:", description=f":no_entry: Vous n'avez pas les permissions nécessaires pour utiliser la commande !", color=COLOR_RED)
         embed.set_footer(text=f"Essayer à plusieurs reprises d'utiliser une commande interdite ou y parvenir sans autorisation des administrateurs entrainera systématiquement un bannissement temporaire ou définitif du joueur.")
@@ -106,8 +104,8 @@ async def on_app_command_error(interaction: discord.Interaction, error):
             await interaction.response.send_message(embed=embed)
         embed=discord.Embed(title=f":robot: Commande bloquée :moyai:", description=f"sent by **{interaction.user.display_name}**\nattempted to use the command **{command}**", color=COLOR_RED)
         await bot.get_channel(CHANNEL_ID_BOT).send(embed=embed)
-    elif isinstance(error, commands.errors.NoPrivateMessage):
-        command = interaction.message.content.split(' ')[0]
+    elif isinstance(error.original, commands.errors.NoPrivateMessage):
+        command = "/"+interaction.command.name
         logger.warning(f"NoPrivateMessage | Sent by {interaction.user} (id:{interaction.user.id}) | Attempted to use the command: {command}")
         embed=discord.Embed(title=f":robot: Commande de serveur :moyai:", description=f":no_entry: Cette commande n'est pas disponible en message privé.", color=COLOR_ORANGE)
         embed.set_footer(text=f"Essayer à plusieurs reprises d'utiliser une commande interdite ou y parvenir sans autorisation des administrateurs entrainera systématiquement un bannissement temporaire ou définitif du joueur.")

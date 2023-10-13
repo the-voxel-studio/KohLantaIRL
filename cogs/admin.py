@@ -5,10 +5,11 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from utils.logging import get_logger
+from config.values import (  # OBLIGATOIRES (utilisation de la fonction eval)
+    CHANNEL_ID_BOT_LOGS, COLOR_GREEN, COLOR_ORANGE, COLOR_RED)
 from utils.log import send_log, send_logs_file
-
-from config.values import CHANNEL_ID_BOT_LOGS, COLOR_GREEN, COLOR_ORANGE, COLOR_RED #OBLIGATOIRES (utilisation de la fonction eval)
+from utils.logging import get_logger
+from utils.control import is_admin, is_in_guild
 
 logger = get_logger(__name__)
 
@@ -19,6 +20,7 @@ class AdminCog(commands.Cog):
     @app_commands.command(
         name="send", description="Envoyer un message depuis Denis Brogniart"
     )
+    @app_commands.default_permissions(moderate_members=True)
     async def send(
         self,
         interaction: discord.Interaction,
@@ -26,6 +28,8 @@ class AdminCog(commands.Cog):
         content: str,
         color: typing.Literal["green", "orange", "red"],
     ):
+        if not is_admin(interaction.user):
+            raise commands.MissingPermissions(["Admin"])
         logger.info(
             f"Important message sending | Requested by {interaction.user} (id:{interaction.user.id}) | Channel id: {channel.id} | Color: {color} | Content: {content}"
         )
@@ -42,7 +46,10 @@ class AdminCog(commands.Cog):
     @app_commands.command(
         name="reboot", description="Redémarre le serveur de Denis Brogniart"
     )
+    @app_commands.default_permissions(create_instant_invite=True)
     async def reboot(self, interaction: discord.Interaction):
+        if not is_admin(interaction.user):
+            raise commands.MissingPermissions(["Admin"])
         logger.info(
             f"Preparing for manual reboot. | Requested by {interaction.user} (id:{interaction.user.id})"
         )
@@ -55,6 +62,7 @@ class AdminCog(commands.Cog):
         system("sudo reboot")
 
     @app_commands.command(name = "logs", description = "To receive the bot.log file.")
+    @app_commands.default_permissions(create_instant_invite=True)
     async def logs(self, interaction: discord.Interaction):
         logger.info(f"Send Logs File > start | requested by: {interaction.user} (id:{interaction.user.id})")
         await interaction.response.defer()
@@ -65,6 +73,7 @@ class AdminCog(commands.Cog):
         logger.info(f"Send Logs File > OK | requested by: {interaction.user} (id:{interaction.user.id})")
 
     @app_commands.command(name = "clear", description = "Supprimer un certain nombre de messages")
+    @app_commands.default_permissions(manage_messages=True)
     async def clear(self, interaction: discord.Interaction, amount: int):
         logger.info(f"Partial channel clearing | Requested by {interaction.user} (id:{interaction.user.id}) | Number: {amount} | Channel id: {interaction.channel.id}")
         await interaction.channel.purge(limit=amount)

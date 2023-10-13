@@ -1,13 +1,15 @@
-from discord.ext import commands
-from discord import app_commands
-import discord
-from utils.logging import get_logger
-from utils.bot import bot
 import random
+
+import discord
+from discord import app_commands
+from discord.ext import commands
+
+from utils.bot import bot
+from utils.logging import get_logger
 
 logger = get_logger(__name__)
 
-class AlliancesCog(commands.Cog):
+class HelpCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -35,5 +37,5 @@ class AlliancesCog(commands.Cog):
         await interaction.response.send_message(embed=embed)
 
 async def setup(bot):
-    await bot.add_cog(AlliancesCog(bot))
+    await bot.add_cog(HelpCog(bot))
     logger.info(f"Loaded !")

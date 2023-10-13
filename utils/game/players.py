@@ -1,8 +1,10 @@
-from utils.logging import get_logger
-from utils.models import Variables, Player, NewPlayer
-from utils.bot import bot
 import discord
-from config.values import COLOR_GREEN, COLOR_ORANGE, USER_ID_ADMIN, CHANNEL_ID_GENERAL
+
+from config.values import (CHANNEL_ID_GENERAL, COLOR_GREEN, COLOR_ORANGE,
+                           USER_ID_ADMIN)
+from utils.bot import bot
+from utils.logging import get_logger
+from utils.models import NewPlayer, Player, Variables
 
 logger = get_logger(__name__)
 

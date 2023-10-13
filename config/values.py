@@ -1,4 +1,5 @@
 from dotenv import load_dotenv  # for python-dotenv method
+
 load_dotenv()
 import os
 
@@ -16,6 +17,7 @@ USER_ID_ADMIN = int(os.environ.get("USER_ID_ADMIN"))
 BOT_ID = int(os.environ.get("BOT_ID"))
 GUILD_ID = int(os.environ.get("GUILD_ID"))
 TOKEN = os.environ.get("TOKEN")
+APPLICATION_ID = os.environ.get("APPLICATION_ID")
 COLOR_GREEN = 0x008000
 COLOR_ORANGE = 0xff7f00
 COLOR_RED = 0xf00020

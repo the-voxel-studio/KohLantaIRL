@@ -1,11 +1,13 @@
-from discord.ext import commands
-from discord import app_commands
 import discord
-from utils.logging import get_logger
-from config.values import GUILD_ID, CHANNEL_ID_RESULTATS
-from utils.models import Player
-from utils.bot import bot
+from discord import app_commands
+from discord.ext import commands
+
 import utils.game.votes as vote
+from config.values import CHANNEL_ID_RESULTATS, GUILD_ID
+from utils.bot import bot
+from utils.logging import get_logger
+from utils.models import Player
+from utils.control import is_admin
 
 logger = get_logger(__name__)
 
@@ -14,19 +16,28 @@ class VotesCog(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name = "open_vote", description = "Ouverture d'un nouveau vote")
+    @app_commands.default_permissions(create_instant_invite=True)
     async def open_vote(self, interaction: discord.Interaction):
+        if not is_admin(interaction.user):
+            raise commands.MissingPermissions(["Admin"])
         logger.info(f"Vote opening | Requested by {interaction.user} (id:{interaction.user.id}).")
         await interaction.response.defer()
         await vote.open(interaction)
 
     @app_commands.command(name = "close_vote", description = "Fermeture du vote en cours")
+    @app_commands.default_permissions(create_instant_invite=True)
     async def close_vote(self, interaction: discord.Interaction): 
+        if not is_admin(interaction.user):
+            raise commands.MissingPermissions(["Admin"])
         logger.info(f"Vote closing | Requested by {interaction.user} (id:{interaction.user.id}).")
         await interaction.response.defer()
         await vote.close(interaction)
 
     @app_commands.command(name = "eliminate", description = "Elimine un joueur après le choix du dernier éliminé")
+    @app_commands.default_permissions(moderate_members=True)
     async def eliminate(self, interaction: discord.Interaction, member: discord.Member):
+        if not is_admin(interaction.user):
+            raise commands.MissingPermissions(["Admin"])
         logger.info(f"Member elimination started | Requested by {interaction.user} (id:{interaction.user.id}) | Member: {member} (id:{member.id})")
         self.eliminated = Player(id=member.id)
         self.players = Player(option="living")

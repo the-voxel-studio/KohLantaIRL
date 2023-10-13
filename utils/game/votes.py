@@ -1,8 +1,11 @@
 import discord
-from utils.models import Player, Variables
+
+from config.values import (BOT_ID, CHANNEL_ID_RESULTATS, CHANNEL_ID_VOTE,
+                           COLOR_GREEN, COLOR_RED, EMOJIS_LIST, GUILD_ID)
 from utils.bot import bot
+from utils.models import Player, Variables
 from utils.punishments import timeout
-from config.values import GUILD_ID, EMOJIS_LIST, CHANNEL_ID_VOTE, COLOR_GREEN, COLOR_RED, BOT_ID, CHANNEL_ID_RESULTATS
+
 
 async def open(interaction: discord.Interaction = None):# TODO add logs
     players = Player(option="living")

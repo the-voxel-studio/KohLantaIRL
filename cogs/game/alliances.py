@@ -1,10 +1,13 @@
-from discord.ext import commands
-from discord import app_commands
 import discord
-from utils.logging import get_logger
-from config.values import GUILD_ID, COLOR_GREEN, COLOR_ORANGE, CATEGORIE_ID_ALLIANCES, CHANNEL_ID_HELP_ALLIANCE_ADD_PLAYER
-from utils.models import Player, Alliance, NewAlliance
+from discord import app_commands
+from discord.ext import commands
+
+from config.values import (CATEGORIE_ID_ALLIANCES,
+                           CHANNEL_ID_HELP_ALLIANCE_ADD_PLAYER, COLOR_GREEN,
+                           COLOR_ORANGE, GUILD_ID)
 from utils.bot import bot
+from utils.logging import get_logger
+from utils.models import Alliance, NewAlliance, Player
 
 logger = get_logger(__name__)
 
@@ -12,24 +15,26 @@ class AlliancesCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(name = "alliance", description = "Créer une nouvelle alliance")
-    async def alliance(interaction : discord.Interaction, channel_name: str):
-        player = Player(id=interaction.user.id)
-        if not isinstance(interaction.channel, discord.channel.DMChannel):
-            logger.warning(f"PrivateMessage | Sent by {interaction.user} (id:{interaction.user.id}) | Attempted to use the command: /alliance")
+    @commands.command(pass_context=True)
+    async def alliance(self, ctx, *args):
+        if ctx.message.guild: await ctx.message.delete()
+        player = Player(id=ctx.author.id)
+        if not isinstance(ctx.channel, discord.channel.DMChannel):
+            logger.warning(f"PrivateMessage | Sent by {ctx.author} (id:{ctx.author.id}) | Attempted to use the command: /alliance")
             embed=discord.Embed(title=f":robot: Action impossible :moyai:", description=f":warning: Impossible d'effectuer l'action demandée : la commande *alliance* est disponible seulement en message privé avec le robot (ici).", color=COLOR_ORANGE)
-            await interaction.user.send(embed=embed)
+            await ctx.author.send(embed=embed)
         elif not player.alive:
-            logger.warning(f"EliminatedPlayer | Sent by {interaction.user} (id:{interaction.user.id}) | Attempted to use the command: /alliance")
+            logger.warning(f"EliminatedPlayer | Sent by {ctx.author} (id:{ctx.author.id}) | Attempted to use the command: /alliance")
             embed=discord.Embed(title=f":robot: Action impossible :moyai:", description=f":warning: Impossible d'effectuer l'action demandée : les joueurs éliminés ne peuvent pas créer d'alliance.", color=COLOR_ORANGE)
-            await interaction.user.send(embed=embed)
+            await ctx.author.send(embed=embed)
         else:
-            logger.info(f"New alliance creation started | Requested by {interaction.user} (id:{interaction.user.id}).")
+            logger.info(f"New alliance creation started | Requested by {ctx.author} (id:{ctx.author.id}).")
             general_guild = bot.get_guild(GUILD_ID)
             guild = discord.utils.get(general_guild.categories, id=CATEGORIE_ID_ALLIANCES)
+            channel_name = args[0] if args[0] else "new_alliance"
             overwrites = {
                 general_guild.default_role: discord.PermissionOverwrite(read_messages=False),
-                interaction.user: discord.PermissionOverwrite(read_messages=True),
+                ctx.author: discord.PermissionOverwrite(read_messages=True),
             }
             new_text_channel = await guild.create_text_channel(channel_name, overwrites=overwrites)
             new_voice_channel = await guild.create_voice_channel(channel_name, overwrites=overwrites)
@@ -40,10 +45,14 @@ class AlliancesCog(commands.Cog):
             new_alliance.creator = player._id
             new_alliance.save()
             embed=discord.Embed(title=f":robot: Nouvelle alliance :moyai:", description=f":white_check_mark: L'alliance {channel_name} a bien été créée : rendez-vous ici <#{new_text_channel.id}> pour y ajouter des joueurs.", color=COLOR_GREEN)
-            await interaction.user.send(embed=embed)
-            logger.info(f"New Alliance created | Requested by {interaction.user} (id:{interaction.user.id}) | Alliance text channel id: {new_text_channel.id}")
+            await ctx.author.send(embed=embed)
+            logger.info(f"New Alliance created | Requested by {ctx.author} (id:{ctx.author.id}) | Alliance text channel id: {new_text_channel.id}")
 
     @app_commands.command(name = "ajouter", description = "Ajouter un membre à une alliance")
+    @app_commands.describe(
+        prenom='Prénom du membre',
+        initiale='Initiale du nom de famille du membre'
+    )
     async def ajouter(self, interaction : discord.Interaction, prenom : str, initiale: str):
         logger.info(f"New alliance member addition started | Requested by {interaction.user} (id:{interaction.user.id}) | Alliance text channel id: {interaction.channel.id}")
         await interaction.response.defer()
@@ -89,6 +98,8 @@ class AlliancesCog(commands.Cog):
         embed=discord.Embed(title=f":robot: Expulsion :moyai:", description=f":warning: <@{interaction.user.id}> a supprimé <@{player.id}> de l'alliance !", color=COLOR_ORANGE)
         await interaction.followup.send(embed=embed)
         logger.info(f"Alliance member removed | Requested by {interaction.user} (id:{interaction.user.id}) | Member: {member} (id:{member.id}) | Alliance text channel id: {interaction.channel.id}")
+
+
 
 async def setup(bot):
     await bot.add_cog(AlliancesCog(bot))

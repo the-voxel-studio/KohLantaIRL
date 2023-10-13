@@ -6,7 +6,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import (BaseDocTemplate, Frame, PageBreak,
                                 PageTemplate, Paragraph, Table)
 
-from logging_setup import get_logger
+from utils.logging import get_logger
 
 logger = get_logger(__name__)
 
