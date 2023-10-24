@@ -1,5 +1,5 @@
 import typing
-from os import system
+from os import system, name as os_name
 
 import discord
 from discord import app_commands
@@ -50,16 +50,40 @@ class AdminCog(commands.Cog):
     async def reboot(self, interaction: discord.Interaction):
         if not is_admin(interaction.user):
             raise commands.MissingPermissions(["Admin"])
-        logger.info(
-            f"Preparing for manual reboot. | Requested by {interaction.user} (id:{interaction.user.id})"
-        )
-        await send_log(
-            "Redémarrage manuel en cours",
-            f"by **{interaction.user.display_name}**",
-            color="orange",
-        )
-        logger.info("Ready to reboot.")
-        system("sudo reboot")
+        if os_name == "posix":
+            logger.info(
+                f"Preparing for manual reboot. | Requested by {interaction.user} (id:{interaction.user.id})"
+            )
+            await send_log(
+                "Redémarrage manuel en cours",
+                f"by **{interaction.user.display_name}**",
+                color="orange",
+            )
+            logger.info("Ready to reboot.")
+            system("sudo reboot")
+        else:
+            logger.error(f"Manual reboot is only possible on posix server | Requested by {interaction.user} (id:{interaction.user.id})")
+
+    @app_commands.command(
+        name="shutdown", description="Eteind le serveur de Denis Brogniart"
+    )
+    @app_commands.default_permissions(create_instant_invite=True)
+    async def shutdown(self, interaction: discord.Interaction):
+        if not is_admin(interaction.user):
+            raise commands.MissingPermissions(["Admin"])
+        if os_name == "posix":
+            logger.info(
+                f"Preparing for shutdown. | Requested by {interaction.user} (id:{interaction.user.id})"
+            )
+            await send_log(
+                "Extinction manuelle en cours",
+                f"by **{interaction.user.display_name}**",
+                color="orange",
+            )
+            logger.info("Ready to shutdown.")
+            system("sudo halt")
+        else:
+            logger.error(f"Manual shutdown is only possible on posix server | Requested by {interaction.user} (id:{interaction.user.id})")
 
     @app_commands.command(name = "logs", description = "To receive the bot.log file.")
     @app_commands.default_permissions(create_instant_invite=True)

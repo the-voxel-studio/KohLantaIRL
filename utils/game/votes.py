@@ -1,13 +1,18 @@
+import typing
+
 import discord
 
 from config.values import (BOT_ID, CHANNEL_ID_RESULTATS, CHANNEL_ID_VOTE,
                            COLOR_GREEN, COLOR_RED, EMOJIS_LIST, GUILD_ID)
 from utils.bot import bot
+from utils.log import get_logger
 from utils.models import Player, Variables
 from utils.punishments import timeout
 
+logger = get_logger(__name__)
 
-async def open(interaction: discord.Interaction = None):# TODO add logs
+async def open(interaction: discord.Interaction = None):
+    logger.info(f"vote opening > start | interaction: {interaction}")
     players = Player(option="living")
     players_list = players.list
     if len(players_list) > 2:
@@ -46,8 +51,10 @@ async def open(interaction: discord.Interaction = None):# TODO add logs
     if interaction:
         embed=discord.Embed(title=f":robot: Le vote est ouvert :moyai:", color=COLOR_GREEN)
         await interaction.followup.send(embed=embed)
+    logger.info(f"vote opening > OK | interaction: {interaction}")
 
-async def close(interaction: discord.Interaction = None):# TODO add logs
+async def close(interaction: discord.Interaction = None):
+    logger.info(f"vote closing > start | interaction: {interaction}")
     channel = bot.get_channel(CHANNEL_ID_VOTE)
     # try:
     msg = await channel.fetch_message(Variables.get_vote_msg_id())
@@ -93,8 +100,19 @@ async def close(interaction: discord.Interaction = None):# TODO add logs
         embed.add_field(name=f"Cet aventurier a reçu {max_count-1} votes.", value=value, inline=True)
         channel = bot.get_channel(CHANNEL_ID_RESULTATS)
         await channel.send(embed=embed)
+        embed = discord.Embed(
+            title=f"**Tu quittes la tribu ce soir** (cheh)",
+            description=f"Les aventuriers ont décidé de t'éliminer et leur sentence est irrévocable !",
+            color=15548997
+        )
+        embed.set_author(name="Résultat du conseil",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
+        embed.set_thumbnail(url="https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp")
+        embed.add_field(name=f"Tu as reçu {max_count-1} votes.",value=f"Plus d'infos ici: <#{CHANNEL_ID_RESULTATS}>.")
+        embed.add_field(name=f"Tu souhaites exprimer une dernière volonté ? Envoi moi la commande /dv !",value=f"Exemple : `/dv \"Vous n\'auriez pas dû m\'éliminer...\"`\nEnvoi moi simplement un message sous cette forme.")
+        # TODO /dv command
         guild = bot.get_guild(GUILD_ID)
         member = guild.get_member(eliminated.id)
+        await member.send(embed=embed)
         role = discord.utils.get(guild.roles, name="Joueur")
         new_role = discord.utils.get(guild.roles, name="Eliminé")
         await member.remove_roles(role)
@@ -103,10 +121,9 @@ async def close(interaction: discord.Interaction = None):# TODO add logs
         if nb_remaining_players == 1 : Variables.wait_for_last_vote()
         # FIXME sup membre éliminé de ses alliances
         # TODO save "death_council_number" in models
-        # TODO send MP to eliminated player
-        # TODO send who voted to this player (or complet details)
         # TODO sup alliances à membre unique
     else:
+        # TODO send automatic message to last eliminate
         embed = discord.Embed(
             title=f"**Egalité**",
             description=f"Les aventuriers de la tribu n'ont pas sus se décider !",
@@ -120,5 +137,97 @@ async def close(interaction: discord.Interaction = None):# TODO add logs
     if interaction : 
         embed=discord.Embed(title=f":robot: Le vote est clos :moyai:", color=COLOR_GREEN)
         await interaction.followup.send(embed=embed)
+    logger.info(f"vote closing > OK | interaction: {interaction}")
     # except:
     #     pass
+
+async def eliminate(interaction: discord.Interaction, member: discord.Member, reason: typing.Literal["After equality","Other reason"]) -> None:
+    logger.info(f"eliminate > start | interaction: {interaction} | member: {member} | reason: {reason}")
+    eliminated = Player(id=member.id)
+    players = Player(option="living")
+    players_list = players.list
+    if reason == "After equality":
+        public_embed = discord.Embed(
+            title=f"**{eliminated.nickname}**",
+            description=f"Le dernier éliminé a décidé de l'éliminer et sa sentence est irrévocable !",
+            color=15548997
+        )
+        public_embed.set_author(name="Résultat du conseil",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
+        public_embed.set_thumbnail(url="https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp")
+        public_embed.add_field(name=f"Cet aventurier a reçu le vote du dernier éliminé suite à une égalité.", value=f"Il reste {len(players_list)-1} aventuriers en jeu.", inline=True)
+        dm_embed = discord.Embed(
+            title=f"**Tu quittes la tribu ce soir** (cheh)",
+            description=f"Les aventuriers ont décidé de t'éliminer et leur sentence est irrévocable !",
+            color=15548997
+        )
+        dm_embed.set_author(name="Résultat du conseil",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
+        dm_embed.set_thumbnail(url="https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp")
+        dm_embed.add_field(name=f"Tu as reçu le votes du dernier éliminé",value=f"Plus d'infos ici: <#{CHANNEL_ID_RESULTATS}>.", inline=False)
+        dm_embed.add_field(name=f"Tu souhaites exprimer une dernière volonté ? Envoi moi la commande /dv !",value=f"Exemple : `/dv \"Vous n\'auriez pas dû m\'éliminer...\"`\nEnvoi moi simplement un message sous cette forme.", inline=False)
+    else:
+        public_embed = discord.Embed(
+            title=f"**{eliminated.nickname}**",
+            description=f"<@{interaction.user.id}> a décidé de l'éliminer et sa sentence est irrévocable !",
+            color=15548997
+        )
+        public_embed.set_author(name="Décision d'un administrateur",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
+        public_embed.set_thumbnail(url="https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp")
+        public_embed.add_field(name=f"Cet aventurier a été éliminé par un administrateur.", value=f"Il reste {len(players_list)-1} aventuriers en jeu.", inline=True)
+        dm_embed = discord.Embed(
+            title=f"**Tu quittes la tribu **",
+            description=f"<@{interaction.user.id}> a décidé de t'éliminer et sa sentence est irrévocable !\nTu es en droit de le contacter en DM.",
+            color=15548997
+        )
+        dm_embed.set_author(name="Décision d'un administrateur",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
+        dm_embed.set_thumbnail(url="https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp")
+        dm_embed.add_field(name="Pas d'expression de dernière volonté",value="Etant donné les règles du jeu, tu ne disposes par d'un droit d'expression d'une dernière volonté.")
+    channel = bot.get_channel(CHANNEL_ID_RESULTATS)
+    await channel.send(embed=public_embed)
+    await member.send(embed=dm_embed)
+    guild = bot.get_guild(GUILD_ID)
+    role = discord.utils.get(guild.roles, name="Joueur")
+    new_role = discord.utils.get(guild.roles, name="Eliminé")
+    await member.remove_roles(role)
+    await member.add_roles(new_role)
+    eliminated.eliminate()
+    embed=discord.Embed(title=f":robot: Joueur éliminé :moyai:", description=f"player : <@{member.id}>", color=COLOR_GREEN)
+    await interaction.followup.send(embed=embed)
+    logger.info(f"eliminate > OK | interaction: {interaction} | member: {member} | reason: {reason}")
+
+async def resurrect(interaction: discord.Interaction, member: discord.Member) -> None:
+    logger.info(f"resurrect > start | interaction: {interaction} | member: {member}")
+    resurrected = Player(id=member.id)
+    dm_embed = discord.Embed(
+        title=f"**Tu réintègres la tribu **",
+        description=f"<@{interaction.user.id}> a décidé de te réintégrer et tu lui dois beaucoup !",
+        color=COLOR_GREEN
+    )
+    dm_embed.set_author(name="Décision d'un administrateur",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
+    dm_embed.set_thumbnail(url="https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp")
+    await member.send(embed=dm_embed)
+    guild = bot.get_guild(GUILD_ID)
+    role = discord.utils.get(guild.roles, name="Eliminé")
+    new_role = discord.utils.get(guild.roles, name="Joueur")
+    await member.remove_roles(role)
+    await member.add_roles(new_role)
+    resurrected.resurrect()
+    embed=discord.Embed(title=f":robot: Joueur réssuscité :moyai:", description=f"player : <@{member.id}>", color=COLOR_GREEN)
+    await interaction.followup.send(embed=embed)
+    logger.info(f"resurrect > OK | interaction: {interaction} | member: {member}")
+
+async def set_finalist(interaction: discord.Interaction, member: discord.Member):
+    logger.info(f"set finalist > start | interaction: {interaction} | member: {member}")
+    dm_embed = discord.Embed(
+        title=f"**Tu est élevé au rang de finaliste**",
+        description=f"<@{interaction.user.id}> a décidé de te désigner comme finaliste et tu lui dois beaucoup !",
+        color=COLOR_GREEN
+    )
+    dm_embed.set_author(name="Décision d'un administrateur",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
+    dm_embed.set_thumbnail(url="https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp")
+    await member.send(embed=dm_embed)
+    guild = bot.get_guild(GUILD_ID)
+    new_role = discord.utils.get(guild.roles, name="Finaliste")
+    await member.add_roles(new_role)
+    embed=discord.Embed(title=f":robot: Joueur défini comme finaliste :moyai:", description=f"player : <@{member.id}>", color=COLOR_GREEN)
+    await interaction.followup.send(embed=embed)
+    logger.info(f"set finalist > OK | interaction: {interaction} | member: {member}")

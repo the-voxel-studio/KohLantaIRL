@@ -9,3 +9,4 @@ bot = discord.ext.commands.Bot(
     application_id=APPLICATION_ID,
     help_command=None
 )
+client = discord.Client(intents=INTENTS,application_id=APPLICATION_ID)

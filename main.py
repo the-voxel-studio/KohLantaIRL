@@ -2,13 +2,14 @@ import datetime
 import signal
 import sys
 from os import name as os_name
+from random import choice
 
 import discord
 from discord.ext import commands
 
-from config.values import (BOT_ID, CHANNEL_ID_BOT, CHANNEL_ID_INSCRIPTION,
+from config.values import (BOT_ID, CHANNEL_ID_BOT, CHANNEL_ID_BOT_PRIVATE,CHANNEL_ID_INSCRIPTION,
                            CHANNEL_ID_VOTE, COLOR_ORANGE, COLOR_RED,
-                           EMOJI_ID_COLLIER, GUILD_ID, TOKEN)
+                           EMOJI_ID_COLLIER, GUILD_ID, TOKEN, EMOJIS_LIST)
 from utils.bot import bot
 from utils.game.players import join
 from utils.game.timer import cancel_timer, start_new_timer
@@ -17,10 +18,11 @@ from utils.logging import get_logger
 from utils.models import Player, setup_db_connection
 from utils.punishments import timeout
 
+from cogs.how_to import update_alliance_btn_callback
+
 # ***** CONSTANTES *****
 logger = get_logger(__name__)
-# bot.remove_command('alliance')
-COGS = ["cogs.admin", "cogs.game.alliances", "cogs.game.steps", "cogs.game.votes", "cogs.help", "cogs.punishments.muting"]
+COGS = ["cogs.admin", "cogs.how_to", "cogs.game.alliances", "cogs.game.steps", "cogs.game.votes", "cogs.help", "cogs.punishments.muting"]
 
 @bot.event
 async def on_ready():
@@ -30,6 +32,7 @@ async def on_ready():
     setup_db_connection()
     time = datetime.datetime.now().strftime("%d/%m/%Y **%H:%M**")
     await start_new_timer()
+    await update_alliance_btn_callback()
     if os_name == 'nt':
         await send_log("BOT restarted and ready", ":tools: mode : **DEV**", f":clock: time   : {time}", color="orange")
     else:
@@ -54,6 +57,16 @@ async def on_message(message):
             if not message.content.startswith("/"): 
                 await message.delete() # Supprime le message s'il ne s'agit pas d'une commande (auquel cas le message a déjà été supprimé)
                 await join(message)
+        elif not message.guild:
+            if not message.content.startswith("/"): 
+                await message.author.send(choice([
+                    "https://media.giphy.com/media/l2JhJGdpV4Uc3mffy/giphy.gif",
+                    "https://tenor.com/view/shrek-donkey-dream-works-ane-attend-gif-23982857",
+                    "https://tenor.com/bkf9g.gif",
+                    "https://tenor.com/bxGXE.gif",
+                    "https://tenor.com/bdWno.gif",
+                    "https://tenor.com/St9l.gif"
+                ]))
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -87,7 +100,6 @@ async def on_command_error(ctx, error):
         await ctx.author.send(embed=embed)
 
 @bot.tree.error
-# @bot.event
 async def on_app_command_error(interaction: discord.Interaction, error):
     if isinstance(error, discord.app_commands.errors.CommandNotFound):
         logger.warning(f"CommandNotFound | Sent by {interaction.user} (id:{interaction.user.id}) | Content: {error}")
@@ -125,6 +137,7 @@ async def on_app_command_error(interaction: discord.Interaction, error):
 
 @bot.event
 async def on_raw_reaction_add(payload):
+    logger.info(f"New raw reaction | user: {payload.member} (id: {payload.member.id}) | msg id: {payload.message_id} | emoji: {chr(EMOJIS_LIST.index(payload.emoji.name)+65)}")
     player = Player(id = payload.user_id)
     user = payload.member
     channel = bot.get_channel(payload.channel_id)
@@ -149,6 +162,20 @@ async def on_raw_reaction_add(payload):
                     users += [user async for user in react.users()]
                 if users.count(user) > 1: 
                     await msg.remove_reaction(payload.emoji, user)
+
+# @bot.event
+# async def on_button_click(interaction: discord.Interaction):
+#     print("button clicked")
+#     if interaction.component.type == discord.ComponentType.button:
+#         button_id = interaction.component.custom_id
+
+#         if button_id == 'votre_custom_id':
+#             await interaction.response.send_message('Vous avez cliqué sur le bouton!')
+#         elif button_id == 'autre_custom_id':
+#             await interaction.response.send_message('Vous avez cliqué sur un autre bouton!')
+#         else:
+#             print(interaction.component)
+#             await interaction.response.send_message('Bouton non reconnu.')
 
 def signal_handler(sig, frame):
     logger.warning("Start of shutdown procedure.")

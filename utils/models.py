@@ -2,6 +2,7 @@ from datetime import datetime
 
 import dns.resolver
 from bson.objectid import ObjectId
+import discord
 from dotenv import load_dotenv  # for python-dotenv method
 from pymongo.mongo_client import MongoClient
 
@@ -54,9 +55,10 @@ class Player:
 		self.death_council_number = kwargs.get("dcn", 0)
 		self.option = kwargs.get("option", "unknown")
 		self.letter = kwargs.get("letter", "")
-		self._id = None
+		self._id = kwargs.get("_id", 0)
 		self.exists = False
 		self.list = []
+		self.player = None
 		
 		self.find()
 	
@@ -69,6 +71,15 @@ class Player:
 				self.death_council_number = self.player.get("deathCouncilNumber", 0)
 				self.letter = self.player.get("letter", "")
 				self._id = self.player.get("_id", None)
+				self.exists = True
+		elif self._id != 0:
+			self.player = db.Players.find_one(filter={"_id":self._id})
+			if self.player != None:
+				self.nickname = self.player.get("nickname", "unknown")
+				self.alive = self.player.get("alive", True)
+				self.death_council_number = self.player.get("deathCouncilNumber", 0)
+				self.letter = self.player.get("letter", "")
+				self.id = self.player.get("id", None)
 				self.exists = True
 		elif self.nickname != "unknown":
 			self.player = db.Players.find_one(filter={"nickname":self.nickname})
@@ -102,7 +113,15 @@ class Player:
 		db.Players.update_one({"_id": self._id},{"$set": {"alive":False,"letter":""}}, upsert=False)
 		logger.info(f"fn > Player elimination > OK | _id: {self._id} | alive: {self.alive} | letter: \"\"")
 
+	def resurrect(self):
+		db.Players.update_one({"_id": self._id},{"$set": {"alive":True,"letter":""}}, upsert=False)
+		logger.info(f"fn > Player resurrection > OK | _id: {self._id} | alive: {self.alive} | letter: \"\"")
+
 class Variables:
+
+	def open_joining() -> None:
+		db.Variables.update_one({"id": 0},{"$set": {"state":0}}, upsert=False)
+		logger.info(f"fn > Variables start game > OK | state: 1")
 	
 	def start_game() -> None:
 		db.Variables.update_one({"id": 0},{"$set": {"state":1}}, upsert=False)
@@ -130,6 +149,10 @@ class Variables:
 	def set_last_vote_date(date: str) -> None:
 		db.Variables.update_one({"id": 0},{"$set": {"lastVoteDate":date}}, upsert=False)
 		logger.info(f"fn > Variables set last vote date > OK | date: {date}")
+		
+	def set_btn_how_to_alliance_msg_id(id: discord.Message.id) -> None:
+		db.Variables.update_one({"id": 0},{"$set": {"btnHowToAllianceMsgId":id}}, upsert=False)
+		logger.info(f"fn > Variables set btn how to alliance msg id > OK | date: {id}")
 
 	def get_last_vote_date() -> str:
 		return db.Variables.find_one({"id":0}).get("lastVoteDate", None)
@@ -142,6 +165,9 @@ class Variables:
 	
 	def get_token() -> int:
 		return db.Variables.find_one({"id":0}).get("token", 0)
+	
+	def get_btn_how_to_alliance_msg_id() -> str:
+		return db.Variables.find_one({"id":0}).get("btnHowToAllianceMsgId", None)
 
 class NewAlliance:
 	
@@ -188,6 +214,13 @@ class Alliance:
 		self.members.remove(ObjectId(str(_id)))
 		db.Alliances.update_one({"_id": self._id},{"$set": {"members":self.members}}, upsert=False)
 		logger.info(f"fn > Alliance remove member > OK | Alliance _id: {self._id} | Member _id: {_id} | Members: {self.members}")
+
+	def close(self,user):
+		db.Alliances.update_one({"_id": self._id},{"$set": {"members":[]}}, upsert=False)
+		if user:
+			logger.info(f"fn > Alliance closing > OK | Alliance _id: {self._id} | Member {user} (id: {user.id})")
+		else:
+			logger.info(f"fn > Alliance closing > OK | Alliance _id: {self._id} | By the bot")
 
 # TODO alliance log : member, council number of join, council number of leave, add_by
 

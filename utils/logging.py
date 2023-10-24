@@ -52,7 +52,7 @@ class FileFormatter(logging.Formatter):
 
         return formatted_message
 
-def get_logger(name):
+def get_logger(name: str) -> logging.Logger:
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
 

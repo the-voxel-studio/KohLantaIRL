@@ -13,7 +13,17 @@ class StepsCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(name = "start-game", description = "Démarre la partie de KohLanta (fermeture des inscriptions)")
+    @app_commands.command(name = "open_joining", description = "Ouverture des inscriptions")
+    @app_commands.default_permissions(create_instant_invite=True)
+    async def open_joining(self, interaction: discord.Interaction):
+        if not is_admin(interaction.user):
+            raise commands.MissingPermissions(["Admin"])
+        logger.info(f"Joining opening | Requested by {interaction.user} (id:{interaction.user.id}).")
+        Variables.open_joining()
+        self.embed=discord.Embed(title=f":robot: Inscriptions ouvertes :moyai:", color=COLOR_GREEN)
+        await interaction.response.send_message(embed=self.embed)
+
+    @app_commands.command(name = "start_game", description = "Démarre la partie de KohLanta (fermeture des inscriptions)")
     @app_commands.default_permissions(create_instant_invite=True)
     async def start(self, interaction: discord.Interaction):
         if not is_admin(interaction.user):

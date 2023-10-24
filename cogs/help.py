@@ -30,10 +30,20 @@ class HelpCog(commands.Cog):
                 e = discord.Embed(title="Error:",description=f"Command {command} not found", color=0xFF0000)
                 await interaction.response.send_message(embed=e)
             return
-        names = [f"{command.name} : {command.description}" for command in bot.tree.get_commands()] 
-        available_commands = "\n".join(names)
-        embed = discord.Embed(title=f"Commands ({len(names)}):",description=available_commands)
-        embed.set_footer(text=f"  /help <command> (e.g /help {random.choice(names)})")
+        command_dict = {}
+        available_commands = ""
+        for command in bot.tree.get_commands():
+            module = ".".join(command.module.split(".")[1:])
+            if command_dict.get(module):
+                command_dict[module].append(f"{command.name} : {command.description}")
+            else:
+                command_dict[module] = [f"{command.name} : {command.description}"]
+        for cog in command_dict:
+            commands = command_dict.get(cog)
+            available_commands += "### "+(cog)+" :\n"
+            for c in commands:
+                available_commands += "- "+c+"\n"
+        embed = discord.Embed(title=f"Commands :",description=available_commands)
         await interaction.response.send_message(embed=embed)
 
 async def setup(bot):

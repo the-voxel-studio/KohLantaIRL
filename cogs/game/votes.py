@@ -1,13 +1,15 @@
+import typing
+
 import discord
 from discord import app_commands
 from discord.ext import commands
 
 import utils.game.votes as vote
-from config.values import CHANNEL_ID_RESULTATS, GUILD_ID
+from config.values import CHANNEL_ID_RESULTATS, COLOR_GREEN, GUILD_ID
 from utils.bot import bot
+from utils.control import is_admin
 from utils.logging import get_logger
 from utils.models import Player
-from utils.control import is_admin
 
 logger = get_logger(__name__)
 
@@ -35,31 +37,43 @@ class VotesCog(commands.Cog):
 
     @app_commands.command(name = "eliminate", description = "Elimine un joueur après le choix du dernier éliminé")
     @app_commands.default_permissions(moderate_members=True)
-    async def eliminate(self, interaction: discord.Interaction, member: discord.Member):
+    async def eliminate(self, interaction: discord.Interaction, member: discord.Member, reason: typing.Literal["After equality","Other reason"]):
+        await interaction.response.defer()
         if not is_admin(interaction.user):
             raise commands.MissingPermissions(["Admin"])
         logger.info(f"Member elimination started | Requested by {interaction.user} (id:{interaction.user.id}) | Member: {member} (id:{member.id})")
-        self.eliminated = Player(id=member.id)
-        self.players = Player(option="living")
-        self.players_list = self.players.list
-        self.embed = discord.Embed(
-            title=f"**{self.eliminated.nickname}**",
-            description=f"Le dernier éliminé a décidé de l'éliminer et sa sentence est irrévocable !",
-            color=15548997
-        )
-        self.embed.set_author(name="Résultat du conseil",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
-        self.embed.set_thumbnail(url="https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp")
-        self.embed.add_field(name=f"Cet aventurier a reçu le vote du dernier éliminé suite à une égalité.", value=f"Il reste {len(self.players_list)-1} aventuriers en jeu.", inline=True)
-        channel = bot.get_channel(CHANNEL_ID_RESULTATS)
-        await channel.send(embed=self.embed)
-        guild = bot.get_guild(GUILD_ID)
-        member = guild.get_member(self.eliminated.id)
-        role = discord.utils.get(guild.roles, name="Joueur")
-        new_role = discord.utils.get(guild.roles, name="Eliminé")
-        await member.remove_roles(role)
-        await member.add_roles(new_role)
-        self.eliminated.eliminate()
+        await vote.eliminate(interaction,member,reason)
         logger.info(f"Member eliminated | Requested by {interaction.user} (id:{interaction.user.id}) | Member: {member} (id:{member.id})")
+
+    @app_commands.command(name = "resurrect", description = "Réintroduit un joueur dans la partie.")
+    @app_commands.default_permissions(moderate_members=True)
+    async def resurrect(self, interaction: discord.Interaction, member: discord.Member):
+        await interaction.response.defer()
+        if not is_admin(interaction.user):
+            raise commands.MissingPermissions(["Admin"])
+        logger.info(f"Member resurrection start | Requested by {interaction.user} (id:{interaction.user.id}) | Member: {member} (id:{member.id})")
+        await vote.resurrect(interaction,member)
+        logger.info(f"Member resurrection OK | Requested by {interaction.user} (id:{interaction.user.id}) | Member: {member} (id:{member.id})")
+
+    @app_commands.command(name = "set_finalist", description = "Définir un joueur comme finaliste.")
+    @app_commands.default_permissions(moderate_members=True)
+    async def set_finalise(self, interaction: discord.Interaction, member: discord.Member):
+        await interaction.response.defer()
+        if not is_admin(interaction.user):
+            raise commands.MissingPermissions(["Admin"])
+        logger.info(f"Member set to finalist start | Requested by {interaction.user} (id:{interaction.user.id}) | Member: {member} (id:{member.id})")
+        await vote.set_finalist(interaction,member)
+        logger.info(f"Member set to finalist OK | Requested by {interaction.user} (id:{interaction.user.id}) | Member: {member} (id:{member.id})")
+
+    @app_commands.command(name = "dv", description = "Définir un joueur comme finaliste.")
+    @app_commands.default_permissions(moderate_members=True)
+    async def last_volontee(self, interaction: discord.Interaction, member: discord.Member):
+        await interaction.response.defer()
+        if not is_admin(interaction.user):
+            raise commands.MissingPermissions(["Admin"])
+        logger.info(f"Member set to finalist start | Requested by {interaction.user} (id:{interaction.user.id}) | Member: {member} (id:{member.id})")
+        await vote.set_finalist(interaction,member)
+        logger.info(f"Member set to finalist OK | Requested by {interaction.user} (id:{interaction.user.id}) | Member: {member} (id:{member.id})")
 
 async def setup(bot):
     await bot.add_cog(VotesCog(bot))
