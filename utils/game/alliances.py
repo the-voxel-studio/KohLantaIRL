@@ -35,7 +35,6 @@ async def new_alliance(interaction: discord.Interaction):
         new_alliance.name = channel_name
         new_alliance.creator = player._id
         new_alliance.save()
-        # TODO send first msg in new channel
         embed=discord.Embed(title=f":robot: ✏️ Renomme ton alliance dès maintenant ! :moyai:", description=f"Tu dois d'abord renommer ton alliance afin de pouvoir ajouter des membres.")
         embed.add_field(name="/nom \"nouveau-nom-de-l-alliance\"", value="L'expression \"nouveau-nom-de-l-alliance\" est à remplacer par le nouveau nom que vous souhaitez définir.")
         await new_text_channel.send(embed=embed)
@@ -45,9 +44,21 @@ async def new_alliance(interaction: discord.Interaction):
         logger.info(f"New Alliance created | Requested by {interaction.user} (id:{interaction.user.id}) | Alliance text channel id: {new_text_channel.id}")
 
 async def close_alliance(txt_channel_id: discord.TextChannel.id, user : discord.User = None):
+    logger.info(f"fn > Alliance Close > start | Requested by {user} (id:{user.id}) | Alliance text channel id: {txt_channel_id}")
     text_channel = bot.get_channel(txt_channel_id)
     alliance = Alliance(text_id=txt_channel_id)
     voice_channel = bot.get_channel(alliance.voice_id)
     await text_channel.delete()
     await voice_channel.delete()
     alliance.close(user)
+    logger.info(f"fn > Alliance Close > OK | Requested by {user} (id:{user.id}) | Alliance text channel id: {txt_channel_id} | Alliance voice channel id: {alliance.voice_id}")
+
+async def purge_empty_alliances():
+    logger.info(f"fn > Empty Alliances Purge > start")
+    empty_alliances = Alliance(members=[])
+    print(empty_alliances)
+    for a in empty_alliances:
+        print(a)
+        a.remove()
+    # TODO continue alliances channels purge
+    logger.info(f"fn > Empty Alliances Purge > OK")

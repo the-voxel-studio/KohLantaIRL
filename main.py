@@ -13,6 +13,7 @@ from config.values import (BOT_ID, CHANNEL_ID_BOT, CHANNEL_ID_BOT_PRIVATE,CHANNE
 from utils.bot import bot
 from utils.game.players import join
 from utils.game.timer import cancel_timer, start_new_timer
+from utils.game.alliances import purge_empty_alliances
 from utils.log import send_log, send_logs_file
 from utils.logging import get_logger
 from utils.models import Player, setup_db_connection
@@ -31,6 +32,7 @@ async def on_ready():
     bot.tree.copy_global_to(guild=discord.Object(id=GUILD_ID))
     setup_db_connection()
     time = datetime.datetime.now().strftime("%d/%m/%Y **%H:%M**")
+    await purge_empty_alliances()
     await start_new_timer()
     await update_alliance_btn_callback()
     if os_name == 'nt':

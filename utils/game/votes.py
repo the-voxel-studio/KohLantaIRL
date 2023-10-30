@@ -119,9 +119,8 @@ async def close(interaction: discord.Interaction = None):
         await member.add_roles(new_role)
         eliminated.eliminate()
         if nb_remaining_players == 1 : Variables.wait_for_last_vote()
-        # FIXME sup membre éliminé de ses alliances
+        # FIXME sup membre éliminé de ses alliances (models)
         # TODO save "death_council_number" in models
-        # TODO sup alliances à membre unique
     else:
         # TODO send automatic message to last eliminate
         embed = discord.Embed(

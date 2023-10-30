@@ -189,12 +189,15 @@ class Alliance:
 		self.voice_id = 0
 		self.name = "unknown"
 		self.exists = False
-		self.members = kwargs.get("members", [])
+		self.members = kwargs.get("members", None)
 		self._id = 0
 		self.find()
 	
 	def find(self):
-		self.alliance = db.Alliances.find_one(filter={"text_id":self.text_id})
+		if self.text_id != 0:
+			self.alliance = db.Alliances.find_one(filter={"text_id":self.text_id})
+		else:
+			self.alliance = db.Alliances.find(filter={"members":[]})
 		if self.alliance != None:
 			self.voice_id = self.alliance.get("voice_id", 0)
 			self.name = self.alliance.get("name", "unknown")
