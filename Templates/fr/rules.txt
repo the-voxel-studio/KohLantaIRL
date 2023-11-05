@@ -30,3 +30,5 @@ Le collier d’immunité n’a aucun effet en finale.
 Le maître du jeu peut à tout moment modifier les règles précédentes, et le jeu peut de lui-même vous faire transgresser ces règles, mais cela vous sera alors indiqué. 
 
 BONNE CHANCE
+
+TODO décision entre administrateurs
