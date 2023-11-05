@@ -7,19 +7,20 @@ from random import choice
 import discord
 from discord.ext import commands
 
-from config.values import (BOT_ID, CHANNEL_ID_BOT, CHANNEL_ID_BOT_PRIVATE,CHANNEL_ID_INSCRIPTION,
-                           CHANNEL_ID_VOTE, COLOR_ORANGE, COLOR_RED,
-                           EMOJI_ID_COLLIER, GUILD_ID, TOKEN, EMOJIS_LIST)
+from cogs.how_to import AllianceView
+from config.values import (BOT_ID, CHANNEL_ID_BOT, CHANNEL_ID_BOT_PRIVATE,
+                           CHANNEL_ID_INSCRIPTION, CHANNEL_ID_VOTE,
+                           COLOR_ORANGE, COLOR_RED, EMOJI_ID_COLLIER,
+                           EMOJIS_LIST, GUILD_ID, TOKEN)
 from utils.bot import bot
+from utils.game.alliances import purge_empty_alliances
 from utils.game.players import join
 from utils.game.timer import cancel_timer, start_new_timer
-from utils.game.alliances import purge_empty_alliances
+from utils.game.votes import EqualityView
 from utils.log import send_log, send_logs_file
 from utils.logging import get_logger
 from utils.models import Player, setup_db_connection
 from utils.punishments import timeout
-
-from cogs.how_to import update_alliance_btn_callback
 
 # ***** CONSTANTES *****
 logger = get_logger(__name__)
@@ -34,14 +35,18 @@ async def on_ready():
     time = datetime.datetime.now().strftime("%d/%m/%Y **%H:%M**")
     await purge_empty_alliances()
     await start_new_timer()
-    await update_alliance_btn_callback()
+    # await update_alliance_btn_callback()
+    # await update_alliance_btn_callback()
     if os_name == 'nt':
         await send_log("BOT restarted and ready", ":tools: mode : **DEV**", f":clock: time   : {time}", color="orange")
     else:
         await send_log("BOT restarted and ready", ":tools: mode : **PRODUCTION**", f":clock: time   : {time}", color="green")
     await send_logs_file()
+    bot.add_view(EqualityView())
+    bot.add_view(AllianceView())
     logger.info("Bot started and ready.")
     await bot.tree.sync(guild=discord.Object(id=GUILD_ID))
+    # await bot.tree.sync()
 
 @bot.event
 async def on_message(message):

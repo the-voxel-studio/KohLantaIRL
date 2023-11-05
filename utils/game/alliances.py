@@ -11,16 +11,20 @@ logger = get_logger(__name__)
 async def new_alliance(interaction: discord.Interaction):
     player = Player(id=interaction.user.id)
     channel_name = "new_channel_"+"_".join(interaction.user.nick.lower().split(" "))
+    same_named_alliance_by_channels = discord.utils.get(interaction.guild.channels, name=channel_name)
     if not player.alive:
         logger.warning(f"EliminatedPlayer | Sent by {interaction.user} (id:{interaction.user.id}) | Attempted to use the command: /alliance")
         embed=discord.Embed(title=f":robot: Action impossible :moyai:", description=f":warning: Impossible d'effectuer l'action demandée : les joueurs éliminés ne peuvent pas créer d'alliance.", color=COLOR_ORANGE)
         await interaction.followup.send(embed=embed,ephemeral=True)
-    elif discord.utils.get(interaction.guild.channels, name=channel_name):
+    elif same_named_alliance_by_channels:
         logger.warning(f"AlreadyHaveNewAlliance | Sent by {interaction.user} (id:{interaction.user.id}) | Attempted to use the command: /alliance")
-        embed=discord.Embed(title=f":robot: Action impossible :moyai:", description=f":warning: Impossible d'effectuer l'action demandée : vous disposez déjà d'une alliance neuve, non renommée et sans membre (exsepté ).", color=COLOR_ORANGE)
+        embed=discord.Embed(title=f":robot: Action impossible :moyai:", description=f":warning: Impossible d'effectuer l'action demandée : vous disposez déjà d'une alliance neuve, non renommée et sans membre (excepté vous). Rendez-vous ici <#{same_named_alliance_by_channels.id}> pour la renommer !", color=COLOR_ORANGE)
+        embed.set_footer(text="Pas d'inquiétude, seul toi peut voir ce message. Aucun autre joueur, pas même les administrateurs, voient que tu as tenté de créer une alliance.")
         await interaction.followup.send(embed=embed,ephemeral=True)
     else:
         logger.info(f"New alliance creation started | Requested by {interaction.user} (id:{interaction.user.id}).")
+        same_named_alliance_by_db = Alliance(name=channel_name)
+        if same_named_alliance_by_db.exists: same_named_alliance_by_db.delete(interaction.user)
         general_guild = bot.get_guild(GUILD_ID)
         guild = discord.utils.get(general_guild.categories, id=CATEGORIE_ID_ALLIANCES)
         overwrites = {
@@ -55,10 +59,5 @@ async def close_alliance(txt_channel_id: discord.TextChannel.id, user : discord.
 
 async def purge_empty_alliances():
     logger.info(f"fn > Empty Alliances Purge > start")
-    empty_alliances = Alliance(members=[])
-    print(empty_alliances)
-    for a in empty_alliances:
-        print(a)
-        a.remove()
-    # TODO continue alliances channels purge
+    Alliance().purge_empty_alliances()
     logger.info(f"fn > Empty Alliances Purge > OK")

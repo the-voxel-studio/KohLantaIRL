@@ -5,11 +5,12 @@ from discord import app_commands
 from discord.ext import commands
 
 import utils.game.votes as vote
-from config.values import CHANNEL_ID_RESULTATS, COLOR_GREEN, GUILD_ID
+from config.values import COLOR_GREEN, COLOR_ORANGE, CHANNEL_ID_GENERAL
 from utils.bot import bot
 from utils.control import is_admin
 from utils.logging import get_logger
-from utils.models import Player
+from utils.models import VoteLog
+import datetime
 
 logger = get_logger(__name__)
 
@@ -65,15 +66,28 @@ class VotesCog(commands.Cog):
         await vote.set_finalist(interaction,member)
         logger.info(f"Member set to finalist OK | Requested by {interaction.user} (id:{interaction.user.id}) | Member: {member} (id:{member.id})")
 
-    @app_commands.command(name = "dv", description = "Définir un joueur comme finaliste.")
-    @app_commands.default_permissions(moderate_members=True)
-    async def last_volontee(self, interaction: discord.Interaction, member: discord.Member):
-        await interaction.response.defer()
-        if not is_admin(interaction.user):
-            raise commands.MissingPermissions(["Admin"])
-        logger.info(f"Member set to finalist start | Requested by {interaction.user} (id:{interaction.user.id}) | Member: {member} (id:{member.id})")
-        await vote.set_finalist(interaction,member)
-        logger.info(f"Member set to finalist OK | Requested by {interaction.user} (id:{interaction.user.id}) | Member: {member} (id:{member.id})")
+    @commands.command(name = "dv", description = "Dernière volonté.")
+    async def last_volontee(self, ctx, contenu: str):
+        if isinstance(ctx.channel, discord.DMChannel):
+            vote_log = VoteLog(last=True)
+            vote_date = datetime.datetime.strptime(vote_log.date, "%d/%m/%Y %H:%M:%S")
+            actual_date = datetime.datetime.now()
+            time_delta = actual_date - vote_date
+            if (vote_log.eliminated.id == ctx.author.id) and (time_delta<datetime.timedelta(hours=17)):
+                logger.info(f"Last wish > start | Requested by {ctx.author} (id:{ctx.author.id}) | Content: {contenu}")
+                embed=discord.Embed(title=f":robot: Dernière volonté de {ctx.author} :moyai:", description=f"**contenu**", color=COLOR_GREEN)
+                embed.set_footer(text="Les administrateurs ne sont pas responsables des propos tenus dans ce message. Si vous trouvez un contenu inapproprié ou problématique, n'hésitez pas à le signaler en message privé.")
+                await bot.get_channel(CHANNEL_ID_GENERAL).send(embed=embed)
+                embed=discord.Embed(title=":robot: Ta dernière volonté a été exprimée :moyai:", description=f"Vous pouvez la voir ici <#{CHANNEL_ID_GENERAL}>", color=COLOR_GREEN)
+                await ctx.author.send(embed=embed)
+                logger.info(f"Last wish > OK | Requested by {ctx.author.name} (id:{ctx.author.id}) | Content: {contenu}")
+            else:
+                raise commands.errors.MissingPermissions("LastWich")
+        else:
+            await ctx.message.delete()
+            embed=discord.Embed(title=f":robot: Commande privée :moyai:", description=f":no_entry: Cette commande est seulement disponible en message privé.\n\nCommande : /dv", color=COLOR_ORANGE)
+            embed.set_footer(text=f"Essayer à plusieurs reprises d'utiliser une commande interdite ou y parvenir sans autorisation des administrateurs entrainera systématiquement un bannissement temporaire ou définitif du joueur.")
+            await ctx.author.send(embed=embed)
 
 async def setup(bot):
     await bot.add_cog(VotesCog(bot))

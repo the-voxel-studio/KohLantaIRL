@@ -10,6 +10,7 @@ load_dotenv()                    #for python-dotenv method
 from os import environ
 
 from utils.logging import get_logger
+from config.values import EMOJIS_LIST
 
 logger = get_logger(__name__)
 client = None
@@ -110,11 +111,11 @@ class Player:
 		logger.info(f"fn > Player set letter > OK | _id: {self._id} | letter: {self.letter}")
 
 	def eliminate(self):
-		db.Players.update_one({"_id": self._id},{"$set": {"alive":False,"letter":""}}, upsert=False)
+		db.Players.update_one({"_id": self._id},{"$set": {"alive":False,"letter":"","deathCouncilNumber":get_council_number()}}, upsert=False)
 		logger.info(f"fn > Player elimination > OK | _id: {self._id} | alive: {self.alive} | letter: \"\"")
 
 	def resurrect(self):
-		db.Players.update_one({"_id": self._id},{"$set": {"alive":True,"letter":""}}, upsert=False)
+		db.Players.update_one({"_id": self._id},{"$set": {"alive":True,"letter":"","deathCouncilNumber":0}}, upsert=False)
 		logger.info(f"fn > Player resurrection > OK | _id: {self._id} | alive: {self.alive} | letter: \"\"")
 
 class Variables:
@@ -187,26 +188,37 @@ class Alliance:
 		logger.info(f"AllianceObjectCreation | args: {kwargs}")
 		self.text_id = kwargs.get("text_id", 0)
 		self.voice_id = 0
-		self.name = "unknown"
+		self.name = kwargs.get("name", "unknown")
 		self.exists = False
-		self.members = kwargs.get("members", None)
+		self.members = []
+		self.list = []
+		self.alliance = None
 		self._id = 0
 		self.find()
 	
 	def find(self):
 		if self.text_id != 0:
 			self.alliance = db.Alliances.find_one(filter={"text_id":self.text_id})
-		else:
-			self.alliance = db.Alliances.find(filter={"members":[]})
-		if self.alliance != None:
-			self.voice_id = self.alliance.get("voice_id", 0)
-			self.name = self.alliance.get("name", "unknown")
-			self.members = self.alliance.get("members", [])
-			self._id = self.alliance.get("_id", 0)
-			self.exists = True
-			logger.info(f"fn > Player find > OK | text_id: {self.text_id} | voice_id: {self.voice_id} | _id: {self._id} | members: {self.members} | exists: {self.exists}")
-		else:
-			logger.error(f"fn > PlayerNotFound | text_id: {self.text_id} | members: {self.members}")
+			if self.alliance != None:
+				self.voice_id = self.alliance.get("voice_id", 0)
+				self.name = self.alliance.get("name", "unknown")
+				self.members = self.alliance.get("members", [])
+				self._id = self.alliance.get("_id", 0)
+				self.exists = True
+				logger.info(f"fn > Alliance find > OK | text_id: {self.text_id} | voice_id: {self.voice_id} | _id: {self._id} | members: {self.members} | exists: {self.exists}")
+			else:
+				logger.error(f"fn > AllianceNotFound | text_id: {self.text_id} | members: {self.members}")
+		elif self.name != "unknown":
+			self.alliance = db.Alliances.find_one(filter={"name":self.name})
+			if self.alliance != None:
+				self.text_id = self.alliance.get("text_id", 0)
+				self.voice_id = self.alliance.get("voice_id", 0)
+				self.members = self.alliance.get("members", [])
+				self._id = self.alliance.get("_id", 0)
+				self.exists = True
+				logger.info(f"fn > Alliance find > OK | text_id: {self.text_id} | voice_id: {self.voice_id} | _id: {self._id} | members: {self.members} | exists: {self.exists}")
+			else:
+				logger.error(f"fn > AllianceNotFound | text_id: {self.text_id} | members: {self.members}")
 
 	def add_member(self,_id: int):
 		self.members.append(ObjectId(str(_id)))
@@ -221,48 +233,82 @@ class Alliance:
 	def close(self,user):
 		db.Alliances.update_one({"_id": self._id},{"$set": {"members":[]}}, upsert=False)
 		if user:
-			logger.info(f"fn > Alliance closing > OK | Alliance _id: {self._id} | Member {user} (id: {user.id})")
+			logger.info(f"fn > Alliance closing > OK | Alliance _id: {self._id} | Member: {user} (id: {user.id})")
 		else:
 			logger.info(f"fn > Alliance closing > OK | Alliance _id: {self._id} | By the bot")
 
-# TODO alliance log : member, council number of join, council number of leave, add_by
+	def delete(self,user):
+		db.Alliances.delete_one({"_id": self._id})
+		logger.info(f"fn > Alliance deletion > OK | Alliance _id: {self._id} | Member: {user} (id: {user.id})")
 
-class NewVoteLog:# XXX Continuer NewVoteLog
+	def purge_empty_alliances(self):
+		self.result = db.Alliances.delete_many({"members": []})
+		logger.info(f"fn > Empty Alliances Purge > OK | count: {self.result.deleted_count}")
+
+class NewVoteLog:
 	def __init__(self,**kwargs):
 		self.votes = kwargs.get("votes", None)
-		self.eliminated_discord_id = kwargs.get("eliminated", None)
-		self.date = datetime.now().strftime("%d/%m/%Y")
-		self.votes_logs = db.VoteLogs
-		self.number = len(self.votes_logs.list_indexes()) + 1 
+		self.eliminated = kwargs.get("eliminated", None)
+		self.date = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+		self.votes_logs = db.VoteLog
+		self.number = get_council_number() + 1 
 		self.players_list = db.Players.list_indexes()
-		self.eliminated_db_id = None
+		self.votes_list = []
+		for v in self.votes:
+			self.votes_list.append({
+				"voter": Player(id=v)._id,
+				"for": Player(letter=chr(EMOJIS_LIST.index(self.votes[v][0])+65))._id
+			})
+		if self.eliminated:
+			self.eliminated_dict = {"_id": self.eliminated._id}
+		else: self.eliminated_dict = {}
 		
 	def save(self):
-		db.Alliances.insert_one({
-			"votes": self.votes,
+		db.VoteLog.insert_one({
+			"votes": self.votes_list,
 			"date": self.date,
 			"number": self.number,
-			"eliminated": [ObjectId(str(self.eliminated_db_id))]
+			"eliminated": self.eliminated_dict
 		})
 
 class VoteLog:
 	def __init__(self, **kwargs):
+		logger.info(f"VoteLogObjectCreation | args: {kwargs}")
 		self._id = kwargs.get("_id",None)
 		self.number = kwargs.get("number",None)
 		self.date = kwargs.get("date",None)
-		self.votes = self.filter = {}
+		self.eliminated = {}
+		self.votes = []
+		self.last = kwargs.get("last",False)
+		self.is_last_vote = False
+		self.vote_log = None
+		if self.last == True:
+			self.last = 0 
 		self.find()
 	
 	def find(self):
 		if self._id != None:
-			self.filter = {"_id":self._id}
-		elif self.number != 0:
-			self.filter = {"number":self.number}
-		elif self.date != 0:
-			self.filter = {"filter":self.filter}
-		self.vote_log = db.VoteLogs.find_one(filter=self.filter)
+			self.vote_log = db.VoteLog.find_one(filter={"_id":self._id})
+		elif self.number != None:
+			self.vote_log = db.VoteLog.find_one(filter={"number":self.number})
+		elif self.date != None:
+			self.vote_log = db.VoteLog.find_one(filter={"date":self.date})
+		elif not (self.last is False):
+			self.vote_log = db.VoteLog.find_one(filter={"number":get_council_number()+self.last})		
 		if self.vote_log:
 			self._id = self.vote_log.get("_id",None) if not self._id else self._id
 			self.number = self.vote_log.get("number",None) if not self.number else self.number
 			self.date = self.vote_log.get("date",None) if not self.date else self.date
 			self.votes = self.vote_log.get("votes",None)
+			self.eliminated_dict = self.vote_log.get("eliminated")
+			if self.eliminated_dict != {}:
+				self.eliminated = Player(_id=ObjectId(self.eliminated_dict["_id"]))
+			if self.number == get_council_number(): self.is_last_vote = True
+			logger.info(f"fn > Vote Log find > OK | log: {self.vote_log}")
+
+	def update_eliminated(self, eliminated: Player):
+		db.VoteLog.update_one({"_id": self._id},{"$set": {"eliminated":{"_id": eliminated._id}}}, upsert=False)
+		logger.info(f"fn > Vote Log eliminated update > OK | _id: {self._id} | eliminated: {eliminated}")
+
+def get_council_number():
+	return db.VoteLog.count_documents({})

@@ -14,18 +14,11 @@ from utils.bot import bot
 
 logger = get_logger(__name__)
 
-async def update_alliance_btn_callback() -> None:
-    logger.info("Alliance btn callback update > start")
-    channel = bot.get_channel(CHANNEL_ID_HELP_ALLIANCE)
-    msg: discord.Message = await channel.fetch_message(Variables.get_btn_how_to_alliance_msg_id())
-    await msg.edit(view=AllianceView())
-    logger.info("Alliance btn callback update > OK")
-
 class AllianceView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Créer une nouvelle alliance", style=discord.ButtonStyle.primary)
+    @discord.ui.button(label="Créer une nouvelle alliance", style=discord.ButtonStyle.primary, custom_id="new_alliance_btn")
     async def button_callback(self, interaction, button):
         await interaction.response.defer(ephemeral=True)
         await new_alliance(interaction)
@@ -37,7 +30,7 @@ class HowToCog(commands.Cog):
     @app_commands.command(name = "howto-alliances", description = "Crée le How-To des alliances")
     @app_commands.default_permissions(create_instant_invite=True)
     async def howto_alliances(self, interaction: discord.Interaction):
-        interaction.response.defer()
+        await interaction.response.defer()
         self.channel = self.bot.get_channel(CHANNEL_ID_HELP_ALLIANCE)
         await self.channel.purge(limit=10)
         msg_list = [
