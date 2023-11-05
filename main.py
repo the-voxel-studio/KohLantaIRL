@@ -30,13 +30,10 @@ COGS = ["cogs.admin", "cogs.how_to", "cogs.game.alliances", "cogs.game.steps", "
 async def on_ready():
     for cog in COGS:
         await bot.load_extension(cog)
-    bot.tree.copy_global_to(guild=discord.Object(id=GUILD_ID))
     setup_db_connection()
     time = datetime.datetime.now().strftime("%d/%m/%Y **%H:%M**")
     await purge_empty_alliances()
     await start_new_timer()
-    # await update_alliance_btn_callback()
-    # await update_alliance_btn_callback()
     if os_name == 'nt':
         await send_log("BOT restarted and ready", ":tools: mode : **DEV**", f":clock: time   : {time}", color="orange")
     else:
@@ -45,8 +42,10 @@ async def on_ready():
     bot.add_view(EqualityView())
     bot.add_view(AllianceView())
     logger.info("Bot started and ready.")
-    await bot.tree.sync(guild=discord.Object(id=GUILD_ID))
-    # await bot.tree.sync()
+    # bot.tree.clear_commands(guild=None)
+    # await bot.tree.sync(guild=discord.Object(id=GUILD_ID))
+    # await bot.tree.sync(guild=None)
+    await bot.tree.sync()
 
 @bot.event
 async def on_message(message):

@@ -14,6 +14,7 @@ class HelpCog(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name = "help", description="Commands infos")   
+    @app_commands.guild_only()
     async def help(self, interaction: discord.Interaction, command:str=None):
         if command is not None:
             for c in bot.tree.get_commands():

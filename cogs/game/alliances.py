@@ -21,6 +21,7 @@ class AlliancesCog(commands.Cog):
         return interaction.channel.name != self.first_name
 
     @app_commands.command(name = "nom", description = "Renommer une alliance")
+    @app_commands.guild_only()
     async def rename(self, interaction: discord.Interaction, nouveau_nom: str):
         logger.info(f"Alliance renaming > start | Requested by {interaction.user} (id:{interaction.user.id}) | New name: {nouveau_nom} | Alliance text channel id: {interaction.channel.id}")
         await interaction.response.defer()
@@ -33,6 +34,7 @@ class AlliancesCog(commands.Cog):
         await interaction.followup.send(embed=embed)
 
     @app_commands.command(name = "ajouter", description = "Ajouter un membre à une alliance")
+    @app_commands.guild_only()
     async def ajouter(self, interaction : discord.Interaction, user: discord.Member):
         logger.info(f"New alliance member addition started | Requested by {interaction.user} (id:{interaction.user.id}) | Alliance text channel id: {interaction.channel.id}")
         await interaction.response.defer()
@@ -64,12 +66,14 @@ class AlliancesCog(commands.Cog):
             await interaction.followup.send(embed=embed)
 
     @app_commands.command(name = "dissoudre", description = "Dissoudre une alliance")
+    @app_commands.guild_only()
     async def dissolve(self, interaction : discord.Interaction):
         logger.info(f"Alliance dissolution > start | Requested by {interaction.user} (id:{interaction.user.id}) | Alliance text channel id: {interaction.channel.id}")
         await interaction.response.defer()
         await close_alliance(interaction.channel.id,interaction.user)
 
     @app_commands.command(name = "expulser", description = "Supprimer un membre d'une alliance")
+    @app_commands.guild_only()
     async def expulser(self, interaction: discord.Interaction, member: discord.Member):
         logger.info(f"Alliance member removing started | Requested by {interaction.user} (id:{interaction.user.id}) | Member: {member} (id:{member.id}) | Alliance text channel id: {interaction.channel.id}")
         await interaction.response.defer()

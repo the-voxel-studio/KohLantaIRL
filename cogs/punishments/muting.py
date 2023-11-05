@@ -18,6 +18,7 @@ class MutingCog(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name = "mute", description = "Rendre muet un membre")
+    @app_commands.guild_only()
     @app_commands.describe(
         member='The member to mute',
         timedelta='The time of the punishment',
@@ -38,9 +39,11 @@ class MutingCog(commands.Cog):
             case "1j": self.minutes = 1440
             case "2j": self.minutes = 2880
             case _: self.minutes = 10
+        print("timeout start")
         await timeout(member,author=interaction.user,minutes=self.minutes,reason=reason,interaction=interaction)
 
     @app_commands.command(name = "unmute", description = "Rendre la parole à un membre")
+    @app_commands.guild_only()
     @app_commands.describe(member='The member to unmute')
     @app_commands.default_permissions(moderate_members=True)
     async def unmute(self, interaction: discord.Interaction, member: discord.Member):

@@ -14,6 +14,7 @@ class StepsCog(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name = "open_joining", description = "Ouverture des inscriptions")
+    @app_commands.guild_only()
     @app_commands.default_permissions(create_instant_invite=True)
     async def open_joining(self, interaction: discord.Interaction):
         if not is_admin(interaction.user):
@@ -24,6 +25,7 @@ class StepsCog(commands.Cog):
         await interaction.response.send_message(embed=self.embed)
 
     @app_commands.command(name = "start_game", description = "Démarre la partie de KohLanta (fermeture des inscriptions)")
+    @app_commands.guild_only()
     @app_commands.default_permissions(create_instant_invite=True)
     async def start(self, interaction: discord.Interaction):
         if not is_admin(interaction.user):

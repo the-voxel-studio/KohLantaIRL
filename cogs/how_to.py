@@ -27,7 +27,10 @@ class HowToCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    
+
     @app_commands.command(name = "howto-alliances", description = "Crée le How-To des alliances")
+    @app_commands.guild_only()
     @app_commands.default_permissions(create_instant_invite=True)
     async def howto_alliances(self, interaction: discord.Interaction):
         await interaction.response.defer()
