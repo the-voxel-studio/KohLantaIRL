@@ -1,4 +1,5 @@
 import html
+from pathlib import Path
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
@@ -7,10 +8,12 @@ from reportlab.platypus import (BaseDocTemplate, Frame, PageBreak,
                                 PageTemplate, Paragraph, Table)
 
 from utils.logging import get_logger
+from utils.models import VoteLog, Player, get_alliances_number
 
 logger = get_logger(__name__)
 
 logger.info(f"Setup running...")
+DIRNAME = Path(__file__).parent.parent
 styles = getSampleStyleSheet()
 styles["Title"].textColor = colors.whitesmoke
 styles["h2"].textColor = colors.whitesmoke
@@ -18,6 +21,8 @@ styles["h3"].textColor = colors.whitesmoke
 styles["Normal"].textColor = colors.whitesmoke
 styles["Normal"].bulletIndent = 25
 styles["Normal"].leftIndent = 40
+
+# TODO setup pdf generation with db infos
 
 def background_canvas(canvas_obj, doc):
     canvas_obj.saveState()
@@ -51,6 +56,15 @@ def create_pdf(file_path,vote_number):
 def render_vote(number: int,**kwargs):
     logger.info(f"fn > render_vote > start | number: {number} | kwargs: {kwargs}")
 
+    vote_log = VoteLog(number=number)
+    votes_number = len(vote_log.votes)
+
+    players = Player(option="living").list
+    players_number = len(players)
+
+    eliminated_players = Player(option="eliminated").list
+    eliminated_players_number = len(eliminated_players)
+
     last = kwargs.get("last",False)
     elements = []
 
@@ -65,7 +79,7 @@ def render_vote(number: int,**kwargs):
 
     data = [
         ["Date", "Ouverture", "Fermeture", "Nombres de votants", "Votes exprimés", "Triches"],
-        ["09/10/2023", "18h00", "21h00", 5, 4, 0]
+        ["09/10/2023", "18h00", "21h00", vote_log.voters_number, votes_number, vote_log.cheaters_number]
     ]
     table_style = [
         ('BACKGROUND', (0, 0), (-1, 0), "#1e1f22"),
@@ -100,14 +114,12 @@ def render_vote(number: int,**kwargs):
     text = html.escape("<ligne> a reçu au total <total reçu> vote(s)")
     elements.append(Paragraph(text, last_bullet_style, bulletText="-"))
 
-    data = [
-        ["Pseudo", "Marius S", "Augustin V", "Rachel B", "Arthur D", "Ewan M", "Horaire", "Total reçu"],
-        ["Marius S", "", "X", "", "", "", "20h58", 2],
-        ["Augustin V", "X", "", "", "", "", "20h45", 1],
-        ["Ewan M", "", "", "", "", "", "", 1],
-        ["Rachel B", "X", "", "", "", "", "20h59", 0],
-        ["Arthur D", "", "", "", "", "X", "18h02", 0]
-    ]
+    data = [["Pseudo"]]
+    for p in players:
+        data[0].append(p.get("nickname", "unknown"))
+        data.append([p.get("nickname", "unknown")] + ["" for i in range(players_number+1)] + [0])
+    data[0] += ["Horaire","Total reçu"]
+
     table_style = [
         ('BACKGROUND', (0, 0), (-1, 0), "#1e1f22"),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
@@ -126,7 +138,7 @@ def render_vote(number: int,**kwargs):
     paragraph = Paragraph(text, styles['h2'])
     elements.append(paragraph)
 
-    text = "Nombre d'alliances créées à date: 5"
+    text = f"Nombre d'alliances créées à date: {get_alliances_number()}"
     paragraph = Paragraph(text, styles['Normal'])
     elements.append(paragraph)
 
@@ -135,13 +147,17 @@ def render_vote(number: int,**kwargs):
         paragraph = Paragraph(text, styles['h2'])
         elements.append(paragraph)
 
-        data = [
-            ["Pseudo", "Discord id", "Eliminé au vote n°", "Votes reçus"],
-            ["Marius S", 722935926283567224, 4, "2 / 4"],
-            ["Augustin V", 702183400341241887, 3, "3 / 6"],
-            ["Rachel B", 937804932243927112, 2, "5 / 7"],
-            ["Arthur D", 889125377509851216, 1, "7 / 8"]
-        ]
+        data = [["Pseudo","Discord id","Eliminé au vote n°","Votes reçus"]]
+        for p in eliminated_players:
+            data.append([p.get("nickname", "unknown"),p.get("id", "unknown"),p.get("deathCouncilNumber", "unknown"),"0 / 0"])
+
+        # data = [
+        #     ["Pseudo", "Discord id", "Eliminé au vote n°", "Votes reçus"],
+        #     ["Marius S", 722935926283567224, 4, "2 / 4"],
+        #     ["Augustin V", 702183400341241887, 3, "3 / 6"],
+        #     ["Rachel B", 937804932243927112, 2, "5 / 7"],
+        #     ["Arthur D", 889125377509851216, 1, "7 / 8"]
+        # ]
         table_style = [
             ('BACKGROUND', (0, 0), (-1, 0), "#1e1f22"),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
@@ -231,6 +247,6 @@ def generate(vote_number) -> str:
     name = f"KohLantaVote{str(vote_number)}.pdf"
     create_pdf(f"pdf/{name}", vote_number)
     logger.info(f"fn > generate > OK | vote_number: {vote_number} | PDF name: {name}")
-    return name
+    return f"{DIRNAME}\\pdf\\{name}"
 
 logger.info(f"Ready")

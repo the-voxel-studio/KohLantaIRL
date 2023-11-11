@@ -49,8 +49,8 @@ async def new_alliance(interaction: discord.Interaction):
 
 async def close_alliance(txt_channel_id: discord.TextChannel.id, user : discord.User = None):
     logger.info(f"fn > Alliance Close > start | Requested by {user} (id:{user.id}) | Alliance text channel id: {txt_channel_id}")
-    text_channel = bot.get_channel(txt_channel_id)
     alliance = Alliance(text_id=txt_channel_id)
+    text_channel = bot.get_channel(alliance.text_id)
     voice_channel = bot.get_channel(alliance.voice_id)
     await text_channel.delete()
     await voice_channel.delete()

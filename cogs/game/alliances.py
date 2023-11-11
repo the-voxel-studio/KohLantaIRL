@@ -26,6 +26,7 @@ class AlliancesCog(commands.Cog):
         logger.info(f"Alliance renaming > start | Requested by {interaction.user} (id:{interaction.user.id}) | New name: {nouveau_nom} | Alliance text channel id: {interaction.channel.id}")
         await interaction.response.defer()
         alliance = Alliance(text_id=interaction.channel.id)
+        alliance.rename(nouveau_nom)
         voice_channel = bot.get_channel(alliance.voice_id)
         await interaction.channel.edit(name=nouveau_nom)
         await voice_channel.edit(name=nouveau_nom)

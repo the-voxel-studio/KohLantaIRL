@@ -74,21 +74,30 @@ class VotesCog(commands.Cog):
     @app_commands.command(name = "dv", description = "Dernière volonté. (uniquement en mp)")
     @app_commands.describe(contenu="Contenu du message à envoyer")
     async def last_volontee(self, interaction: discord.Interaction, contenu: str):
-        # TODO limit last wich to one per eliminate
+        # CHECK limit last wich to one per eliminate
         await interaction.response.defer(ephemeral=True)
         if isinstance(interaction.channel, discord.DMChannel):
             vote_log = VoteLog(last=True)
             vote_date = datetime.datetime.strptime(vote_log.date, "%d/%m/%Y %H:%M:%S")
             actual_date = datetime.datetime.now()
-            time_delta = actual_date - vote_date
-            if (vote_log.eliminated.id == interaction.user.id) and (time_delta<datetime.timedelta(hours=17)):
-                logger.info(f"Last wish > start | Requested by {interaction.user} (id:{interaction.user.id}) | Content: {contenu}")
-                embed=discord.Embed(title=f":robot: Dernière volonté de {interaction.user} :moyai:", description=f"**{contenu}**", color=COLOR_GREEN)
-                embed.set_footer(text="Les administrateurs ne sont pas responsables des propos tenus dans ce message. Si vous trouvez un contenu inapproprié ou problématique, n'hésitez pas à le signaler en message privé.")
-                await bot.get_channel(CHANNEL_ID_GENERAL).send(embed=embed)
-                embed=discord.Embed(title=":robot: Ta dernière volonté a été exprimée :moyai:", description=f"Vous pouvez la voir ici <#{CHANNEL_ID_GENERAL}>", color=COLOR_GREEN)
-                await interaction.followup.send(embed=embed)
-                logger.info(f"Last wish > OK | Requested by {interaction.user.name} (id:{interaction.user.id}) | Content: {contenu}")
+            # CHECK change to 21h the day after the vote
+            max_date = (vote_date + datetime.timedelta(days=1)).replace(hour=21, minute=0, second=0, microsecond=0)
+            not_timeout = actual_date <= max_date
+            is_last_eliminate = vote_log.eliminated.id == interaction.user.id
+            if is_last_eliminate and not_timeout:
+                if not vote_log.eliminated.last_wich_expressed:
+                    logger.info(f"Last wish > start | Requested by {interaction.user} (id:{interaction.user.id}) | Content: {contenu}")
+                    vote_log.eliminated.express_last_wish()
+                    embed=discord.Embed(title=f":robot: Dernière volonté de {interaction.user} :moyai:", description=f"**{contenu}**", color=COLOR_GREEN)
+                    embed.set_footer(text="Les administrateurs ne sont pas responsables des propos tenus dans ce message. Si vous trouvez un contenu inapproprié ou problématique, n'hésitez pas à le signaler en message privé.")
+                    await bot.get_channel(CHANNEL_ID_GENERAL).send(embed=embed)
+                    embed=discord.Embed(title=":robot: Ta dernière volonté a été exprimée :moyai:", description=f"Vous pouvez la voir ici <#{CHANNEL_ID_GENERAL}>", color=COLOR_GREEN)
+                    await interaction.followup.send(embed=embed)
+                    logger.info(f"Last wish > OK | Requested by {interaction.user.name} (id:{interaction.user.id}) | Content: {contenu}")
+                else:
+                    embed=discord.Embed(title=f":robot: Commande verrouillée :moyai:", description=f":no_entry: Cette commande a déjà été utilisée.\n\nCommande : /dv", color=COLOR_ORANGE)
+                    embed.set_footer(text=f"Essayer à plusieurs reprises d'utiliser une commande interdite ou y parvenir sans autorisation des administrateurs entrainera systématiquement un bannissement temporaire ou définitif du joueur.")
+                    await interaction.followup.send(embed=embed)
             else:
                 raise commands.errors.MissingPermissions("LastWich")
         else:
