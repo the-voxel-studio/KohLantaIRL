@@ -23,6 +23,8 @@ async def timed_action():
         await send_log("Redémarrage automatique en cours", color="orange")
         logger.info("Ready to reboot.")
         system("sudo reboot")
+    elif hour == 14 and Variables.get_state() == 1:
+        await vote.check_if_last_eliminate_is_saved()
     elif hour == 17 and Variables.get_state() == 1:
         await vote.open()
     elif hour == 21 and Variables.get_vote_msg_id() != 0 and Variables.get_state() == 1:

@@ -75,6 +75,7 @@ class VotesCog(commands.Cog):
     @app_commands.describe(contenu="Contenu du message à envoyer")
     async def last_volontee(self, interaction: discord.Interaction, contenu: str):
         # CHECK limit last wich to one per eliminate
+        # TODO modify with multiple eliminated after a unique vote
         await interaction.response.defer(ephemeral=True)
         if isinstance(interaction.channel, discord.DMChannel):
             vote_log = VoteLog(last=True)

@@ -284,6 +284,7 @@ class NewVoteLog:
 		self.players_list = Player(option="living").list
 		self.voters_number = len(self.players_list)
 		self.cheaters_number = kwargs.get("cheaters_number",0)
+		self.tied_players = kwargs.get("tied_players",[])
 		self.votes_list = []
 		for v in self.votes:
 			self.votes_list.append({
@@ -291,7 +292,7 @@ class NewVoteLog:
 				"for": Player(letter=chr(EMOJIS_LIST.index(self.votes[v][0])+65))._id
 			})
 		if self.eliminated:
-			self.eliminated_dict = [{"_id": self.eliminated._id}]
+			self.eliminated_dict = [{"_id": el._id} for el in self.eliminated]
 		else: self.eliminated_dict = {}
 		
 	def save(self):
@@ -301,22 +302,24 @@ class NewVoteLog:
 			"number": self.number,
 			"eliminated": self.eliminated_dict,
 			"votersNumber": self.voters_number,
-			"cheatersNumber": self.cheaters_number
+			"cheatersNumber": self.cheaters_number,
+			"tied_players": self.tied_players
 		})
 
 class VoteLog:
-	# TODO change eliminated_dict to list
+	# CHECK change eliminated_dict to list
 	def __init__(self, **kwargs):
 		logger.info(f"VoteLogObjectCreation | args: {kwargs}")
 		self._id = kwargs.get("_id",None)
 		self.number = kwargs.get("number",None)
 		self.date = kwargs.get("date",None)
-		self.eliminated = {}
+		self.eliminated = []
 		self.votes = []
 		self.last = kwargs.get("last",False)
 		self.is_last_vote = False
 		self.voters_number = None
 		self.cheaters_number = None
+		self.tied_players = []
 		self.vote_log = None
 		if self.last == True:
 			self.last = 0 
@@ -338,14 +341,19 @@ class VoteLog:
 			self.votes = self.vote_log.get("votes",None)
 			self.voters_number = self.vote_log.get("votersNumber",None)
 			self.cheaters_number = self.vote_log.get("cheatersNumber",None)
-			self.eliminated_dict = self.vote_log.get("eliminated")
+			self.eliminated_dict = self.vote_log.get("eliminated", [])
+			self.tied_players = self.vote_log.get("tied_players", [])
 			if self.eliminated_dict != {}:
-				self.eliminated = Player(_id=ObjectId(self.eliminated_dict[0]["_id"]))
+				self.eliminated = [Player(_id=ObjectId(el["_id"])) for el in self.eliminated_dict]
 			if self.number == get_council_number(): self.is_last_vote = True
 			logger.info(f"fn > Vote Log find > OK | log: {self.vote_log}")
 
-	def update_eliminated(self, eliminated: Player):
-		db.VoteLog.update_one({"_id": self._id},{"$set": {"eliminated":{"_id": eliminated._id}}}, upsert=False)
+	def update_eliminated(self, eliminated):
+		# CHECK with multiples eliminated players after a unique vote
+		if type(eliminated) != list: eliminated = [eliminated]
+		for el in eliminated:
+			self.eliminated.append({"id":eliminated.id_})
+		db.VoteLog.update_one({"_id": self._id},{"$set": {"eliminated":self.eliminated}}, upsert=False)
 		logger.info(f"fn > Vote Log eliminated update > OK | _id: {self._id} | eliminated: {eliminated}")
 
 def get_council_number():
