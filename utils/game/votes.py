@@ -10,6 +10,8 @@ from utils.bot import bot
 from utils.log import get_logger
 from utils.models import Player, Variables, NewVoteLog, VoteLog, get_council_number
 from utils.punishments import timeout
+from utils.game.players import reset_roles
+from utils.pdf import generate as pdfGenerate
 import datetime
 
 logger = get_logger(__name__)
@@ -73,15 +75,16 @@ class EqualityView(discord.ui.View):
         self.add_item(self.select)
 
     async def select_callback(self, interaction):
-        # TODO verify with multiples selectors
-        # TODO random in case of any response
+        # CHECK verify with multiples selectors
+        # TODO in case of any response -> eliminate both
+        # CHECK verify fonctioning with final equality
         await interaction.response.defer()
         self.select.disabled = True
         await interaction.message.edit(view=self)
         now_date = datetime.datetime.now()
         last_vote_date = datetime.datetime.strptime(VoteLog(last=True).date, "%d/%m/%Y %H:%M:%S")
         time_delta = now_date - last_vote_date
-        if time_delta<datetime.timedelta(hours=16):
+        if time_delta<datetime.timedelta(hours=17):
             eliminated_nickname = interaction.data['values'][0]
             embed = discord.Embed(
                 title=f"**Tu as éliminé {eliminated_nickname} !**",
@@ -94,8 +97,9 @@ class EqualityView(discord.ui.View):
             await eliminate(interaction, member, "After equality")
             await interaction.followup.send(embed=embed)
         else:
-            embed=discord.Embed(title=f":robot: Trop tard ! :moyai:", description=f":no_entry: Le selection est maintenant fermée, vous avez dépacé le délais imparti.", color=COLOR_ORANGE)
+            embed=discord.Embed(title=f":robot: Trop tard ! :moyai:", description=f":no_entry: Le selection est maintenant fermée, vous avez dépacé le délais imparti. Par votre faute, les deux joueurs ont dors et déjà été éliminés !", color=COLOR_ORANGE)
             embed.set_footer(text=f"Essayer à plusieurs reprises d'utiliser une commande interdite ou y parvenir sans autorisation des administrateurs entrainera systématiquement un bannissement temporaire ou définitif du joueur.")
+            embed.set_image(url="https://media.tenor.com/CCLg0rGFVHEAAAAC/ah-denis.gif")
             await interaction.followup.send(embed=embed)
 
 async def close(interaction: discord.Interaction = None):
@@ -116,6 +120,7 @@ async def close(interaction: discord.Interaction = None):
     Variables.set_vote_msg_id(0)
     embed=discord.Embed(title=f":robot: Tricherie détectée :moyai:", description=f":no_entry: Vous avez voté pour plusieurs personnes en même temps.\nTous vos votes ont donc été annulés pour ce dernier vote.\nPar ailleurs, vous reçevez une sanction de type ban pendant 30 minutes.", color=COLOR_RED)
     embed.set_footer(text="Cette décision automatique n'est pas contestable. Vous pouvez néanmoins contacter un administrateur en MP pour signaler un éventuel problème.")
+    cheaters_number = 0
     for uid, emojis in reactions_list.items():
         if len(emojis) > 1:
             for react in reactions:
@@ -126,6 +131,7 @@ async def close(interaction: discord.Interaction = None):
             member = guild.get_member(uid)
             await timeout(member,reason=f"Tentative de triche au vote.",minutes=30)
             del(reactions_list[uid])
+            cheaters_number += 1
     max_reactions = [] ; max_count = 0
     for reaction in reactions:
         if reaction.count > max_count:
@@ -133,66 +139,113 @@ async def close(interaction: discord.Interaction = None):
             max_reactions = [reaction.emoji]
         elif reaction.count == max_count:
             max_reactions.append(reaction.emoji)
-    if len(max_reactions) == 1:
-        # TODO victory message !
-        eliminated = Player(letter=chr(EMOJIS_LIST.index(max_reactions[0])+65))
-        NewVoteLog(votes=reactions_list,eliminated=eliminated).save()
-        nb_remaining_players = len(reactions)-1
-        embed = discord.Embed(
-            title=f"**{eliminated.nickname}**",
-            description=f"Les aventuriers de la tribu ont décidé de l'éliminer et leur sentence est irrévocable !",
-            color=15548997
-        )
-        embed.set_author(name=f"Résultat du conseil n°{get_council_number()}",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
-        embed.set_thumbnail(url="https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp")
-        value = f"Il reste {nb_remaining_players} aventuriers en jeu." if nb_remaining_players != 1 else ""
-        embed.add_field(name=f"Cet aventurier a reçu {max_count-1} votes.", value=value, inline=True)
-        channel = bot.get_channel(CHANNEL_ID_RESULTATS)
-        await channel.send(embed=embed)
-        max_date = (datetime.datetime.now() + datetime.timedelta(days=1)).replace(hour=14, minute=0, second=0, microsecond=0)
-        embed = discord.Embed(
-            title=f"**Tu quittes la tribu ce soir** (cheh)",
-            description=f"Les aventuriers ont décidé de t'éliminer et leur sentence est irrévocable !",
-            color=15548997
-        )
-        embed.set_author(name="Résultat du conseil",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
-        embed.set_thumbnail(url="https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp")
-        embed.add_field(name=f"Tu as reçu {max_count-1} votes.",value=f"Plus d'infos ici: <#{CHANNEL_ID_RESULTATS}>.", inline=False)
-        embed.add_field(name=f"Tu souhaites exprimer une dernière volonté ? Envoi moi la commande /dv !",value=f"Exemple : `/dv \"Vous n\'auriez pas dû m\'éliminer...\"`\nEnvoi moi simplement un message sous cette forme.\nTu peux utiliser cette commande jusqu'à la date suivante : {max_date.strftime('%d/%m/%Y %H:%M:%S')}")
-        guild = bot.get_guild(GUILD_ID)
-        member = guild.get_member(eliminated.id)
-        await member.send(embed=embed)
-        role = discord.utils.get(guild.roles, name="Joueur")
-        new_role = discord.utils.get(guild.roles, name="Eliminé")
-        await member.remove_roles(role)
-        await member.add_roles(new_role)
-        eliminated.eliminate()
-        if nb_remaining_players == 1 : Variables.wait_for_last_vote()
+    it_is_the_final = len(reactions) == 2
+    there_is_no_equality = len(max_reactions) == 1
+    if there_is_no_equality: # check if there is an equality
+        if it_is_the_final: # check if it's the last vote
+            winner = Player(letter=chr(EMOJIS_LIST.index(max_reactions[0])+65))
+            new_vote_log = NewVoteLog(votes=reactions_list,eliminated=winner,cheaters_number=cheaters_number)
+            new_vote_log.save()
+            embed = discord.Embed(
+                title=f"**{winner.nickname}** remporte la partie !",
+                description=f"Les aventuriers de la tribu ont décidé de l'élire en tant que vainqueur de cette saison et leur sentence est irrévocable !",
+                color=COLOR_GREEN
+            )
+            embed.set_author(name=f"Résultat du conseil final",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
+            embed.set_thumbnail(url="https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp")
+            embed.add_field(name=f"Cet aventurier a reçu {max_count-1} votes.", value="La partie prend donc fin maintenant", inline=True)
+            file_path = pdfGenerate(new_vote_log.number)
+            file = discord.File(file_path)
+            channel = bot.get_channel(CHANNEL_ID_RESULTATS)
+            await channel.send(embed=embed, file=file)
+            embed = discord.Embed(
+                title=f"**Tu remportes la saison ce soir !**",
+                description=f"Les aventuriers de la tribu ont décidé de t'élire en tant que vainqueur de cette saison et leur sentence est irrévocable !",
+                color=15548997
+            )
+            embed.set_author(name="Résultat du conseil final",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
+            embed.set_thumbnail(url="https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp")
+            embed.add_field(name=f"Tu as reçu {max_count-1} votes.",value=f"Plus d'infos ici: <#{CHANNEL_ID_RESULTATS}>.", inline=False)
+            embed.set_image(url="https://media.tenor.com/b4GVF1aUlgIAAAAC/chirac-victoire.gif")
+            guild = bot.get_guild(GUILD_ID)
+            member = guild.get_member(winner.id)
+            await member.send(embed=embed)
+            reset_roles("Joueur","Eliminé","Finaliste","Votant Final")
+        else: # for other voters
+            eliminated = Player(letter=chr(EMOJIS_LIST.index(max_reactions[0])+65))
+            new_vote_log = NewVoteLog(votes=reactions_list,eliminated=eliminated,cheaters_number=cheaters_number)
+            new_vote_log.save()
+            nb_remaining_players = len(reactions)-1
+            embed = discord.Embed(
+                title=f"**{eliminated.nickname}**",
+                description=f"Les aventuriers de la tribu ont décidé de l'éliminer et leur sentence est irrévocable !",
+                color=15548997
+            )
+            embed.set_author(name=f"Résultat du conseil n°{get_council_number()}",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
+            embed.set_thumbnail(url="https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp")
+            value = f"Il reste {nb_remaining_players} aventuriers en jeu." if nb_remaining_players != 1 else ""
+            embed.add_field(name=f"Cet aventurier a reçu {max_count-1} votes.", value=value, inline=True)
+            file_path= pdfGenerate(new_vote_log.number)
+            file = discord.File(file_path)
+            channel = bot.get_channel(CHANNEL_ID_RESULTATS)
+            await channel.send(embed=embed, file=file)
+            # CHECK change to 21h the day after the vote
+            max_date = (datetime.datetime.now() + datetime.timedelta(days=1)).replace(hour=21, minute=0, second=0, microsecond=0)
+            embed = discord.Embed(
+                title=f"**Tu quittes la tribu ce soir** (cheh)",
+                description=f"Les aventuriers ont décidé de t'éliminer et leur sentence est irrévocable !",
+                color=15548997
+            )
+            embed.set_author(name="Résultat du conseil",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
+            embed.set_thumbnail(url="https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp")
+            embed.add_field(name=f"Tu as reçu {max_count-1} votes.",value=f"Plus d'infos ici: <#{CHANNEL_ID_RESULTATS}>.", inline=False)
+            embed.add_field(name=f"Tu souhaites exprimer une dernière volonté ? Envoi moi la commande /dv !",value=f"Exemple : `/dv \"Vous n\'auriez pas dû m\'éliminer...\"`\nEnvoi moi simplement un message sous cette forme.\nTu peux utiliser cette commande jusqu'à la date suivante : {max_date.strftime('%d/%m/%Y %H:%M:%S')}")
+            embed.set_image(url="https://media.tenor.com/dvnQzSrXuGQAAAAC/sam-koh-lanta.gif")
+            guild = bot.get_guild(GUILD_ID)
+            member = guild.get_member(eliminated.id)
+            await member.send(embed=embed)
+            role = discord.utils.get(guild.roles, name="Joueur")
+            new_role = discord.utils.get(guild.roles, name="Eliminé")
+            await member.remove_roles(role)
+            await member.add_roles(new_role)
+            eliminated.eliminate()
+        # if nb_remaining_players == 1 : Variables.wait_for_last_vote()
+        # TODO review last vote etapes
     else:
-        # TODO other way for first vote
-        # TODO other way to the finalist
+        # TODO other way for first vote -> eliminate both
+        # CHECK other way to the finalist -> choice by last winner
         council_number = get_council_number()
         tied_players = [Player(letter=chr(EMOJIS_LIST.index(r)+65)) for r in max_reactions]
-        NewVoteLog(votes=reactions_list).save()
+        NewVoteLog(votes=reactions_list,cheaters_number=cheaters_number).save()
         embed = discord.Embed(
             title=f"**Egalité**",
             description=f"Les aventuriers de la tribu n'ont pas sus se décider !",
             color=9807270
         )
-        embed.set_author(name=f"Résultat du conseil n°{council_number}",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
         embed.set_thumbnail(url="https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp")
-        embed.add_field(name="La dernière personne éliminée doit maintenant trancher entre les personnes atant actuellement à égalité.", value=f"Vous serez avertis via ce canal dès la décision prise et saisie.", inline=True)
+        if it_is_the_final:
+            vote_denomination = f"final"
+            vote_chooser1 = "Le vainqueur de la saison précédente"
+            vote_chooser2 = "dernier vainqueur en date"
+            vote_chooser_id = Variables.get_last_winner_id()
+        else:
+            vote_denomination = f"n°{council_number}"
+            vote_chooser1 = "La dernière personne éliminée"
+            vote_chooser2 = "dernière personne éliminée"
+            vote_chooser_id = VoteLog(last=-1).eliminated.id
+        embed.set_author(name=f"Résultat du conseil {vote_denomination}",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
+        embed.add_field(name=f"{vote_chooser1} doit maintenant trancher entre les personnes étant actuellement à égalité.", value=f"Vous serez avertis via ce canal dès la décision prise et saisie.", inline=True)
         channel = bot.get_channel(CHANNEL_ID_RESULTATS)
         await channel.send(embed=embed)
         max_date = (datetime.datetime.now() + datetime.timedelta(days=1)).replace(hour=12, minute=0, second=0, microsecond=0)
         embed = discord.Embed(
             title=f"**A toi de choisir !**",
-            description=f"En tant que dernier éliminé, tu dois décider de l'issue de ce vote !\nTu dois choisir ci-dessous entre les personnes arrivées à égalité.\nAttention, toute sélection est définitive.\nTu dois faire ton choix avant la date suivante : {max_date.strftime('%d/%m/%Y %H:%M:%S')}",
+            description=f"En tant que {vote_chooser2}, tu dois décider de l'issue de ce vote {vote_denomination} !\nTu dois choisir ci-dessous entre les personnes arrivées à égalité.\nAttention, toute sélection est définitive.\nTu dois faire ton choix avant la date suivante : {max_date.strftime('%d/%m/%Y %H:%M:%S')}",
             color=9807270
         )
-        embed.set_author(name=f"Egalité au conseil n°{council_number} !",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
+        embed.set_author(name=f"Egalité au conseil {vote_denomination} !",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
         embed.set_thumbnail(url="https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp")
-        last_eliminate = discord.utils.get(bot.get_all_members(), id=VoteLog(last=-1).eliminated.id)
+        last_eliminate = discord.utils.get(bot.get_all_members(), id=vote_chooser_id)
         select_options = [discord.SelectOption(label=p.nickname,description=f"Eliminer {p.nickname}") for p in tied_players]
         await last_eliminate.send(embed=embed,view=EqualityView())
     if interaction : 
@@ -207,6 +260,7 @@ async def eliminate(interaction: discord.Interaction, member: discord.Member, re
     eliminated = Player(id=member.id)
     players = Player(option="living")
     players_list = players.list
+    channel = bot.get_channel(CHANNEL_ID_RESULTATS)
     if reason == "After equality":
         public_embed = discord.Embed(
             title=f"**{eliminated.nickname}**",
@@ -226,7 +280,11 @@ async def eliminate(interaction: discord.Interaction, member: discord.Member, re
         dm_embed.set_thumbnail(url="https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp")
         dm_embed.add_field(name=f"Tu as reçu le votes du dernier éliminé",value=f"Plus d'infos ici: <#{CHANNEL_ID_RESULTATS}>.", inline=False)
         dm_embed.add_field(name=f"Tu souhaites exprimer une dernière volonté ? Envoi moi la commande /dv !",value=f"Exemple : `/dv \"Vous n\'auriez pas dû m\'éliminer...\"`\nEnvoi moi simplement un message sous cette forme.\nTu peux utiliser cette commande jusqu'à la date suivante : {max_date.strftime('%d/%m/%Y %H:%M:%S')}")
-        VoteLog(last=True).update_eliminated(Player(id=member.id))
+        last_vote_log = VoteLog(last=True)
+        last_vote_log.update_eliminated(Player(id=member.id))
+        file_path = pdfGenerate(last_vote_log.number)
+        file = discord.File(file_path)
+        await channel.send(embed=public_embed, file=file)
     else:
         public_embed = discord.Embed(
             title=f"**{eliminated.nickname}**",
@@ -243,11 +301,10 @@ async def eliminate(interaction: discord.Interaction, member: discord.Member, re
         )
         dm_embed.set_author(name="Décision d'un administrateur",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
         dm_embed.set_thumbnail(url="https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp")
-        dm_embed.add_field(name="Pas d'expression de dernière volonté",value="Etant donné les règles du jeu, tu ne disposes par d'un droit d'expression d'une dernière volonté.")
+        dm_embed.add_field(name="Pas d'expression de dernière volonté",value="Etant donné les règles du jeu, tu ne disposes pas d'un droit d'expression d'une dernière volonté.")
         embed=discord.Embed(title=f":robot: Joueur éliminé :moyai:", description=f"player : <@{member.id}>", color=COLOR_GREEN)
         await interaction.followup.send(embed=embed)
-    channel = bot.get_channel(CHANNEL_ID_RESULTATS)
-    await channel.send(embed=public_embed)
+        await channel.send(embed=public_embed)
     await member.send(embed=dm_embed)
     guild = bot.get_guild(GUILD_ID)
     role = discord.utils.get(guild.roles, name="Joueur")

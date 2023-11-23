@@ -20,6 +20,7 @@ class AdminCog(commands.Cog):
     @app_commands.command(
         name="send", description="Envoyer un message depuis Denis Brogniart"
     )
+    @app_commands.guild_only()
     @app_commands.default_permissions(moderate_members=True)
     async def send(
         self,
@@ -46,6 +47,7 @@ class AdminCog(commands.Cog):
     @app_commands.command(
         name="reboot", description="Redémarre le serveur de Denis Brogniart"
     )
+    @app_commands.guild_only()
     @app_commands.default_permissions(create_instant_invite=True)
     async def reboot(self, interaction: discord.Interaction):
         if not is_admin(interaction.user):
@@ -67,6 +69,7 @@ class AdminCog(commands.Cog):
     @app_commands.command(
         name="shutdown", description="Eteind le serveur de Denis Brogniart"
     )
+    @app_commands.guild_only()
     @app_commands.default_permissions(create_instant_invite=True)
     async def shutdown(self, interaction: discord.Interaction):
         if not is_admin(interaction.user):
@@ -86,6 +89,7 @@ class AdminCog(commands.Cog):
             logger.error(f"Manual shutdown is only possible on posix server | Requested by {interaction.user} (id:{interaction.user.id})")
 
     @app_commands.command(name = "logs", description = "To receive the bot.log file.")
+    @app_commands.guild_only()
     @app_commands.default_permissions(create_instant_invite=True)
     async def logs(self, interaction: discord.Interaction):
         logger.info(f"Send Logs File > start | requested by: {interaction.user} (id:{interaction.user.id})")
@@ -97,6 +101,7 @@ class AdminCog(commands.Cog):
         logger.info(f"Send Logs File > OK | requested by: {interaction.user} (id:{interaction.user.id})")
 
     @app_commands.command(name = "clear", description = "Supprimer un certain nombre de messages")
+    @app_commands.guild_only()
     @app_commands.default_permissions(manage_messages=True)
     async def clear(self, interaction: discord.Interaction, amount: int):
         logger.info(f"Partial channel clearing | Requested by {interaction.user} (id:{interaction.user.id}) | Number: {amount} | Channel id: {interaction.channel.id}")

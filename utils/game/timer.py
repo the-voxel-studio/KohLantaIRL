@@ -13,6 +13,7 @@ logger = get_logger(__name__)
 timer_thread = None
 
 async def timed_action():
+    # TODO return vote for eliminates
     logger.info('fn > Timer Loop > A thread timer has ended.')
     time = datetime.datetime.now()
     hour = int(time.strftime("%H"))

@@ -7,7 +7,8 @@ bot = discord.ext.commands.Bot(
     command_prefix="/",
     description=f"Bot maitre du jeu",
     intents=INTENTS,
-    application_id=APPLICATION_ID,
+    # application_id=APPLICATION_ID,
     help_command=None
 )
-client = discord.Client(intents=INTENTS,application_id=APPLICATION_ID)
+client = discord.Client(intents=INTENTS)
+# client = discord.Client(intents=INTENTS,application_id=APPLICATION_ID)

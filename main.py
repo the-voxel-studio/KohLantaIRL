@@ -7,6 +7,7 @@ from random import choice
 import discord
 from discord.ext import commands
 
+import utils.pdf
 from cogs.how_to import AllianceView
 from config.values import (BOT_ID, CHANNEL_ID_BOT, CHANNEL_ID_BOT_PRIVATE,
                            CHANNEL_ID_INSCRIPTION, CHANNEL_ID_VOTE,
@@ -22,21 +23,20 @@ from utils.logging import get_logger
 from utils.models import Player, setup_db_connection
 from utils.punishments import timeout
 
+# TODO Immunite collar : total review of the system
+
 # ***** CONSTANTES *****
 logger = get_logger(__name__)
-COGS = ["cogs.admin", "cogs.how_to", "cogs.game.alliances", "cogs.game.steps", "cogs.game.votes", "cogs.help", "cogs.punishments.muting"]
+COGS = ["cogs.admin", "cogs.how_to", "cogs.game.alliances", "cogs.game.steps", "cogs.game.votes", "cogs.game.eliminates","cogs.help", "cogs.punishments.muting"]
 
 @bot.event
 async def on_ready():
     for cog in COGS:
         await bot.load_extension(cog)
-    bot.tree.copy_global_to(guild=discord.Object(id=GUILD_ID))
     setup_db_connection()
     time = datetime.datetime.now().strftime("%d/%m/%Y **%H:%M**")
     await purge_empty_alliances()
     await start_new_timer()
-    # await update_alliance_btn_callback()
-    # await update_alliance_btn_callback()
     if os_name == 'nt':
         await send_log("BOT restarted and ready", ":tools: mode : **DEV**", f":clock: time   : {time}", color="orange")
     else:
@@ -45,8 +45,7 @@ async def on_ready():
     bot.add_view(EqualityView())
     bot.add_view(AllianceView())
     logger.info("Bot started and ready.")
-    await bot.tree.sync(guild=discord.Object(id=GUILD_ID))
-    # await bot.tree.sync()
+    await bot.tree.sync()
 
 @bot.event
 async def on_message(message):
@@ -106,41 +105,41 @@ async def on_command_error(ctx, error):
         embed=discord.Embed(title=f":robot: Erreur :moyai:", description=f":warning: Une erreur est survenue lors de l'execution de cette commande.\n\nCommande : {ctx.message.content}", color=COLOR_ORANGE)
         await ctx.author.send(embed=embed)
 
-@bot.tree.error
-async def on_app_command_error(interaction: discord.Interaction, error):
-    if isinstance(error, discord.app_commands.errors.CommandNotFound):
-        logger.warning(f"CommandNotFound | Sent by {interaction.user} (id:{interaction.user.id}) | Content: {error}")
-        embed=discord.Embed(title=f":robot: Commande inconnue :moyai:", description=f":warning: Veuillez vérifier l'orthographe", color=COLOR_ORANGE)
-        await interaction.response.send_message(embed=embed)
-    elif isinstance(error.original, commands.errors.MissingPermissions) or isinstance(error.original, discord.ext.commands.errors.MissingRole) or isinstance(error.original, discord.ext.commands.errors.MissingAnyRole):
-        command = "/"+interaction.command.name
-        logger.warning(f"MissingPermissions | Sent by {interaction.user} (id:{interaction.user.id}) | Attempted to use the command: {command}")
-        embed=discord.Embed(title=f":robot: Commande interdite :moyai:", description=f":no_entry: Vous n'avez pas les permissions nécessaires pour utiliser la commande !", color=COLOR_RED)
-        embed.set_footer(text=f"Essayer à plusieurs reprises d'utiliser une commande interdite ou y parvenir sans autorisation des administrateurs entrainera systématiquement un bannissement temporaire ou définitif du joueur.")
-        if interaction.response.is_done():
-            await interaction.followup.send(embed=embed)
-        else:
-            await interaction.response.send_message(embed=embed)
-        embed=discord.Embed(title=f":robot: Commande bloquée :moyai:", description=f"sent by **{interaction.user.display_name}**\nattempted to use the command **{command}**", color=COLOR_RED)
-        await bot.get_channel(CHANNEL_ID_BOT).send(embed=embed)
-    elif isinstance(error.original, commands.errors.NoPrivateMessage):
-        command = "/"+interaction.command.name
-        logger.warning(f"NoPrivateMessage | Sent by {interaction.user} (id:{interaction.user.id}) | Attempted to use the command: {command}")
-        embed=discord.Embed(title=f":robot: Commande de serveur :moyai:", description=f":no_entry: Cette commande n'est pas disponible en message privé.", color=COLOR_ORANGE)
-        embed.set_footer(text=f"Essayer à plusieurs reprises d'utiliser une commande interdite ou y parvenir sans autorisation des administrateurs entrainera systématiquement un bannissement temporaire ou définitif du joueur.")
-        if interaction.response.is_done():
-            await interaction.followup.send(embed=embed)
-        else:
-            await interaction.response.send_message(embed=embed)
-        embed=discord.Embed(title=f":robot: Commande MP bloquée :moyai:", description=f"sent by **{interaction.user.display_name}**\nattempted to use the command **{command}**", color=COLOR_ORANGE)
-        await bot.get_channel(CHANNEL_ID_BOT).send(embed=embed)
-    else:
-        logger.error(f"Command error | Sent by {interaction.user} (id:{interaction.user.id}) | {error}")
-        embed=discord.Embed(title=f":robot: Erreur :moyai:", description=f":warning: Une erreur est survenue lors de l'execution de cette commande.", color=COLOR_ORANGE)
-        if interaction.response.is_done():
-            await interaction.followup.send(embed=embed)
-        else:
-            await interaction.response.send_message(embed=embed)
+# @bot.tree.error
+# async def on_app_command_error(interaction: discord.Interaction, error):
+#     if isinstance(error, discord.app_commands.errors.CommandNotFound):
+#         logger.warning(f"CommandNotFound | Sent by {interaction.user} (id:{interaction.user.id}) | Content: {error}")
+#         embed=discord.Embed(title=f":robot: Commande inconnue :moyai:", description=f":warning: Veuillez vérifier l'orthographe", color=COLOR_ORANGE)
+#         await interaction.response.send_message(embed=embed)
+#     elif isinstance(error.original, commands.errors.MissingPermissions) or isinstance(error.original, discord.ext.commands.errors.MissingRole) or isinstance(error.original, discord.ext.commands.errors.MissingAnyRole):
+#         command = "/"+interaction.command.name
+#         logger.warning(f"MissingPermissions | Sent by {interaction.user} (id:{interaction.user.id}) | Attempted to use the command: {command}")
+#         embed=discord.Embed(title=f":robot: Commande interdite :moyai:", description=f":no_entry: Vous n'avez pas les permissions nécessaires pour utiliser la commande !", color=COLOR_RED)
+#         embed.set_footer(text=f"Essayer à plusieurs reprises d'utiliser une commande interdite ou y parvenir sans autorisation des administrateurs entrainera systématiquement un bannissement temporaire ou définitif du joueur.")
+#         if interaction.response.is_done():
+#             await interaction.followup.send(embed=embed)
+#         else:
+#             await interaction.response.send_message(embed=embed)
+#         embed=discord.Embed(title=f":robot: Commande bloquée :moyai:", description=f"sent by **{interaction.user.display_name}**\nattempted to use the command **{command}**", color=COLOR_RED)
+#         await bot.get_channel(CHANNEL_ID_BOT).send(embed=embed)
+#     elif isinstance(error.original, commands.errors.NoPrivateMessage):
+#         command = "/"+interaction.command.name
+#         logger.warning(f"NoPrivateMessage | Sent by {interaction.user} (id:{interaction.user.id}) | Attempted to use the command: {command}")
+#         embed=discord.Embed(title=f":robot: Commande de serveur :moyai:", description=f":no_entry: Cette commande n'est pas disponible en message privé.", color=COLOR_ORANGE)
+#         embed.set_footer(text=f"Essayer à plusieurs reprises d'utiliser une commande interdite ou y parvenir sans autorisation des administrateurs entrainera systématiquement un bannissement temporaire ou définitif du joueur.")
+#         if interaction.response.is_done():
+#             await interaction.followup.send(embed=embed)
+#         else:
+#             await interaction.response.send_message(embed=embed)
+#         embed=discord.Embed(title=f":robot: Commande MP bloquée :moyai:", description=f"sent by **{interaction.user.display_name}**\nattempted to use the command **{command}**", color=COLOR_ORANGE)
+#         await bot.get_channel(CHANNEL_ID_BOT).send(embed=embed)
+#     else:
+#         logger.error(f"Command error | Sent by {interaction.user} (id:{interaction.user.id}) | {error}")
+#         embed=discord.Embed(title=f":robot: Erreur :moyai:", description=f":warning: Une erreur est survenue lors de l'execution de cette commande.", color=COLOR_ORANGE)
+#         if interaction.response.is_done():
+#             await interaction.followup.send(embed=embed)
+#         else:
+#             await interaction.response.send_message(embed=embed)
 
 @bot.event
 async def on_raw_reaction_add(payload):
@@ -170,19 +169,11 @@ async def on_raw_reaction_add(payload):
                 if users.count(user) > 1: 
                     await msg.remove_reaction(payload.emoji, user)
 
-# @bot.event
-# async def on_button_click(interaction: discord.Interaction):
-#     print("button clicked")
-#     if interaction.component.type == discord.ComponentType.button:
-#         button_id = interaction.component.custom_id
-
-#         if button_id == 'votre_custom_id':
-#             await interaction.response.send_message('Vous avez cliqué sur le bouton!')
-#         elif button_id == 'autre_custom_id':
-#             await interaction.response.send_message('Vous avez cliqué sur un autre bouton!')
-#         else:
-#             print(interaction.component)
-#             await interaction.response.send_message('Bouton non reconnu.')
+@bot.command()
+async def pdf(ctx):
+    file_path = utils.pdf.generate(5)
+    file = discord.File(file_path)
+    await ctx.send(content="Bonjour\nVoici un message de test avec un prototype du fichier .pdf généré après chaque vote.",file=file)
 
 def signal_handler(sig, frame):
     logger.warning("Start of shutdown procedure.")

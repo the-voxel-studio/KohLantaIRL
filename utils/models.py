@@ -43,11 +43,21 @@ class NewPlayer:
 		self.death_council_number = kwargs.get("dcn", 0)
 	
 	def save(self) -> None:
-		db.Players.insert_one({"id": self.id,"nickname": self.nickname,"alive": self.alive,"deathCouncilNumber": self.death_council_number,"letter":self.letter})
+		db.Players.insert_one({
+			"id": self.id,
+			"nickname": self.nickname,
+			"alive": self.alive,
+			"deathCouncilNumber": self.death_council_number,
+			"letter":self.letter,
+			"lastWishExpressed":False,
+			"lastGeneralMessageDate":""
+		})
 		logger.info(f"fn > NewPlayer saving > OK | Discord id: {self.id} | Nickname: {self.nickname}")
 
 class Player:
 	
+	# CHECK add lastGeneralMessageDate
+
 	def __init__(self,**kwargs):
 		logger.info(f"PlayerObjectCreation | args: {kwargs}")
 		self.id = kwargs.get("id", 0)
@@ -72,6 +82,8 @@ class Player:
 				self.death_council_number = self.player.get("deathCouncilNumber", 0)
 				self.letter = self.player.get("letter", "")
 				self._id = self.player.get("_id", None)
+				self.last_wish_expressed = self.player.get("lastWishExpressed", True)
+				self.last_general_message_date = self.player.get("lastGeneralMessageDate", "")
 				self.exists = True
 		elif self._id != 0:
 			self.player = db.Players.find_one(filter={"_id":self._id})
@@ -81,6 +93,8 @@ class Player:
 				self.death_council_number = self.player.get("deathCouncilNumber", 0)
 				self.letter = self.player.get("letter", "")
 				self.id = self.player.get("id", None)
+				self.last_wish_expressed = self.player.get("lastWishExpressed",True)
+				self.last_general_message_date = self.player.get("lastGeneralMessageDate", "")
 				self.exists = True
 		elif self.nickname != "unknown":
 			self.player = db.Players.find_one(filter={"nickname":self.nickname})
@@ -90,6 +104,8 @@ class Player:
 				self.death_council_number = self.player.get("deathCouncilNumber", 0)
 				self.letter = self.player.get("letter", "")
 				self._id = self.player.get("_id", None)
+				self.last_wish_expressed = self.player.get("lastWishExpressed",True)
+				self.last_general_message_date = self.player.get("lastGeneralMessageDate", "")
 				self.exists = True
 		elif self.letter != "":
 			self.player = db.Players.find_one(filter={"letter":self.letter})
@@ -99,6 +115,8 @@ class Player:
 				self.alive = self.player.get("alive", True)
 				self.death_council_number = self.player.get("deathCouncilNumber", 0)
 				self._id = self.player.get("_id", None)
+				self.last_wish_expressed = self.player.get("lastWishExpressed",True)
+				self.last_general_message_date = self.player.get("lastGeneralMessageDate", "")
 				self.exists = True
 		elif self.option == "living":
 			self.list = list(db.Players.find({"alive":True}))
@@ -115,10 +133,16 @@ class Player:
 		logger.info(f"fn > Player elimination > OK | _id: {self._id} | alive: {self.alive} | letter: \"\"")
 
 	def resurrect(self):
-		db.Players.update_one({"_id": self._id},{"$set": {"alive":True,"letter":"","deathCouncilNumber":0}}, upsert=False)
+		db.Players.update_one({"_id": self._id},{"$set": {"alive":True,"letter":"","deathCouncilNumber":0,"lastWishExpressed":False}}, upsert=False)
 		logger.info(f"fn > Player resurrection > OK | _id: {self._id} | alive: {self.alive} | letter: \"\"")
 
+	def express_last_wish(self):
+		db.Players.update_one({"_id": self._id},{"$set": {"lastWishExpressed":True}}, upsert=False)
+		logger.info(f"fn > Player last wish expression > OK | _id: {self._id} | lastWishExpressed: True")
+
 class Variables:
+
+	# CHECK delete last_vote_date
 
 	def open_joining() -> None:
 		db.Variables.update_one({"id": 0},{"$set": {"state":0}}, upsert=False)
@@ -146,20 +170,20 @@ class Variables:
 	def set_vote_msg_id(id: int) -> None:
 		db.Variables.update_one({"id": 0},{"$set": {"voteMessageId":id}}, upsert=False)
 		logger.info(f"fn > Variables set vote msg id > OK | id: {id}")
-		
-	def set_last_vote_date(date: str) -> None:
-		db.Variables.update_one({"id": 0},{"$set": {"lastVoteDate":date}}, upsert=False)
-		logger.info(f"fn > Variables set last vote date > OK | date: {date}")
+
+	def set_last_winner_id(id: discord.User.id) -> None:
+		db.Variables.update_one({"id":0},{"$set": {"lastWinnerId":id}}, upsert=False)
+		logger.info(f"fn > Variables set last winner id > OK | discord id: {id}")
 		
 	def set_btn_how_to_alliance_msg_id(id: discord.Message.id) -> None:
 		db.Variables.update_one({"id": 0},{"$set": {"btnHowToAllianceMsgId":id}}, upsert=False)
 		logger.info(f"fn > Variables set btn how to alliance msg id > OK | date: {id}")
 
-	def get_last_vote_date() -> str:
-		return db.Variables.find_one({"id":0}).get("lastVoteDate", None)
-
 	def get_vote_msg_id() -> int:
 		return db.Variables.find_one({"id":0}).get("voteMessageId", 0)
+	
+	def get_last_winner_id() -> int:
+		return db.Variables.find_one({"id":0}).get("lastWinnerId")
 	
 	def get_guild_id() -> int:
 		return db.Variables.find_one({"id":0}).get("guildId", 0)
@@ -180,7 +204,7 @@ class NewAlliance:
 	
 	def save(self) -> None:
 		db.Alliances.insert_one({"text_id": self.text_id,"voice_id":self.voice_id,"name": self.name,"members": [ObjectId(str(self.creator))]})
-		logger.info(f"fn > NewPlayer saving > OK | Text id: {self.text_id} | Voice id: {self.voice_id} | Creator db id: {self.creator}")
+		logger.info(f"fn > NewPlayer saving > OK | Text id: {self.text_id} | Voice id: {self.voice_id} | Creator db _id: {self.creator}")
 		
 class Alliance:
 	
@@ -245,14 +269,21 @@ class Alliance:
 		self.result = db.Alliances.delete_many({"members": []})
 		logger.info(f"fn > Empty Alliances Purge > OK | count: {self.result.deleted_count}")
 
+	def rename(self, name: str) -> None:
+		db.Alliances.update_one({"_id": self._id},{"$set": {"name":name}}, upsert=False)
+		logger.info(f"fn > Alliance renamation > OK | Alliance _id: {self._id} | Old name : {self.name} | New name : {name}")
+
 class NewVoteLog:
+
 	def __init__(self,**kwargs):
 		self.votes = kwargs.get("votes", None)
 		self.eliminated = kwargs.get("eliminated", None)
 		self.date = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 		self.votes_logs = db.VoteLog
 		self.number = get_council_number() + 1 
-		self.players_list = db.Players.list_indexes()
+		self.players_list = Player(option="living").list
+		self.voters_number = len(self.players_list)
+		self.cheaters_number = kwargs.get("cheaters_number",0)
 		self.votes_list = []
 		for v in self.votes:
 			self.votes_list.append({
@@ -260,7 +291,7 @@ class NewVoteLog:
 				"for": Player(letter=chr(EMOJIS_LIST.index(self.votes[v][0])+65))._id
 			})
 		if self.eliminated:
-			self.eliminated_dict = {"_id": self.eliminated._id}
+			self.eliminated_dict = [{"_id": self.eliminated._id}]
 		else: self.eliminated_dict = {}
 		
 	def save(self):
@@ -268,10 +299,13 @@ class NewVoteLog:
 			"votes": self.votes_list,
 			"date": self.date,
 			"number": self.number,
-			"eliminated": self.eliminated_dict
+			"eliminated": self.eliminated_dict,
+			"votersNumber": self.voters_number,
+			"cheatersNumber": self.cheaters_number
 		})
 
 class VoteLog:
+	# TODO change eliminated_dict to list
 	def __init__(self, **kwargs):
 		logger.info(f"VoteLogObjectCreation | args: {kwargs}")
 		self._id = kwargs.get("_id",None)
@@ -281,6 +315,8 @@ class VoteLog:
 		self.votes = []
 		self.last = kwargs.get("last",False)
 		self.is_last_vote = False
+		self.voters_number = None
+		self.cheaters_number = None
 		self.vote_log = None
 		if self.last == True:
 			self.last = 0 
@@ -300,9 +336,11 @@ class VoteLog:
 			self.number = self.vote_log.get("number",None) if not self.number else self.number
 			self.date = self.vote_log.get("date",None) if not self.date else self.date
 			self.votes = self.vote_log.get("votes",None)
+			self.voters_number = self.vote_log.get("votersNumber",None)
+			self.cheaters_number = self.vote_log.get("cheatersNumber",None)
 			self.eliminated_dict = self.vote_log.get("eliminated")
 			if self.eliminated_dict != {}:
-				self.eliminated = Player(_id=ObjectId(self.eliminated_dict["_id"]))
+				self.eliminated = Player(_id=ObjectId(self.eliminated_dict[0]["_id"]))
 			if self.number == get_council_number(): self.is_last_vote = True
 			logger.info(f"fn > Vote Log find > OK | log: {self.vote_log}")
 
@@ -312,3 +350,6 @@ class VoteLog:
 
 def get_council_number():
 	return db.VoteLog.count_documents({})
+
+def get_alliances_number():
+	return db.Alliances.count_documents({})

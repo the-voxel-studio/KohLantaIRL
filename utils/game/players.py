@@ -1,7 +1,7 @@
 import discord
 
 from config.values import (CHANNEL_ID_GENERAL, COLOR_GREEN, COLOR_ORANGE,
-                           USER_ID_ADMIN)
+                           USER_ID_ADMIN, GUILD_ID)
 from utils.bot import bot
 from utils.logging import get_logger
 from utils.models import NewPlayer, Player, Variables
@@ -55,3 +55,12 @@ async def join(message):
         embed=discord.Embed(title=f":confetti_ball: On souhaite la bienvenue à **{nickname}** qui participera à la prochaine saison de Koh Lanta IRL !:confetti_ball:", color=COLOR_GREEN)
         await bot.get_channel(CHANNEL_ID_GENERAL).send(embed=embed)
         logger.info(f"fn > join > OK | Requested by: {message.author} (id:{message.author.id}) | Message: {message.content}")
+
+async def reset_roles(*roles) -> None:
+    logger.info(f"fn > reset_roles > start | Roles: {roles}")
+    guild = bot.get_guild(GUILD_ID)
+    for role_name in roles:
+        role = discord.utils.get(guild.roles, name=role_name)
+        for m in role.members: await m.remove_roles(role)
+        logger.info(f"fn > reset_roles > reset {role_name} role")
+    logger.info(f"fn > reset_roles > OK | Roles: {roles}")
