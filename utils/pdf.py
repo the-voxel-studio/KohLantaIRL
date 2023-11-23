@@ -1,5 +1,6 @@
 import html
 from pathlib import Path
+from pathlib import Path
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
@@ -9,10 +10,12 @@ from reportlab.platypus import (BaseDocTemplate, Frame, PageBreak,
 
 from utils.logging import get_logger
 from utils.models import VoteLog, Player, get_alliances_number
+from utils.models import VoteLog, Player, get_alliances_number
 
 logger = get_logger(__name__)
 
 logger.info(f"Setup running...")
+DIRNAME = Path(__file__).parent.parent
 DIRNAME = Path(__file__).parent.parent
 styles = getSampleStyleSheet()
 styles["Title"].textColor = colors.whitesmoke
@@ -21,6 +24,8 @@ styles["h3"].textColor = colors.whitesmoke
 styles["Normal"].textColor = colors.whitesmoke
 styles["Normal"].bulletIndent = 25
 styles["Normal"].leftIndent = 40
+
+# TODO setup pdf generation with db infos
 
 # TODO setup pdf generation with db infos
 
@@ -82,6 +87,7 @@ def render_vote(number: int,**kwargs):
 
     data = [
         ["Date", "Ouverture", "Fermeture", "Nombres de votants", "Votes exprimés", "Triches"],
+        ["09/10/2023", "18h00", "21h00", vote_log.voters_number, votes_number, vote_log.cheaters_number]
         ["09/10/2023", "18h00", "21h00", vote_log.voters_number, votes_number, vote_log.cheaters_number]
     ]
     table_style = [
@@ -152,6 +158,7 @@ def render_vote(number: int,**kwargs):
     paragraph = Paragraph(text, styles['h2'])
     elements.append(paragraph)
 
+    text = f"Nombre d'alliances créées à date: {get_alliances_number()}"
     text = f"Nombre d'alliances créées à date: {get_alliances_number()}"
     paragraph = Paragraph(text, styles['Normal'])
     elements.append(paragraph)
@@ -254,6 +261,7 @@ def generate(vote_number) -> str:
     name = f"KohLantaVote{str(vote_number)}.pdf"
     create_pdf(f"pdf/{name}", vote_number)
     logger.info(f"fn > generate > OK | vote_number: {vote_number} | PDF name: {name}")
+    return f"{DIRNAME}\\pdf\\{name}"
     return f"{DIRNAME}\\pdf\\{name}"
 
 logger.info(f"Ready")
