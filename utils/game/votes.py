@@ -258,7 +258,6 @@ async def close(interaction: discord.Interaction = None):
 
 async def eliminate(interaction: discord.Interaction, member: discord.Member, reason: typing.Literal["After equality","Other reason"]) -> None:
     logger.info(f"eliminate > start | interaction: {interaction} | member: {member} | reason: {reason}")
-    # FIX AttributeError: 'NoneType' object has no attribute 'id'
     eliminated = Player(id=member.id)
     players = Player(option="living")
     players_list = players.list
@@ -316,18 +315,17 @@ async def eliminate(interaction: discord.Interaction, member: discord.Member, re
     eliminated.eliminate()
     logger.info(f"eliminate > OK | interaction: {interaction} | member: {member} | reason: {reason}")
 
-async def resurrect(interaction: discord.Interaction, member: discord.Member, notify = True) -> None:
+async def resurrect(interaction: discord.Interaction, member: discord.Member) -> None:
     logger.info(f"resurrect > start | interaction: {interaction} | member: {member}")
     resurrected = Player(id=member.id)
-    if notify:
-        dm_embed = discord.Embed(
-            title=f"**Tu réintègres la tribu **",
-            description=f"<@{interaction.user.id}> a décidé de te réintégrer et tu lui dois beaucoup !",
-            color=COLOR_GREEN
-        )
-        dm_embed.set_author(name="Décision d'un administrateur",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
-        dm_embed.set_thumbnail(url="https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp")
-        await member.send(embed=dm_embed)
+    dm_embed = discord.Embed(
+        title=f"**Tu réintègres la tribu **",
+        description=f"<@{interaction.user.id}> a décidé de te réintégrer et tu lui dois beaucoup !",
+        color=COLOR_GREEN
+    )
+    dm_embed.set_author(name="Décision d'un administrateur",icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp")
+    dm_embed.set_thumbnail(url="https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp")
+    await member.send(embed=dm_embed)
     guild = bot.get_guild(GUILD_ID)
     role = discord.utils.get(guild.roles, name="Eliminé")
     new_role = discord.utils.get(guild.roles, name="Joueur")

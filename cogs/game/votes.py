@@ -52,13 +52,12 @@ class VotesCog(commands.Cog):
     @app_commands.command(name = "resurrect", description = "Réintroduit un joueur dans la partie.")
     @app_commands.guild_only()
     @app_commands.default_permissions(moderate_members=True)
-    async def resurrect(self, interaction: discord.Interaction, member: discord.Member, notify: typing.Literal["True","False"] = "True"):
+    async def resurrect(self, interaction: discord.Interaction, member: discord.Member):
         await interaction.response.defer()
-        notify = eval(notify)
         if not is_admin(interaction.user):
             raise commands.MissingPermissions(["Admin"])
         logger.info(f"Member resurrection start | Requested by {interaction.user} (id:{interaction.user.id}) | Member: {member} (id:{member.id})")
-        await vote.resurrect(interaction,member,notify)
+        await vote.resurrect(interaction,member)
         logger.info(f"Member resurrection OK | Requested by {interaction.user} (id:{interaction.user.id}) | Member: {member} (id:{member.id})")
 
     @app_commands.command(name = "set_finalist", description = "Définir un joueur comme finaliste.")

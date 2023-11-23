@@ -300,7 +300,6 @@ class NewVoteLog:
 			"date": self.date,
 			"number": self.number,
 			"eliminated": self.eliminated_dict,
-			"voters": self.players_list,
 			"votersNumber": self.voters_number,
 			"cheatersNumber": self.cheaters_number
 		})
@@ -337,8 +336,6 @@ class VoteLog:
 			self.number = self.vote_log.get("number",None) if not self.number else self.number
 			self.date = self.vote_log.get("date",None) if not self.date else self.date
 			self.votes = self.vote_log.get("votes",None)
-			self.vote_count = len(self.votes)
-			self.voters = self.vote_log.get("voters", [])
 			self.voters_number = self.vote_log.get("votersNumber",None)
 			self.cheaters_number = self.vote_log.get("cheatersNumber",None)
 			self.eliminated_dict = self.vote_log.get("eliminated")

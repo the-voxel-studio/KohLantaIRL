@@ -22,6 +22,8 @@ styles["Normal"].textColor = colors.whitesmoke
 styles["Normal"].bulletIndent = 25
 styles["Normal"].leftIndent = 40
 
+# TODO setup pdf generation with db infos
+
 def background_canvas(canvas_obj, doc):
     canvas_obj.saveState()
     canvas_obj.setFillColor("#2b2d31")
@@ -57,7 +59,7 @@ def render_vote(number: int,**kwargs):
     vote_log = VoteLog(number=number)
     votes_number = len(vote_log.votes)
 
-    players = vote_log.voters
+    players = Player(option="living").list
     players_number = len(players)
     players__id = [p.get("_id") for p in players]
 
@@ -112,27 +114,25 @@ def render_vote(number: int,**kwargs):
     elements.append(Paragraph(text, custom_style))
     text = html.escape("<ligne> à voté pour <colonne> à <horaire>")
     elements.append(Paragraph(text, styles['Normal'], bulletText="-"))
-    text = html.escape("<colonne> a reçue au total <total reçu> vote(s)")
+    text = html.escape("<ligne> a reçu au total <total reçu> vote(s)")
     elements.append(Paragraph(text, last_bullet_style, bulletText="-"))
 
     data = [["Pseudo"]]
     for p in players:
         data[0].append(p.get("nickname", "unknown"))
-        middle_content = ["" for i in range(players_number)]
+        middle_content = ["" for i in range(players_number+1)]
         voter__id = p["_id"]
         if voter__id in votes:
             vote_column = players__id.index(votes[voter__id])
             middle_content[vote_column] = "X"
-        data.append([p.get("nickname", "unknown")] + middle_content)
-    data.append(["Total reçu"] + [0 for i in range(players_number)])
+        data.append([p.get("nickname", "unknown")] + middle_content + [0])
+    data[0] += ["Horaire","Total reçu"]
 
-    for i in range(players_number):
-        count = [data[1:-1][k][i+1] for k in range(players_number)].count("X")
-        data[-1][i+1] = count
+    # TODO vote hour
 
-    # FIX multilines tables don't work
-    # for i in range(20):
-    #     data[0].append("Marius S")
+    for i, row in enumerate(data[1:]):
+        count = players_number- row[1:-2].count("")
+        data[i+1][players_number+2] = count
 
     table_style = [
         ('BACKGROUND', (0, 0), (-1, 0), "#1e1f22"),
@@ -142,10 +142,7 @@ def render_vote(number: int,**kwargs):
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('TOPPADDING', (0, 0), (-1, 0), 6),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
-        ('BACKGROUND', (0, 1), (-1, -2), "#2ecc71"),
-        ('BACKGROUND', (0, -1), (-1, -1), "#1e1f22"),
-        ('TEXTCOLOR', (0, -1), (-1, -1), colors.whitesmoke),
-        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('BACKGROUND', (0, 1), (-1, -1), "#2ecc71"),
         ('GRID', (0, 0), (-1, -1), 1, "#2b2d31")
     ]
     table = Table(data, style=table_style, hAlign="LEFT")
