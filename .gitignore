@@ -1,7 +1,11 @@
 *.env
-!/EnvExample/*.env
+!/Example/.example.env
 
+pdf
+logs
 .venv
+
+logs
 
 __pycache__/
 *.py[cod]

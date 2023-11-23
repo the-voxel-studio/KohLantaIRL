@@ -8,6 +8,7 @@ Thus, its missions are diverse: management of votes, results, fight against chea
 ## Technologies
 Project is created with:
 * Python 3.10.11
+    * match/case syntax support is required (min 3.10)
 * [Discord Dev Portal](https://discord.com/developers/)
 * [MongoDb](https://mongodb.com)
 * [Amazon Web Services](https://aws.amazon.com)
@@ -20,7 +21,7 @@ To run this project:
 4. Create the [roles](#discord-roles-architecture) as defined below.
 5. Configure a discord bot on the [Discord Dev Portal](https://discord.com/developers/).
 6. Create an empty database en [MongoDb](https://mongodb.com) and copy/create the connection url.
-7. Complete the [.env](/EnvExample/.env) file with the unique ids and tokens specific to your server. Then move it to the root of the project.
+7. Complete the [.example.env](/Example/.example.env) file with the unique ids and tokens specific to your server. Then move it to the root of the project and rename it ".env" (without ".example").
 8. Complete the discussion channels with templates from the [Templates](/Templates/) folder
 
 > [!NOTE]  
@@ -36,6 +37,7 @@ It should have the following list of chat channels, which can be placed however 
 * general: in which players can discuss
 * eliminated: in which the eliminated can discuss
 * bot: in which Denis Brogniart can send messages to admins
+* bot-logs : in wich Denis Brogniart will send at every launch (and when you command it) his bot.log file
 
 But also two categories:
 * Help:
