@@ -1,31 +1,60 @@
 BIENVENUE DANS KOH LANTA IRL🗿
 Présentation : 
 
-Un vote est organisé tous les deux jours sur le présent serveur Discord , la personne recueillant le plus de voix est éliminée du jeu.
+Un vote est organisé tous les jours sur le présent serveur Discord , la personne recueillant le plus de voix est éliminée du jeu.
 L'objectif est d'être le dernier joueur en jeu.
 Tout est autorisé : traîtrises, alliances etc, faites vous plaisir !
-Règles :
 
-Un vote se tiendra tous les 2 jours entre 18h00 et 20h59. Les voix exprimées à 21h00 seront prises pour résultat final du vote. Ce résultat sera communiqué par Denis Brogniart dans la foulée.
+Les joueurs non éliminés sont désignés par les termes "joueur restant"
 
-Chaque joueur ne dispose que d'une voix.
+Règles de vote:
 
-Denis vérifiera régulièrement que vous ne votez pas pour plusieurs personnes et annulera, le cas échéant, selon les cas, le(s) dernier(s) vote(s) que vous avez exprimés ou la totalité de vos votes.
+    - Un vote se tiendra chaque jour entre 17h00 et 20h59. 
+    - Chaque joueur restant dispose d'une voix.
+    - L'expression du vote se fait par réaction au message de vote.
+    - Les voix exprimées à 21h00 seront prises pour résultat final du vote. 
+    - Le résultat du vote est communiqué par Denis Brogniart dans la foulée de sa cloture.
+    - Denis Borgniart vérifiera régulièrement que vous ne votez pas pour plusieurs personnes et annulera, le cas échéant, selon les cas, le(s) dernier(s) vote(s) que vous avez exprimés ou la totalité de vos votes.
+    - S'il s'avère qu'à 21h00, lors du relevé des voix, un joueur exprime deux ou plus voix, elles seront toutes annulées.
+    - Pour que le résultat d’un vote soit pris en compte, il suffit qu'un seul joueur ai voté.
 
-S'il s'avère qu'à 21h00, lors du relevé des voix, un joueur exprime deux ou plus voix, elles seront toutes annulées.
+En cas d'égalité :
 
-Pour que le résultat d’un vote soit pris en compte, la majorité des joueurs restants doivent avoir voté.
+    - Au premier vote : L'ensemble des joueurs à égalité sont éliminés.
+    - Au vote final : Le choix est entre les mains du gagnant de la saison précédente.
+    - Le reste du temps : Le choix est entre les mains du dernier joueur éliminé à date.
 
-En cas d'égalité, le dernier joueur éliminé aura le dernier mot. Les modalités de vote
+    Pour ce faire (excepté lors du premier vote) et s'il y a égalité entre deux ou plus joueurs, la personne devant choisir entre les ex æquo reçoit un message privé de Denis Brogniart dans la foulée de la cloture du vote. 
+    Il dispose alors de 17h (jusqu'au lendemain du vote à 14h) pour faire son choix.
+    Pour choisir, il dispose de la liste des joueurs ex æquo et sélectionne celui qu'il souhaite éliminé.
+    Cette action est définitive.
+    S'il n'a pas choisi dans le délai imparti, l'ensemble des joueurs ex æquo seront éliminés par Denis Brogniart.
 
-Le dernier vote (lors de la finale) est ouvert à tous les éliminés et dure du 8h00 à 20h59. A partir de l’ouverture de ce vote, les finalistes se voient retirer leur droit de parole sur l’ensemble des salons.
+Le vote final :
 
-Une fois éliminé, les personnes ne peuvent plus participer aux votes, ne peuvent plus interagir sur le groupe de discussion général, peuvent interagir sur le groupe des éliminés.
-Un système de collier d’immunité a été mis en place. En voici les règles :
-Un smiley :collierimmunite:  est dissimulé quelque part sur le serveur, dans une discussion accessible à tous les joueurs restants, à une date tenue secrète.
-Toute personne qui trouve le smiley :collierimmunite:  est enjoint à cliquer dessus au plus vite. Ce dernier disparaitra de façon quasi instantanée. Dès à présent, vous êtes détenteur (de façon secrète) du collier d’immunité.
-Le collier d'immunité est utilisé automatiquement après un vote dont vous êtes le perdant, les votes contre vous ne sont alors pas comptabilisés. Ce dispositif ne fonctionne qu’une seule fois. Vous conservez le collier tant qu’il n’a pas servi à vous protéger d’une expulsion par un vote.
-Le collier d’immunité n’a aucun effet en finale.
+    - Chaque joueur éliminé dispose d'une voix.
+    - Il dure de 8h00 à 20h59.
+    - Les finalistes perdent leur droit de parole sur l'ensemble du serveur. Ils peuvent contacter les administrateurs en message privé si nécessaire.
+
+Les joueurs éliminés :
+
+    Les joueurs éliminés ne peuvent plus participer aux votes, ne peuvent plus interagir sur le groupe de discussion général
+    Les joueurs éliminés peuvent interagir sur le groupe des éliminés.
+
+Le collier d'immunité:
+    
+    Un smiley :collierimmunite: sera dissimulé par Denis Broginart quelque part sur le serveur, dans une discussion accessible à tous les joueurs restants, à une date tenue secrète.
+    Toute personne qui trouve le smiley :collierimmunite: est enjoint à cliquer dessus au plus vite. Ce dernier disparaitra de façon quasi instantanée. Dès à présent, le joueur ayant cliqué dessus deviendra détenteur (de façon secrète) du collier d’immunité.
+    Si vous disposer du collier, il est utilisé automatiquement après un vote dont vous êtes le perdant : les votes contre vous ne seront alors pas comptabilisés.
+    Ce dispositif ne fonctionne qu’une seule fois. Vous conservez le collier tant qu’il n’a pas servi à vous protéger d’une expulsion par un vote.
+    Le collier d’immunité n’a aucun effet en finale.
+
+Droit à la dernière volonté :
+
+    Les joueurs éliminés à la suite d'un vote ou suite au choix d'un joueur éliminé parmis des ex æquo disposent d'un droit d'expression d'une dernière volonté.
+    Cette dernière volontée prend la forme d'un message qui peut être envoyé sur le canal de discution des joueurs restants.
+    Chaque joueur répondant à ces critère a droit à un unique message qui doit être envoyé dans les 24h suivants son élimination.
+    Une commande permettant d'envoyer ce message via Denis Brogniart vous sera communiquée lors de votre élimination.
 
 Le maître du jeu peut à tout moment modifier les règles précédentes, et le jeu peut de lui-même vous faire transgresser ces règles, mais cela vous sera alors indiqué. 
 

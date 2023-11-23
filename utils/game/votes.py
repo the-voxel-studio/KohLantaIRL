@@ -402,7 +402,7 @@ async def close_normal_equality(
 
 async def close_first_vote_equality(
     reactions_list, cheaters_number, tied_players
-) -> None:
+    ) -> None:
     # TODO add logging
     NewVoteLog(
         votes=reactions_list,
@@ -486,7 +486,6 @@ async def close(interaction: discord.Interaction = None) -> None:
             )
     else:
         # CHECK eliminate all players at equality on first vote
-        # [ ] what to do if there is more than 2 tied players at first vote
         # CHECK choice by last winner if equlity in final
         council_number = get_council_number()
         tied_players = [
@@ -501,6 +500,7 @@ async def close(interaction: discord.Interaction = None) -> None:
                 tied_players,
             )
         else:  # if it's the first vote
+            # TODO check if there is at least one vote ?
             close_first_vote_equality(reactions_list, cheaters_number, tied_players)
     if interaction:
         embed = discord.Embed(

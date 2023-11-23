@@ -1,5 +1,6 @@
 *.env
 !/Example/.example.env
+lines_count.py
 
 pdf
 logs
