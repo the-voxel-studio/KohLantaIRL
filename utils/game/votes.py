@@ -159,7 +159,8 @@ class EqualityView(discord.ui.View):
 
 
 async def arrange_votes(reactions: list) -> dict:
-    # TODO add logging
+    # CHECK add logging
+    logger.info(f"arrange vote > start | reactions: {reactions}")
     reactions_list = {}
     for r in reactions:
         async for u in r.users():
@@ -168,11 +169,13 @@ async def arrange_votes(reactions: list) -> dict:
                     reactions_list[u.id] = [r.emoji]
                 elif r.emoji not in reactions_list[u.id]:
                     reactions_list[u.id].append(r.emoji)
+    logger.info(f"arrange vote > OK | reactions: {reactions_list}")
     return reactions_list
 
 
 async def deal_with_cheaters(reactions_list: dict, reactions: list) -> int:
-    # TODO add logging
+    # CHECK add logging
+    logger.info(f"deal with cheaters > start | reactions_list: {reactions_list} | reactions: {reactions}")
     cheaters_number = 0
     embed = discord.Embed(
         title=f":robot: Tricherie détectée :moyai:",
@@ -194,11 +197,13 @@ async def deal_with_cheaters(reactions_list: dict, reactions: list) -> int:
             await timeout(member, reason=f"Tentative de triche au vote.", minutes=30)
             del reactions_list[uid]
             cheaters_number += 1
+    logger.info(f"deal with cheaters > OK | reactions_list: {reactions_list} | reactions: {reactions} | cheaters number: {cheaters_number}")
     return cheaters_number
 
 
 async def count_votes(reactions: list) -> (list, int, bool, bool):
     # TODO add logging
+    logger.info(f"count votes > start | reactions: {reactions}")
     max_reactions = []
     max_count = 0
     for reaction in reactions:
@@ -207,7 +212,10 @@ async def count_votes(reactions: list) -> (list, int, bool, bool):
             max_reactions = [reaction.emoji]
         elif reaction.count == max_count:
             max_reactions.append(reaction.emoji)
-    return max_reactions, max_count, len(reactions) == 2, len(max_reactions) == 1
+    it_is_the_final = len(reactions) == 2
+    tied_players = len(max_reactions) == 1
+    logger.info(f"count votes > OK | reactions: {reactions} | max_reactions: {max_reactions} | it_is_the_final: {it_is_the_final} | tied_players: {tied_players}")
+    return max_reactions, max_count, it_is_the_final, tied_players
 
 
 async def close_final_vote(
@@ -501,6 +509,9 @@ async def close(interaction: discord.Interaction = None) -> None:
             )
         else:  # if it's the first vote
             # TODO check if there is at least one vote ?
+            print(reactions_list)
+            print(cheaters_number)
+            print(tied_players)
             close_first_vote_equality(reactions_list, cheaters_number, tied_players)
     if interaction:
         embed = discord.Embed(
