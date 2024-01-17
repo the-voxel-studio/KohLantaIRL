@@ -20,6 +20,10 @@ from utils.models import Player, Variables, NewVoteLog, VoteLog, get_council_num
 from utils.punishments import timeout
 from utils.game.players import reset_roles
 from utils.pdf import generate as pdfGenerate
+from utils.game.immuniteCollar import (
+    remove_potential_immune_player,
+    send_immunite_collar_used,
+)
 import datetime
 
 logger = get_logger(__name__)
@@ -60,18 +64,17 @@ async def open(interaction: discord.Interaction = None):
         )  # Récupération du role "Finaliste"
         voters = Player(option="eliminated")
         voters_list = voters.list
-        print(voters.list)
         for v in voters_list:
             await guild.get_member(v.get("id", 0)).add_roles(
                 v_role
             )  # Assignation du nouveau role
         category = discord.utils.get(guild.categories, name="Alliances")
         for f in players_list:
-            await guild.get_member(f.get("id", 0)).add_roles(
+            await guild.get_member(int(f.get("id", 0))).add_roles(
                 f_role
             )  # Assignation du nouveau role
             for channel in category.channels:
-                user = bot.get_user(f.get("id", 0))
+                user = bot.get_user(int(f.get("id", 0)))
                 perms = channel.overwrites_for(user)
                 perms.read_messages = False
                 await channel.set_permissions(user, overwrite=perms)
@@ -104,7 +107,7 @@ async def open(interaction: discord.Interaction = None):
 
 
 class EqualityView(discord.ui.View):
-    # TODO add logging
+    # [ ] add logging
     def __init__(self):
         super().__init__(timeout=None)
         self.council_number = get_council_number()
@@ -160,7 +163,7 @@ class EqualityView(discord.ui.View):
 
 async def arrange_votes(reactions: list) -> dict:
     # CHECK add logging
-    logger.info(f"arrange vote > start | reactions: {reactions}")
+    logger.info(f"arrange vote > start")
     reactions_list = {}
     for r in reactions:
         async for u in r.users():
@@ -169,13 +172,13 @@ async def arrange_votes(reactions: list) -> dict:
                     reactions_list[u.id] = [r.emoji]
                 elif r.emoji not in reactions_list[u.id]:
                     reactions_list[u.id].append(r.emoji)
-    logger.info(f"arrange vote > OK | reactions: {reactions_list}")
+    logger.info(f"arrange vote > OK")
     return reactions_list
 
 
 async def deal_with_cheaters(reactions_list: dict, reactions: list) -> int:
     # CHECK add logging
-    logger.info(f"deal with cheaters > start | reactions_list: {reactions_list} | reactions: {reactions}")
+    logger.info(f"deal with cheaters > start")
     cheaters_number = 0
     embed = discord.Embed(
         title=f":robot: Tricherie détectée :moyai:",
@@ -197,13 +200,13 @@ async def deal_with_cheaters(reactions_list: dict, reactions: list) -> int:
             await timeout(member, reason=f"Tentative de triche au vote.", minutes=30)
             del reactions_list[uid]
             cheaters_number += 1
-    logger.info(f"deal with cheaters > OK | reactions_list: {reactions_list} | reactions: {reactions} | cheaters number: {cheaters_number}")
+    logger.info(f"deal with cheaters > OK | cheaters number: {cheaters_number}")
     return cheaters_number
 
 
 async def count_votes(reactions: list) -> (list, int, bool, bool):
-    # TODO add logging
-    logger.info(f"count votes > start | reactions: {reactions}")
+    # [ ] add logging
+    logger.info(f"count votes > start")
     max_reactions = []
     max_count = 0
     for reaction in reactions:
@@ -212,19 +215,23 @@ async def count_votes(reactions: list) -> (list, int, bool, bool):
             max_reactions = [reaction.emoji]
         elif reaction.count == max_count:
             max_reactions.append(reaction.emoji)
+    print(max_reactions)
+
     it_is_the_final = len(reactions) == 2
-    tied_players = len(max_reactions) == 1
-    logger.info(f"count votes > OK | reactions: {reactions} | max_reactions: {max_reactions} | it_is_the_final: {it_is_the_final} | tied_players: {tied_players}")
-    return max_reactions, max_count, it_is_the_final, tied_players
+    no_tied_players = len(max_reactions) == 1
+    logger.info(
+        f"count votes > OK | it_is_the_final: {it_is_the_final} | tied_players: {no_tied_players == False}"
+    )
+    return max_reactions, max_count, it_is_the_final, no_tied_players
 
 
 async def close_final_vote(
     max_reactions, reactions_list, cheaters_number, max_count
 ) -> None:
-    # TODO add logging
+    # [ ] add logging
     winner = Player(letter=chr(EMOJIS_LIST.index(max_reactions[0]) + 65))
     new_vote_log = NewVoteLog(
-        votes=reactions_list, eliminated=winner, cheaters_number=cheaters_number
+        votes=reactions_list, eliminated=[winner], cheaters_number=cheaters_number
     )
     new_vote_log.save()
     embed = discord.Embed(
@@ -244,7 +251,7 @@ async def close_final_vote(
         value="La partie prend donc fin maintenant",
         inline=True,
     )
-    file_path = pdfGenerate(new_vote_log.number)
+    file_path = pdfGenerate(new_vote_log.number, final=True)
     file = discord.File(file_path)
     channel = bot.get_channel(CHANNEL_ID_RESULTATS)
     await channel.send(embed=embed, file=file)
@@ -269,17 +276,18 @@ async def close_final_vote(
     guild = bot.get_guild(GUILD_ID)
     member = guild.get_member(winner.id)
     await member.send(embed=embed)
-    reset_roles("Joueur", "Eliminé", "Finaliste", "Votant Final")
+    print("OK")
+    await reset_roles("Joueur", "Eliminé", "Finaliste", "Votant Final")
 
 
-async def close_normal(
+async def close_normal(  # CHECK verify immunite collar exception
     max_reactions, reactions_list, cheaters_number, max_count, reactions
 ) -> None:
-    # TODO add logging
+    # [ ] add logging
     eliminated = Player(letter=chr(EMOJIS_LIST.index(max_reactions[0]) + 65))
     new_vote_log = NewVoteLog(
         votes=reactions_list,
-        eliminated=eliminated,
+        eliminated=[eliminated],
         cheaters_number=cheaters_number,
     )
     new_vote_log.save()
@@ -337,6 +345,7 @@ async def close_normal(
     )
     embed.set_image(url="https://media.tenor.com/dvnQzSrXuGQAAAAC/sam-koh-lanta.gif")
     guild = bot.get_guild(GUILD_ID)
+    logger.warning(f"eliminated: {eliminated}")
     member = guild.get_member(eliminated.id)
     await member.send(embed=embed)
     role = discord.utils.get(guild.roles, name="Joueur")
@@ -345,14 +354,14 @@ async def close_normal(
     await member.add_roles(new_role)
     eliminated.eliminate()
     # if nb_remaining_players == 1 : Variables.wait_for_last_vote()
-    # TODO review last vote etapes
+    # CHECK review last vote etapes
 
 
-async def close_normal_equality(
+async def close_normal_equality(  # CHECK verify immunite collar exception
     reactions_list, cheaters_number, council_number, it_is_the_final, tied_players
 ) -> None:
     global select_options
-    # TODO add logging
+    # [ ] add logging
     NewVoteLog(
         votes=reactions_list, cheaters_number=cheaters_number, tied_players=tied_players
     ).save()
@@ -373,7 +382,11 @@ async def close_normal_equality(
         vote_denomination = f"n°{council_number}"
         vote_chooser1 = "La dernière personne éliminée"
         vote_chooser2 = "dernière personne éliminée"
-        vote_chooser_id = VoteLog(last=-1).eliminated.id
+        try:
+            vote_chooser_id = VoteLog(last=-1).eliminated[0].id
+        except:
+            vote_chooser_id = VoteLog(last=-2).eliminated[0].id
+
     embed.set_author(
         name=f"Résultat du conseil {vote_denomination}",
         icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp",
@@ -408,16 +421,17 @@ async def close_normal_equality(
     await chooser.send(embed=embed, view=EqualityView())
 
 
-async def close_first_vote_equality(
+async def close_first_vote_equality(  # CHECK verify immunite collar exception
     reactions_list, cheaters_number, tied_players
-    ) -> None:
-    # TODO add logging
-    NewVoteLog(
+) -> None:
+    # [ ] add logging
+    new_vote_log = NewVoteLog(
         votes=reactions_list,
         eliminated=tied_players,
         cheaters_number=cheaters_number,
         tied_players=tied_players,
-    ).save()
+    )
+    new_vote_log.save()
     embed = discord.Embed(
         title=f"**Egalité**",
         description=f"Les aventuriers de la tribu n'ont pas sus se décider !",
@@ -434,9 +448,11 @@ async def close_first_vote_equality(
         name=f"En vertue des règles du jeu, tous les joueurs à égalité ont donc été éliminés.",
         value=f"Pour les futures égalités, ce sera au dernier éliminé en date de choisir entre les personne à égalité.",
     )
+    file_path = pdfGenerate(new_vote_log.number)
+    file = discord.File(file_path)
     channel = bot.get_channel(CHANNEL_ID_RESULTATS)
-    # [ ] send pdf file ?
-    await channel.send(embed=embed)
+    # CHECK send pdf file ?
+    await channel.send(embed=embed, file=file)
     dm_embed = discord.Embed(
         title=f"**Tu quittes la tribu ce soir** (cheh)",
         description=f"Etant à égalité lors du premier vote, tu es éliminé dès ce soir.",
@@ -473,8 +489,48 @@ async def close_first_vote_equality(
         # CHECK private message
 
 
+async def close_without_eliminated(
+    max_reactions, reactions_list, cheaters_number, immune, reactions
+) -> None:
+    # CHECK send private msg to the non-eliminated player
+    new_vote_log = NewVoteLog(
+        votes=reactions_list,
+        eliminated=[],
+        cheaters_number=cheaters_number,
+    )
+    new_vote_log.save()
+    nb_remaining_players = len(reactions) - 1
+    embed = discord.Embed(
+        title=f"**Aucun joueur éliminé**",
+        description=f"Suite aux résultat du vote, personne n'a été éliminé !",
+        color=15548997,
+    )
+    embed.set_author(
+        name=f"Résultat du conseil n°{get_council_number()}",
+        icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp",
+    )
+    embed.set_thumbnail(
+        url="https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp"
+    )
+    value = (
+        f"Il reste {nb_remaining_players} aventuriers en jeu."
+        if nb_remaining_players != 1
+        else ""
+    )
+    embed.add_field(
+        name=f"Un collier d'immunité a été utilisé.",
+        value=value,
+        inline=True,
+    )
+    file_path = pdfGenerate(new_vote_log.number)
+    file = discord.File(file_path)
+    channel = bot.get_channel(CHANNEL_ID_RESULTATS)
+    await channel.send(embed=embed, file=file)
+
+
 async def close(interaction: discord.Interaction = None) -> None:
-    logger.info(f"vote closing > start | interaction: {interaction}")
+    # [ ] ? save immune persons in VoteLog
+    logger.info(f"vote closing > start")
     channel = bot.get_channel(CHANNEL_ID_VOTE)
     msg = await channel.fetch_message(Variables.get_vote_msg_id())
     reactions = msg.reactions
@@ -482,43 +538,53 @@ async def close(interaction: discord.Interaction = None) -> None:
     await msg.delete()
     Variables.set_vote_msg_id(0)
     cheaters_number = await deal_with_cheaters(reactions_list, reactions)
-    max_reactions, max_count, it_is_the_final, there_is_no_equality = count_votes(
+    max_reactions, max_count, it_is_the_final, there_is_no_equality = await count_votes(
         reactions
     )
-    if there_is_no_equality:  # check if there is an equality
-        if it_is_the_final:  # check if it's the last vote
-            close_final_vote(max_reactions, reactions_list, cheaters_number, max_count)
-        else:  # for other votes
-            close_normal(
-                max_reactions, reactions_list, cheaters_number, max_count, reactions
-            )
+    if not it_is_the_final:
+        max_reactions, immune = await remove_potential_immune_player(max_reactions)
+    if len(max_reactions) != 0:
+        if there_is_no_equality:  # check if there is an equality
+            if it_is_the_final:  # check if it's the last vote
+                await close_final_vote(
+                    max_reactions, reactions_list, cheaters_number, max_count
+                )
+            else:  # for other votes
+                await close_normal(
+                    max_reactions, reactions_list, cheaters_number, max_count, reactions
+                )
+        else:
+            # CHECK eliminate all players at equality on first vote
+            # CHECK choice by last winner if equlity in final
+            council_number = get_council_number()+1
+            print(f"council_number: {council_number}")
+            tied_players = [
+                Player(letter=chr(EMOJIS_LIST.index(r) + 65)) for r in max_reactions
+            ]
+            print(f"tied_players: {tied_players}")            
+            if council_number != 1:  # if it's not the first vote
+                await close_normal_equality(
+                    reactions_list,
+                    cheaters_number,
+                    council_number,
+                    it_is_the_final,
+                    tied_players,
+                )
+            else:  # if it's the first vote
+                await close_first_vote_equality(
+                    reactions_list, cheaters_number, tied_players
+                )
     else:
-        # CHECK eliminate all players at equality on first vote
-        # CHECK choice by last winner if equlity in final
-        council_number = get_council_number()
-        tied_players = [
-            Player(letter=chr(EMOJIS_LIST.index(r) + 65)) for r in max_reactions
-        ]
-        if council_number != 1:  # if it's not the first vote
-            close_normal_equality(
-                reactions_list,
-                cheaters_number,
-                council_number,
-                it_is_the_final,
-                tied_players,
-            )
-        else:  # if it's the first vote
-            # TODO check if there is at least one vote ?
-            print(reactions_list)
-            print(cheaters_number)
-            print(tied_players)
-            close_first_vote_equality(reactions_list, cheaters_number, tied_players)
+        # CHECK no-one elimination message
+        await close_without_eliminated(
+            max_reactions, reactions_list, cheaters_number, immune, reactions
+        )
     if interaction:
         embed = discord.Embed(
             title=f":robot: Le vote est clos :moyai:", color=COLOR_GREEN
         )
         await interaction.followup.send(embed=embed)
-    logger.info(f"vote closing > OK | interaction: {interaction}")
+    logger.info(f"vote closing > OK")
 
 
 async def eliminate(
@@ -526,9 +592,7 @@ async def eliminate(
     member: discord.Member,
     reason: typing.Literal["After equality", "Other reason"],
 ) -> None:
-    logger.info(
-        f"eliminate > start | interaction: {interaction} | member: {member} | reason: {reason}"
-    )
+    logger.info(f"eliminate > start | member: {member} | reason: {reason}")
     eliminated = Player(id=member.id)
     players = Player(option="living")
     players_list = players.list
@@ -628,13 +692,11 @@ async def eliminate(
     await member.remove_roles(role)
     await member.add_roles(new_role)
     eliminated.eliminate()
-    logger.info(
-        f"eliminate > OK | interaction: {interaction} | member: {member} | reason: {reason}"
-    )
+    logger.info(f"eliminate > OK | member: {member} | reason: {reason}")
 
 
 async def resurrect(interaction: discord.Interaction, member: discord.Member) -> None:
-    logger.info(f"resurrect > start | interaction: {interaction} | member: {member}")
+    logger.info(f"resurrect > start | member: {member}")
     resurrected = Player(id=member.id)
     dm_embed = discord.Embed(
         title=f"**Tu réintègres la tribu **",
@@ -661,11 +723,11 @@ async def resurrect(interaction: discord.Interaction, member: discord.Member) ->
         color=COLOR_GREEN,
     )
     await interaction.followup.send(embed=embed)
-    logger.info(f"resurrect > OK | interaction: {interaction} | member: {member}")
+    logger.info(f"resurrect > OK | member: {member}")
 
 
 async def set_finalist(interaction: discord.Interaction, member: discord.Member):
-    logger.info(f"set finalist > start | interaction: {interaction} | member: {member}")
+    logger.info(f"set finalist > start | member: {member}")
     dm_embed = discord.Embed(
         title=f"**Tu est élevé au rang de finaliste**",
         description=f"<@{interaction.user.id}> a décidé de te désigner comme finaliste et tu lui dois beaucoup !",
@@ -688,15 +750,16 @@ async def set_finalist(interaction: discord.Interaction, member: discord.Member)
         color=COLOR_GREEN,
     )
     await interaction.followup.send(embed=embed)
-    logger.info(f"set finalist > OK | interaction: {interaction} | member: {member}")
+    logger.info(f"set finalist > OK | member: {member}")
 
 
 # CHECK in case of any response -> eliminate both
 async def check_if_last_eliminate_is_saved():
     logger.info(f"check if last eliminate is saved > start")
-    # TODO what if there is no last vote log ?
+    # CHECK what if there is no last vote log ?
+    # TODO verify functionning
     last_vote_log = VoteLog(last=True)
-    if last_vote_log.eliminated != []:
+    if last_vote_log.eliminated == []:
         tied_players = last_vote_log.tied_players
         public_embed = discord.Embed(
             title=f"**{', '.join([el.nickname for el in tied_players])}**",

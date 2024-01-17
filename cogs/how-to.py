@@ -11,6 +11,7 @@ from config.values import CHANNEL_ID_HELP_ALLIANCE, COLOR_GREEN
 
 logger = get_logger(__name__)
 
+
 class HowToCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -19,11 +20,19 @@ class HowToCog(commands.Cog):
         def __init__(self):
             super().__init__(timeout=None)
 
-        @discord.ui.button(label="Créer une nouvelle alliance", style=discord.ButtonStyle.primary, emoji="😎")
+        @discord.ui.button(
+            label="Créer une nouvelle alliance",
+            style=discord.ButtonStyle.primary,
+            emoji="😎",
+        )
         async def button_callback(self, interaction, button):
-            await interaction.response.send_message(content="You clicked the button!",ephemeral=True)
+            await interaction.response.send_message(
+                content="You clicked the button!", ephemeral=True
+            )
 
-    @app_commands.command(name = "howto-alliances", description = "Crée le How-To des alliances")
+    @app_commands.command(
+        name="howto-alliances", description="Crée le How-To des alliances"
+    )
     # @app_commands.default_permissions(create_instant_invite=True)
     async def howto_alliances(self, interaction: discord.Interaction):
         self.channel = self.bot.get_channel(CHANNEL_ID_HELP_ALLIANCE)
@@ -33,11 +42,14 @@ class HowToCog(commands.Cog):
         # self.btn1 = Button(style=ButtonStyle.primary,label="Créer une nouvelle alliance")
         # self.view.add_item(self.btn1)
         self.view = self.AllianceView()
-        await self.channel.send(self.content,view=self.view)
-        embed=discord.Embed(title=f":robot: Message d'aide généré :moyai:", color=COLOR_GREEN)
+        await self.channel.send(self.content, view=self.view)
+        embed = discord.Embed(
+            title=f":robot: Message d'aide généré :moyai:", color=COLOR_GREEN
+        )
         await interaction.response.send_message(embed=embed)
         # TODO save how-to msg id in db
         # TODO modify message callback each restart
+
 
 async def setup(bot):
     await bot.add_cog(HowToCog(bot))

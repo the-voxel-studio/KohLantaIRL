@@ -12,13 +12,14 @@ from utils.models import Variables
 logger = get_logger(__name__)
 timer_thread = None
 
+
 async def timed_action():
     # TODO return vote for eliminates
-    logger.info('fn > Timer Loop > A thread timer has ended.')
+    logger.info("fn > Timer Loop > A thread timer has ended.")
     time = datetime.datetime.now()
     hour = int(time.strftime("%H"))
     if hour == 1:
-        logger.info("Preparing for automatic reboot.")
+        logger.warning("Preparing for automatic reboot.")
         timer_thread.cancel()
         await send_log("Redémarrage automatique en cours", color="orange")
         logger.info("Ready to reboot.")
@@ -34,23 +35,32 @@ async def timed_action():
         await vote.close()
     await start_new_timer()
 
+
 def timed_action_sync():
     coro = timed_action()
     asyncio.run_coroutine_threadsafe(coro, bot.loop)
 
+
 async def start_new_timer():
     global timer_thread
     time = datetime.datetime.today()
-    next_time = time.replace(day=time.day, hour=time.hour, minute=0, second=0, microsecond=0) + datetime.timedelta(hours=1)
+    next_time = time.replace(
+        day=time.day, hour=time.hour, minute=0, second=0, microsecond=0
+    ) + datetime.timedelta(hours=1)
     delta = (next_time - time).total_seconds()
     if delta == 0:
-        logger.info(f'fn > Timer Loop > Waiting for {time.hour+1}:00:00 to start a new thread timer')
+        logger.info(
+            f"fn > Timer Loop > Waiting for {time.hour+1}:00:00 to start a new thread timer"
+        )
         while delta == 0:
-            next_time = time.replace(day=time.day, hour=time.hour, minute=0, second=0, microsecond=0) + datetime.timedelta(hours=1)
+            next_time = time.replace(
+                day=time.day, hour=time.hour, minute=0, second=0, microsecond=0
+            ) + datetime.timedelta(hours=1)
             delta = (next_time - time).total_seconds()
     timer_thread = Timer(delta, timed_action_sync)
     timer_thread.start()
-    logger.info(f'fn > Timer Loop > New thread timer triggered | delta: {delta}')
+    logger.info(f"fn > Timer Loop > New thread timer triggered | delta: {delta}")
+
 
 def cancel_timer():
     timer_thread.cancel()

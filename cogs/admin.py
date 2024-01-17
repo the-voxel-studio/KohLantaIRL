@@ -6,13 +6,17 @@ from discord import app_commands
 from discord.ext import commands
 
 from config.values import (  # OBLIGATOIRES (utilisation de la fonction eval)
-    CHANNEL_ID_BOT_LOGS, COLOR_GREEN, COLOR_ORANGE, COLOR_RED)
+    CHANNEL_ID_BOT_LOGS,
+    COLOR_GREEN,
+    COLOR_ORANGE, # used by a eval() function
+    COLOR_RED, # used by a eval() function
+)
 from utils.log import send_log, send_logs_file
 from utils.logging import get_logger
 from utils.control import is_admin, is_in_guild
-from utils.bot import bot as BOT
 
 logger = get_logger(__name__)
+
 
 class AdminCog(commands.Cog):
     def __init__(self, bot):
@@ -30,6 +34,7 @@ class AdminCog(commands.Cog):
         content: str,
         color: typing.Literal["green", "orange", "red"],
     ):
+        
         if not is_admin(interaction.user):
             raise commands.MissingPermissions(["Admin"])
         logger.info(
@@ -65,7 +70,9 @@ class AdminCog(commands.Cog):
             logger.info("Ready to reboot.")
             system("sudo reboot")
         else:
-            logger.error(f"Manual reboot is only possible on posix server | Requested by {interaction.user} (id:{interaction.user.id})")
+            logger.error(
+                f"Manual reboot is only possible on posix server | Requested by {interaction.user} (id:{interaction.user.id})"
+            )
 
     @app_commands.command(
         name="shutdown", description="Eteind le serveur de Denis Brogniart"
@@ -87,44 +94,78 @@ class AdminCog(commands.Cog):
             logger.info("Ready to shutdown.")
             system("sudo halt")
         else:
-            logger.error(f"Manual shutdown is only possible on posix server | Requested by {interaction.user} (id:{interaction.user.id})")
+            logger.error(
+                f"Manual shutdown is only possible on posix server | Requested by {interaction.user} (id:{interaction.user.id})"
+            )
 
-    @app_commands.command(name = "logs", description = "To receive the bot.log file.")
+    @app_commands.command(name="logs", description="To receive the bot.log file.")
     @app_commands.guild_only()
     @app_commands.default_permissions(create_instant_invite=True)
     async def logs(self, interaction: discord.Interaction):
-        logger.info(f"Send Logs File > start | requested by: {interaction.user} (id:{interaction.user.id})")
+        logger.info(
+            f"Send Logs File > start | requested by: {interaction.user} (id:{interaction.user.id})"
+        )
         await interaction.response.defer()
         await send_logs_file()
-        self.embed=discord.Embed(title=f":robot: Logs disponibles :moyai:", description=f":file_folder: Le fichier contenant mes logs est disponible dans ce channel: <#{CHANNEL_ID_BOT_LOGS}>.", color=COLOR_GREEN)
-        self.embed.set_footer(text="Ce fichier est strictement confidentiel et son accès est réservé aux administrateurs du serveur.")
+        self.embed = discord.Embed(
+            title=f":robot: Logs disponibles :moyai:",
+            description=f":file_folder: Le fichier contenant mes logs est disponible dans ce channel: <#{CHANNEL_ID_BOT_LOGS}>.",
+            color=COLOR_GREEN,
+        )
+        self.embed.set_footer(
+            text="Ce fichier est strictement confidentiel et son accès est réservé aux administrateurs du serveur."
+        )
         await interaction.followup.send(embed=self.embed)
-        logger.info(f"Send Logs File > OK | requested by: {interaction.user} (id:{interaction.user.id})")
+        logger.info(
+            f"Send Logs File > OK | requested by: {interaction.user} (id:{interaction.user.id})"
+        )
 
-    @app_commands.command(name = "clear", description = "Supprimer un certain nombre de messages")
+    @app_commands.command(
+        name="clear", description="Supprimer un certain nombre de messages"
+    )
     @app_commands.guild_only()
     @app_commands.default_permissions(manage_messages=True)
     async def clear(self, interaction: discord.Interaction, amount: int):
-        logger.info(f"Partial channel clearing | Requested by {interaction.user} (id:{interaction.user.id}) | Number: {amount} | Channel id: {interaction.channel.id}")
+        logger.info(
+            f"Partial channel clearing | Requested by {interaction.user} (id:{interaction.user.id}) | Number: {amount} | Channel id: {interaction.channel.id}"
+        )
         await interaction.channel.purge(limit=amount)
 
-    @app_commands.command(name = "ping", description = "To verify bot connection")
+    @app_commands.command(name="ping", description="To verify bot connection")
     @app_commands.default_permissions(manage_messages=True)
     async def ping(self, interaction: discord.Interaction):
-        logger.info(f"Ping-Pong | requested by: {interaction.user} (id:{interaction.user.id})")
-        await interaction.response.send_message("https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExMDIwZWNoNnJ1ZW9nbDlhZjJjcTFtM215amYybmowYmc5YXZibW1uZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LnEuA5N3iZmFiDWP1n/giphy.gif")
+        logger.info(
+            f"Ping-Pong | requested by: {interaction.user} (id:{interaction.user.id})"
+        )
+        await interaction.response.send_message(
+            "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExMDIwZWNoNnJ1ZW9nbDlhZjJjcTFtM215amYybmowYmc5YXZibW1uZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LnEuA5N3iZmFiDWP1n/giphy.gif"
+        )
 
-    @app_commands.command(name = "tree_sync", description = "Force la synchronisation de l'arbre des commandes")
+    @app_commands.command(
+        name="tree_sync",
+        description="Force la synchronisation de l'arbre des commandes",
+    )
     @app_commands.default_permissions(manage_messages=True)
     async def tree_sync(self, interaction: discord.Interaction):
-        logger.info(f"Bot tree synchronisation > start | Requested by {interaction.user} (id:{interaction.user.id})")
+        logger.info(
+            f"Bot tree synchronisation > start | Requested by {interaction.user} (id:{interaction.user.id})"
+        )
         await interaction.response.defer()
         synced = await self.bot.tree.sync()
         commands_list = [el.name for el in synced]
-        self.embed=discord.Embed(title=f":robot: Arbre synchronisé :moyai:", description=f":file_folder: Les commandes suivantes ont étés trouvées: {commands_list}", color=COLOR_GREEN)
-        self.embed.set_footer(text="Cette liste est strictement confidentielle et son accès est réservé aux administrateurs du serveur.")
+        self.embed = discord.Embed(
+            title=f":robot: Arbre synchronisé :moyai:",
+            description=f":file_folder: Les commandes suivantes ont étés trouvées: {commands_list}",
+            color=COLOR_GREEN,
+        )
+        self.embed.set_footer(
+            text="Cette liste est strictement confidentielle et son accès est réservé aux administrateurs du serveur."
+        )
         await interaction.followup.send(embed=self.embed)
-        logger.info(f"Bot tree synchronisation > OK | Requested by {interaction.user} (id:{interaction.user.id}) | Commands: {commands_list}")
+        logger.info(
+            f"Bot tree synchronisation > OK | Requested by {interaction.user} (id:{interaction.user.id}) | Commands: {commands_list}"
+        )
+
 
 async def setup(bot):
     await bot.add_cog(AdminCog(bot))
