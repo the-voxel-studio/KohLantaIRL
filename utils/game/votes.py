@@ -215,7 +215,6 @@ async def count_votes(reactions: list) -> (list, int, bool, bool):
             max_reactions = [reaction.emoji]
         elif reaction.count == max_count:
             max_reactions.append(reaction.emoji)
-    print(max_reactions)
 
     it_is_the_final = len(reactions) == 2
     no_tied_players = len(max_reactions) == 1
@@ -276,7 +275,6 @@ async def close_final_vote(
     guild = bot.get_guild(GUILD_ID)
     member = guild.get_member(winner.id)
     await member.send(embed=embed)
-    print("OK")
     await reset_roles("Joueur", "Eliminé", "Finaliste", "Votant Final")
 
 
@@ -557,11 +555,9 @@ async def close(interaction: discord.Interaction = None) -> None:
             # CHECK eliminate all players at equality on first vote
             # CHECK choice by last winner if equlity in final
             council_number = get_council_number()+1
-            print(f"council_number: {council_number}")
             tied_players = [
                 Player(letter=chr(EMOJIS_LIST.index(r) + 65)) for r in max_reactions
-            ]
-            print(f"tied_players: {tied_players}")            
+            ]        
             if council_number != 1:  # if it's not the first vote
                 await close_normal_equality(
                     reactions_list,

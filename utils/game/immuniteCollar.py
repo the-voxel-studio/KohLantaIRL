@@ -26,6 +26,7 @@ async def move_immunite_collar_down() -> None:
     logger.info("fn > Move Immunite Collar Down > ok")
 
 async def send_immunite_collar() -> None:
+    # TODO automatic sending
     logger.info("fn > Send Immunite Collar > start")
     channel = bot.get_channel(CHANNEL_ID_GENERAL)
     msgs = [msg async for msg in channel.history(limit=20)][5:]

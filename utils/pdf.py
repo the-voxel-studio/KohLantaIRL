@@ -219,11 +219,13 @@ def render_vote(number: int, **kwargs):
     table = Table(data, style=table_style, hAlign="LEFT")
     elements.append(table)
 
-    text = f"3. Elimination{'s' if eliminated_at_this_vote_number>1 else ''}"
+    text = f"3. Elimination{'s' if eliminated_at_this_vote_number>1 else ''}" if not final else "3. Victoire"
     paragraph = Paragraph(text, styles["h2"])
     elements.append(paragraph)
 
-    if eliminated_at_this_vote_number == 1:
+    if final:
+        text = f"{eliminated_at_this_vote[0].nickname} a remporté cette partie de KohLanta."
+    elif eliminated_at_this_vote_number == 1:
         text = f"{eliminated_at_this_vote[0].nickname} a été éliminé durant ce vote."
     elif eliminated_at_this_vote_number > 1:
         text = f"{', '.join(el.nickname for el in eliminated_at_this_vote[:-1])} et {eliminated_at_this_vote[-1].nickname} ont été éliminés durant ce vote."
