@@ -36,14 +36,14 @@ async def send_immunite_collar() -> None:
     logger.info("fn > Send Immunite Collar > OK")
 
 async def reset_immunite_collar() -> None:
-    logger.info("fn > Send Immunite Collar > start")
+    logger.info("fn > Reset Immunite Collar > start")
     ic_msg_id = Variables.get_immunite_collar_msg_id()
     if ic_msg_id != 0:
         ic_msg = await bot.get_channel(CHANNEL_ID_GENERAL).fetch_message(ic_msg_id)
         await ic_msg.remove_reaction(f"<:collierimmunite:{EMOJI_ID_COLLIER}>", bot.user)
     Variables.set_immunite_collar_msg_id(0)
     Variables.set_immunite_collar_player_id(0)
-    logger.info("fn > Send Immunite Collar > OK")
+    logger.info("fn > Reset Immunite Collar > OK")
 
 async def give_immunite_collar(
     payload: discord.RawReactionActionEvent, player: Player
@@ -92,7 +92,7 @@ async def send_immunite_collar_used(immune) -> None:
     logger.info("fn > Send Immunite Collar Used > start")
     immune = Player(letter=chr(EMOJIS_LIST.index(immune) + 65))
     private_embed = discord.Embed(
-        title=f"**Tu as été sauvé !**",
+        title=f":robot: **Tu as été sauvé !** :moyai:",
         description=f"Ton collier t'a servi ce soir !",
         color=COLOR_GREEN,
     )
