@@ -755,7 +755,7 @@ async def check_if_last_eliminate_is_saved():
     # CHECK what if there is no last vote log ?
     # TODO verify functionning
     last_vote_log = VoteLog(last=True)
-    if last_vote_log.eliminated == []:
+    if last_vote_log.eliminated == [] and last_vote_log._id:
         tied_players = last_vote_log.tied_players
         public_embed = discord.Embed(
             title=f"**{', '.join([el.nickname for el in tied_players])}**",

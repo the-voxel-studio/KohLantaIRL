@@ -25,7 +25,7 @@ from utils.bot import bot
 from utils.game.alliances import purge_empty_alliances
 from utils.game.players import join
 from utils.game.timer import cancel_timer, start_new_timer
-from utils.game.votes import EqualityView
+from utils.game.votes import EqualityView, check_if_last_eliminate_is_saved
 from utils.game.immuniteCollar import give_immunite_collar, move_immunite_collar_down
 from utils.log import send_log, send_logs_file
 from utils.logging import get_logger
