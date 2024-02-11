@@ -33,8 +33,6 @@ from utils.models import Player, Variables, setup_db_connection
 from utils.punishments import timeout
 import utils.models
 
-# CHECK Immunite collar : total review of the system
-
 # ***** CONSTANTES *****
 logger = get_logger(__name__)
 COGS = [
@@ -310,7 +308,7 @@ async def on_raw_reaction_add(payload):
             if (
                 msg.id == Variables.get_immunite_collar_msg_id()
                 and Player(id=user.id).alive
-            ):  # CHECK verify player alive
+            ):
                 await msg.clear_reaction(f"<:collierimmunite:{EMOJI_ID_COLLIER}>")
                 await give_immunite_collar(payload, player)
             else:

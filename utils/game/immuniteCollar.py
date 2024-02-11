@@ -75,7 +75,6 @@ async def give_immunite_collar(
     logger.info("fn > Give Immunite Collar > OK")
 
 async def remove_potential_immune_player(max_reactions) -> list:
-    # CHECK remove immunite
     logger.info("fn > Remove Potential Immune Player > start")
     immune_player__id = Variables.get_immunite_collar_player_id()
     eliminated = [r for r in max_reactions if Player(letter=chr(EMOJIS_LIST.index(r) + 65))._id != immune_player__id]

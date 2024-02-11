@@ -122,8 +122,6 @@ class EqualityView(discord.ui.View):
         self.add_item(self.select)
 
     async def select_callback(self, interaction):
-        # CHECK verify with multiples selectors
-        # CHECK verify fonctioning with final equality
         await interaction.response.defer()
         self.select.disabled = True
         await interaction.message.edit(view=self)
@@ -162,7 +160,6 @@ class EqualityView(discord.ui.View):
 
 
 async def arrange_votes(reactions: list) -> dict:
-    # CHECK add logging
     logger.info(f"arrange vote > start")
     reactions_list = {}
     for r in reactions:
@@ -177,7 +174,6 @@ async def arrange_votes(reactions: list) -> dict:
 
 
 async def deal_with_cheaters(reactions_list: dict, reactions: list) -> int:
-    # CHECK add logging
     logger.info(f"deal with cheaters > start")
     cheaters_number = 0
     embed = discord.Embed(
@@ -278,7 +274,7 @@ async def close_final_vote(
     await reset_roles("Joueur", "Eliminé", "Finaliste", "Votant Final")
 
 
-async def close_normal(  # CHECK verify immunite collar exception
+async def close_normal(
     max_reactions, reactions_list, cheaters_number, max_count, reactions
 ) -> None:
     # [ ] add logging
@@ -316,7 +312,6 @@ async def close_normal(  # CHECK verify immunite collar exception
     file = discord.File(file_path)
     channel = bot.get_channel(CHANNEL_ID_RESULTATS)
     await channel.send(embed=embed, file=file)
-    # CHECK change to 21h the day after the vote
     max_date = (datetime.datetime.now() + datetime.timedelta(days=1)).replace(
         hour=21, minute=0, second=0, microsecond=0
     )
@@ -352,10 +347,9 @@ async def close_normal(  # CHECK verify immunite collar exception
     await member.add_roles(new_role)
     eliminated.eliminate()
     # if nb_remaining_players == 1 : Variables.wait_for_last_vote()
-    # CHECK review last vote etapes
 
 
-async def close_normal_equality(  # CHECK verify immunite collar exception
+async def close_normal_equality(
     reactions_list, cheaters_number, council_number, it_is_the_final, tied_players
 ) -> None:
     global select_options
@@ -419,7 +413,7 @@ async def close_normal_equality(  # CHECK verify immunite collar exception
     await chooser.send(embed=embed, view=EqualityView())
 
 
-async def close_first_vote_equality(  # CHECK verify immunite collar exception
+async def close_first_vote_equality(
     reactions_list, cheaters_number, tied_players
 ) -> None:
     # [ ] add logging
@@ -449,7 +443,6 @@ async def close_first_vote_equality(  # CHECK verify immunite collar exception
     file_path = pdfGenerate(new_vote_log.number)
     file = discord.File(file_path)
     channel = bot.get_channel(CHANNEL_ID_RESULTATS)
-    # CHECK send pdf file ?
     await channel.send(embed=embed, file=file)
     dm_embed = discord.Embed(
         title=f"**Tu quittes la tribu ce soir** (cheh)",
@@ -484,13 +477,11 @@ async def close_first_vote_equality(  # CHECK verify immunite collar exception
         await member.add_roles(new_role)
         await member.send(embed=dm_embed)
         el.eliminate()
-        # CHECK private message
 
 
 async def close_without_eliminated(
     max_reactions, reactions_list, cheaters_number, immune, reactions
 ) -> None:
-    # CHECK send private msg to the non-eliminated player
     new_vote_log = NewVoteLog(
         votes=reactions_list,
         eliminated=[],
@@ -552,8 +543,6 @@ async def close(interaction: discord.Interaction = None) -> None:
                     max_reactions, reactions_list, cheaters_number, max_count, reactions
                 )
         else:
-            # CHECK eliminate all players at equality on first vote
-            # CHECK choice by last winner if equlity in final
             council_number = get_council_number()+1
             tied_players = [
                 Player(letter=chr(EMOJIS_LIST.index(r) + 65)) for r in max_reactions
@@ -571,7 +560,6 @@ async def close(interaction: discord.Interaction = None) -> None:
                     reactions_list, cheaters_number, tied_players
                 )
     else:
-        # CHECK no-one elimination message
         await close_without_eliminated(
             max_reactions, reactions_list, cheaters_number, immune, reactions
         )
@@ -749,10 +737,8 @@ async def set_finalist(interaction: discord.Interaction, member: discord.Member)
     logger.info(f"set finalist > OK | member: {member}")
 
 
-# CHECK in case of any response -> eliminate both
 async def check_if_last_eliminate_is_saved():
     logger.info(f"check if last eliminate is saved > start")
-    # CHECK what if there is no last vote log ?
     # TODO verify functionning
     last_vote_log = VoteLog(last=True)
     if last_vote_log.eliminated == [] and last_vote_log._id:

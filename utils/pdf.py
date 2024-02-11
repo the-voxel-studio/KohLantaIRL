@@ -25,11 +25,6 @@ styles["Normal"].textColor = colors.whitesmoke
 styles["Normal"].bulletIndent = 25
 styles["Normal"].leftIndent = 40
 
-# CHECK setup pdf generation with db infos
-
-# CHECK last vote
-
-# CHECK add eliminate player name
 # [ ] add tied_players section
 
 def background_canvas(canvas_obj, doc):

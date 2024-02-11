@@ -105,14 +105,12 @@ class VotesCog(commands.Cog):
     @app_commands.command(name="dv", description="Dernière volonté. (uniquement en mp)")
     @app_commands.describe(contenu="Contenu du message à envoyer")
     async def last_volontee(self, interaction: discord.Interaction, contenu: str):
-        # CHECK limit last wich to one per eliminate
         # TODO modify with multiple eliminated after a unique vote
         await interaction.response.defer(ephemeral=True)
         if isinstance(interaction.channel, discord.DMChannel):
             vote_log = VoteLog(last=True)
             vote_date = datetime.datetime.strptime(vote_log.date, "%d/%m/%Y %H:%M:%S")
             actual_date = datetime.datetime.now()
-            # CHECK change to 21h the day after the vote
             max_date = (vote_date + datetime.timedelta(days=1)).replace(
                 hour=21, minute=0, second=0, microsecond=0
             )
