@@ -204,7 +204,7 @@ async def deal_with_cheaters(reactions_list: dict, reactions: list) -> int:
     return cheaters_number
 
 
-async def count_votes(reactions: list) -> (list, int, bool, bool):
+async def count_votes(reactions: list) -> typing.Union[list, int, bool, bool]:
     # [ ] add logging
     logger.info(f"count votes > start")
     max_reactions = []

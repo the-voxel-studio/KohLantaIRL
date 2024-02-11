@@ -55,29 +55,30 @@ async def on_ready():
     for cog in COGS:
         await bot.load_extension(cog)
     setup_db_connection()
-    time = datetime.datetime.now().strftime("%d/%m/%Y **%H:%M**")
-    await purge_empty_alliances()
-    await start_new_timer()
-    if os_name == "nt":
-        await send_log(
-            "BOT restarted and ready",
-            ":tools: mode : **DEV**",
-            f":clock: time   : {time}",
-            color="orange",
-        )
-    else:
-        await send_log(
-            "BOT restarted and ready",
-            ":tools: mode : **PRODUCTION**",
-            f":clock: time   : {time}",
-            color="green",
-        )
-    await send_logs_file()
-    bot.add_view(EqualityView())
-    bot.add_view(AllianceView())
-    await move_immunite_collar_down()
-    await bot.tree.sync()
-    logger.info("Bot started and ready.")
+    utils.pdf.generate(4)
+    # time = datetime.datetime.now().strftime("%d/%m/%Y **%H:%M**")
+    # await purge_empty_alliances()
+    # await start_new_timer()
+    # if os_name == "nt":
+    #     await send_log(
+    #         "BOT restarted and ready",
+    #         ":tools: mode : **DEV**",
+    #         f":clock: time   : {time}",
+    #         color="orange",
+    #     )
+    # else:
+    #     await send_log(
+    #         "BOT restarted and ready",
+    #         ":tools: mode : **PRODUCTION**",
+    #         f":clock: time   : {time}",
+    #         color="green",
+    #     )
+    # await send_logs_file()
+    # bot.add_view(EqualityView())
+    # bot.add_view(AllianceView())
+    # await move_immunite_collar_down()
+    # await bot.tree.sync()
+    # logger.info("Bot started and ready.")
 
 
 @bot.event

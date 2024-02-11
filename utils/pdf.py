@@ -10,6 +10,7 @@ from reportlab.platypus import (BaseDocTemplate, Frame, PageBreak,
 
 from utils.logging import get_logger
 from utils.models import Player, VoteLog, get_alliances_number
+import os
 
 logger = get_logger(__name__)
 
@@ -96,6 +97,7 @@ def render_vote(number: int, **kwargs):
 
     players_number = len(players)
     players__id = [p.get("_id") for p in players]
+    players_username = [p.get("nickname") for p in players]
 
     last = kwargs.get("last", False)
     elements = []
@@ -166,7 +168,20 @@ def render_vote(number: int, **kwargs):
     elements.append(Paragraph(text, last_bullet_style, bulletText="-"))
 
     data = [["Pseudo"]]
-    if not final:
+    
+    if len(players) > 8:
+        data[0].append("A voté pour")
+        for p in players:
+            voter__id = p["_id"]
+            if voter__id in votes:
+                middle_content = players_username[players__id.index(votes[voter__id])]
+            else: middle_content = ""
+            data.append([
+                p.get("nickname", "unknown"),
+                middle_content,
+                "",""
+            ])
+    elif not final:
         for p in players:
             data[0].append(p.get("nickname", "unknown"))
             middle_content = ["" for i in range(players_number + 1)]
@@ -185,14 +200,16 @@ def render_vote(number: int, **kwargs):
                 vote_column = players__id.index(votes[voter__id])
                 middle_content[vote_column] = "X"
             data.append([ep.get("nickname", "unknown")] + middle_content)
+    # [ ] vote hour
     data[0].append("Horaire")
 
-    # [ ] vote hour
-    if not final:
-        data[0].append("Total reçu")
+    data[0].append("Total reçu")
+    if len(players) > 8:
+        for i in range(players_number): 
+            data[i+1][-1] = sum(1 for row in data[1:] if row[1] == data[i+1][0])
+    elif not final:
         for i in range(players_number): data[i+1][-1] = sum(1 for row in data[1:] if row[i+1] != "")
     else:
-        data.append(["Total reçu"])
         for i in range(players_number): data[-1].append(sum(1 for row in data[1:-1] if row[i+1] != ""))
 
     table_style = [
@@ -348,8 +365,10 @@ def generate(vote_number,**kwargs) -> str:
     name = f"KohLantaVote{str(vote_number)}.pdf"
     create_pdf(f"pdf/{name}", vote_number, **kwargs)
     logger.info(f"fn > generate > OK | vote_number: {vote_number} | PDF name: {name}")
-    return f"{DIRNAME}\\pdf\\{name}"
-    return f"{DIRNAME}\\pdf\\{name}"
+    if os.name == "posix":
+        return f"{DIRNAME}/pdf/{name}"
+    else:
+        return f"{DIRNAME}\\pdf\\{name}"
 
 
 logger.info(f"Ready")
