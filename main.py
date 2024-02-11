@@ -348,37 +348,6 @@ async def on_raw_reaction_add(payload):
                 await msg.remove_reaction(payload.emoji, user)
 
 
-async def set_inscription_infos():
-    # TODO set a command for this function
-    embed = discord.Embed(
-        title=f"Vous souhaitez nous rejoindre ?",
-        description=f"Vous pouvez dès à présent vous inscrire à la prochaine saison de KohLanta IRL !",
-        color=0x109319,
-    )
-    embed.set_author(
-        name="Inscription",
-        icon_url="https://cdn.discordapp.com/avatars/1139673903678095400/fe3974836708aab020a743b2700e87e4.webp?size=100",
-    )
-    embed.set_thumbnail(
-        url="https://photos.tf1.fr/1200/720/vignette-16-9-4d6adf-748cc7-0@1x.webp"
-    )
-    embed.add_field(
-        name="Entrez votre prénom et l'initale de votre nom dans le champ ci-dessous.",
-        value="Exemple : Arthur D",
-        inline=False,
-    )
-    embed.add_field(
-        name='Le prénom ne doit pas contenir d\'espace ou de caractère spécial autre que "-".',
-        value='Vous avez un prénom composé ? Remplacez les espaces par un caractère "-".',
-        inline=False,
-    )
-    embed.set_footer(
-        text=f"Vous rencontrez un problème ? Contactez dès que possible un administrateur."
-    )
-    channel = bot.get_channel(CHANNEL_ID_INSCRIPTION)
-    await channel.send(embed=embed)
-
-
 def signal_handler(sig, frame):
     logger.warning("Start of shutdown procedure.")
     cancel_timer()

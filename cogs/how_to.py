@@ -2,15 +2,16 @@ import typing
 from os import system
 
 import discord
-from discord import app_commands, ButtonStyle
+from discord import ButtonStyle, app_commands
 from discord.ext import commands
 from discord.ui import Button, View
 
+from config.values import (CHANNEL_ID_HELP_ALLIANCE, CHANNEL_ID_INSCRIPTION,
+                           COLOR_GREEN)
+from utils.bot import bot
+from utils.game.alliances import new_alliance
 from utils.logging import get_logger
 from utils.models import Variables
-from utils.game.alliances import new_alliance
-from config.values import CHANNEL_ID_HELP_ALLIANCE, COLOR_GREEN
-from utils.bot import bot
 
 logger = get_logger(__name__)
 
@@ -80,6 +81,39 @@ class HowToCog(commands.Cog):
         )
         await interaction.followup.send(embed=embed)
 
+    @app_commands.command(
+        name="howto-joining", description="Crée le How-To de l'inscription"
+    )
+    @app_commands.guild_only()
+    @app_commands.default_permissions(create_instant_invite=True)
+    async def howto_joining(self, interaction: discord.Interaction):
+        embed = discord.Embed(
+            title=f"Vous souhaitez nous rejoindre ?",
+            description=f"Vous pouvez dès à présent vous inscrire à la prochaine saison de KohLanta IRL !",
+            color=0x109319,
+        )
+        embed.set_author(
+            name="Inscription",
+            icon_url="https://cdn.discordapp.com/avatars/1139673903678095400/fe3974836708aab020a743b2700e87e4.webp?size=100",
+        )
+        embed.set_thumbnail(
+            url="https://photos.tf1.fr/1200/720/vignette-16-9-4d6adf-748cc7-0@1x.webp"
+        )
+        embed.add_field(
+            name="Entrez votre prénom et l'initale de votre nom dans le champ ci-dessous.",
+            value="Exemple : Arthur D",
+            inline=False,
+        )
+        embed.add_field(
+            name='Le prénom ne doit pas contenir d\'espace ou de caractère spécial autre que "-".',
+            value='Vous avez un prénom composé ? Remplacez les espaces par un caractère "-".',
+            inline=False,
+        )
+        embed.set_footer(
+            text=f"Vous rencontrez un problème ? Contactez dès que possible un administrateur."
+        )
+        channel = bot.get_channel(CHANNEL_ID_INSCRIPTION)
+        await channel.send(embed=embed)
 
 async def setup(bot):
     await bot.add_cog(HowToCog(bot))
