@@ -348,6 +348,7 @@ def render_rules():
 
     elements.append(Paragraph("Saison 1: Marius S.", styles["Normal"], bulletText="-"))
     elements.append(Paragraph("Saison 2: Ewan M.", styles["Normal"], bulletText="-"))
+    elements.append(Paragraph("Saison 3: Augustin V.", styles["Normal"], bulletText="-"))
 
     logger.info(f"fn > render_rules > OK")
 
