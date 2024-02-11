@@ -27,41 +27,16 @@ To run this project:
 > [!NOTE]  
 > Some functions, names and variables are written in French. You are free to change them to their English equivalent or any other language. Just be careful that the operation of the robot is not affected, especially in the channel names and roles.
 
-## Discord server architecture
-### The server must meet a certain architecture for the bot to function properly.
+## Discord server roles and architecture
+### The server channels and roles must meet a certain architecture for the bot to function properly.
 
-It should have the following list of chat channels, which can be placed however you like:
-* votes : in which there will be the messages to vote
-* results : in which there will be the results of the different votes
-* registration: in which new players will be able to identify
-* general: in which players can discuss
-* eliminated: in which the eliminated can discuss
-* bot: in which Denis Brogniart can send messages to admins
-* bot-logs : in wich Denis Brogniart will send at every launch (and when you command it) his bot.log file
-
-But also two categories:
-* Help:
-    * alliance-creation
-    * alliance-add-a-member
-    * alliance-remove-a-member
-    * robot-schedules
-    * robot-github
-
-* Alliances:
-    * This entire category is entirely controlled by Denis Brogniart, it is here that he will create the text and audio channels of the alliances and manage their access.
-
-## Discord roles architecture
-### The server roles must meet a certain architecture for the bot to function properly. It is imperative to respect the order of roles below.
-
-1. Maitre du jeu (en: game master) only for the bot
-2. Admin
-3. Finaliste (en: finalist)
-4. Joueur (en: player)
-6. Votant Final (en: final voter)
-7. Eliminé (en: eliminated)
+You have to follow this model : [KohLanta on Discord Model](https://discord.new/FswZkfz7qjuE)
+Please pay attention to the following points
+* It is imperative to respect the order of roles below.
+* The example provided includes many alliances (text and voice channels). They only have a demonstrative role. You must empty the "Alliance" category, because this entire category is entirely controlled by Denis Brogniart, it is here that he will create the text and voice channels of each alliance and manage their access.
 
 > [!NOTE]
-> I do not share with you the configuration of each role. It's up to you to then configure the permissions so that access works correctly and according to your wishes.
+> “anciens” roles and channels are used for people who have already participated in a previous season. Their use is therefore in no way obligatory.
 
 > [!WARNING]
 > The robot (and therefore the Game Master role) must have administrator rights.
