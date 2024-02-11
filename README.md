@@ -31,6 +31,7 @@ To run this project:
 ### The server channels and roles must meet a certain architecture for the bot to function properly.
 
 You have to follow this model : [KohLanta on Discord Model](https://discord.new/FswZkfz7qjuE)
+
 Please pay attention to the following points
 * It is imperative to respect the order of roles below.
 * The example provided includes many alliances (text and voice channels). They only have a demonstrative role. You must empty the "Alliance" category, because this entire category is entirely controlled by Denis Brogniart, it is here that he will create the text and voice channels of each alliance and manage their access.
