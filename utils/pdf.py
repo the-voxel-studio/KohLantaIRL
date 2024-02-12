@@ -39,7 +39,7 @@ def create_pdf(file_path, vote_number, **kwargs):
         f"fn > create_pdf > start | file_path: {file_path} | vote_number: {vote_number}"
     )
     doc = BaseDocTemplate(
-        file_path, pagesize=A4, leftMargin=50, title="KohLanta Saison 4 Vote 4 "
+        file_path, pagesize=A4, leftMargin=50, title=f"KohLanta Saison 4 - Vote {vote_number}"
     )
 
     elements = []
