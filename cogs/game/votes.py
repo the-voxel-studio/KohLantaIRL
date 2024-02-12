@@ -134,9 +134,12 @@ class VotesCog(commands.Cog):
                     )
                     eliminated.express_last_wish()
                     embed = discord.Embed(
-                        title=f":robot: Dernière volonté de {interaction.user.display_name} :moyai:",
-                        description=f"**{contenu}**",
+                        description=contenu,
                         color=COLOR_GREEN,
+                    )
+                    self.embed.set_author(
+                        name=f"{interaction.user.display_name} : Dernière volontée",
+                        icon_url=interaction.user.avatar.url
                     )
                     embed.set_footer(
                         text="Les administrateurs ne sont pas responsables des propos tenus dans ce message. Si vous trouvez un contenu inapproprié ou problématique, n'hésitez pas à le signaler en message privé."
