@@ -41,10 +41,14 @@ class AdminCog(commands.Cog):
             f"Important message sending | Requested by {interaction.user} (id:{interaction.user.id}) | Channel id: {channel.id} | Color: {color} | Content: {content}"
         )
         self.embed = discord.Embed(
-            title=f":robot: Information de {interaction.user.display_name} :moyai:",
-            description=content,
+            title=content,
             color=eval("COLOR_" + color.upper()),
         )
+        self.embed.set_author(
+            name=interaction.user.display_name,
+            icon_url=interaction.user.avatar.url
+            )
+        self.embed.set_footer(text="Ce message est envoyé par un administrateur.")
         await channel.send(embed=self.embed)
         await interaction.response.send_message(
             content=f"Message envoyé dans <#{channel.id}>"
