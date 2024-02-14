@@ -9,7 +9,7 @@ from reportlab.platypus import (BaseDocTemplate, Frame, PageBreak,
                                 PageTemplate, Paragraph, Table)
 
 from utils.logging import get_logger
-from utils.models import Player, VoteLog, get_alliances_number
+from utils.models import Player, VoteLog
 import os
 
 logger = get_logger(__name__)
