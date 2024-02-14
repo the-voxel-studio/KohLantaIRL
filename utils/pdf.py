@@ -260,7 +260,7 @@ def render_vote(number: int, **kwargs):
         elements.append(paragraph)
 
         data = [["Pseudo", "Discord id", "Eliminé au vote n°"]]
-        for p in eliminated_players:
+        for p in sorted(eliminated_players, key=lambda x: x['deathCouncilNumber']):
             data.append(
                 [
                     p.get("nickname", "unknown"),
