@@ -423,6 +423,7 @@ class NewVoteLog:
                 "votersNumber": self.voters_number,
                 "cheatersNumber": self.cheaters_number,
                 "tied_players": self.tied_players,
+                "alliance_number": get_alliances_number()
             }
         )
 
@@ -441,6 +442,7 @@ class VoteLog:
         self.voters_number = None
         self.cheaters_number = None
         self.tied_players = []
+        self.alliance_number = None
         self.vote_log = None
         if self.last == True:
             self.last = 0
@@ -468,6 +470,7 @@ class VoteLog:
             self.cheaters_number = self.vote_log.get("cheatersNumber", None)
             self.eliminated_dict = self.vote_log.get("eliminated", [])
             self.tied_players = self.vote_log.get("tied_players", [])
+            self.alliance_number = self.vote_log.get("alliance_number", None)
             if self.eliminated_dict != []:
                 print(self.eliminated_dict)
                 self.eliminated = [
