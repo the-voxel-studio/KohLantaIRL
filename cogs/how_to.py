@@ -13,8 +13,6 @@ from utils.game.alliances import new_alliance
 from utils.logging import get_logger
 from utils.models import Variables
 
-logger = get_logger(__name__)
-
 
 class AllianceView(discord.ui.View):
     def __init__(self):
@@ -116,5 +114,6 @@ class HowToCog(commands.Cog):
         await channel.send(embed=embed)
 
 async def setup(bot):
+    logger = get_logger(__name__)
     await bot.add_cog(HowToCog(bot))
     logger.info(f"Loaded !")
