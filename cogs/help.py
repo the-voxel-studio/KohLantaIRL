@@ -36,21 +36,22 @@ class HelpCog(commands.Cog):
                 )
                 await interaction.response.send_message(embed=e)
             return
-        command_dict = {}
-        available_commands = ""
-        for command in bot.tree.get_commands():
-            module = ".".join(command.module.split(".")[1:])
-            if command_dict.get(module):
-                command_dict[module].append(f"{command.name} : {command.description}")
-            else:
-                command_dict[module] = [f"{command.name} : {command.description}"]
-        for cog in command_dict:
-            commands = command_dict.get(cog)
-            available_commands += "### " + (cog) + " :\n"
-            for c in commands:
-                available_commands += "- " + c + "\n"
-        embed = discord.Embed(title=f"Commands :", description=available_commands)
-        await interaction.response.send_message(embed=embed)
+        else:
+            command_dict = {}
+            available_commands = ""
+            for command in bot.tree.get_commands():
+                module = ".".join(command.module.split(".")[1:])
+                if command_dict.get(module):
+                    command_dict[module].append(f"{command.name} : {command.description}")
+                else:
+                    command_dict[module] = [f"{command.name} : {command.description}"]
+            for cog in command_dict:
+                commands = command_dict.get(cog)
+                available_commands += "### " + (cog) + " :\n"
+                for c in commands:
+                    available_commands += "- " + c + "\n"
+            embed = discord.Embed(title=f"Commands :", description=available_commands)
+            await interaction.response.send_message(embed=embed)
 
 
 async def setup(bot):
