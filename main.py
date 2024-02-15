@@ -41,7 +41,6 @@ COGS = [
     "cogs.game.alliances",
     "cogs.game.steps",
     "cogs.game.votes",
-    "cogs.game.eliminates",
     "cogs.game.immuniteCollar",
     "cogs.help",
     "cogs.punishments.muting",
