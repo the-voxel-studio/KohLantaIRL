@@ -1,8 +1,6 @@
 import typing
 
 import discord
-from discord import app_commands
-from discord.ext import commands
 
 from config.values import (
     BOT_ID,
@@ -20,10 +18,7 @@ from utils.models import Player, Variables, NewVoteLog, VoteLog, get_council_num
 from utils.punishments import timeout
 from utils.game.players import reset_roles
 from utils.pdf import generate as pdfGenerate
-from utils.game.immuniteCollar import (
-    remove_potential_immune_player,
-    send_immunite_collar_used,
-)
+from utils.game.immuniteCollar import remove_potential_immune_player
 import datetime
 
 logger = get_logger(__name__)
