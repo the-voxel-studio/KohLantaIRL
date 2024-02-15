@@ -250,7 +250,7 @@ def render_vote(number: int, **kwargs):
     paragraph = Paragraph(text, styles["h2"])
     elements.append(paragraph)
 
-    text = f"Nombre d'alliances créées à date: {vote_log.alliance_number if vote_log.alliance_number else "inconnu"}"
+    text = f"Nombre d'alliances créées à date: {vote_log.alliance_number if vote_log.alliance_number else 'inconnu'}"
     paragraph = Paragraph(text, styles["Normal"])
     elements.append(paragraph)
 
