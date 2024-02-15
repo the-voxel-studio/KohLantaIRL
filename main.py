@@ -7,31 +7,21 @@ from random import choice
 import discord
 from discord.ext import commands
 
-import utils.pdf
 from cogs.how_to import AllianceView
-from config.values import (
-    BOT_ID,
-    CHANNEL_ID_BOT,
-    CHANNEL_ID_INSCRIPTION,
-    CHANNEL_ID_VOTE,
-    COLOR_GREEN,
-    COLOR_ORANGE,
-    COLOR_RED,
-    EMOJI_ID_COLLIER,
-    EMOJIS_LIST,
-    TOKEN,
-)
+from config.values import (BOT_ID, CHANNEL_ID_BOT, CHANNEL_ID_INSCRIPTION,
+                           CHANNEL_ID_VOTE, COLOR_GREEN, COLOR_ORANGE,
+                           COLOR_RED, EMOJI_ID_COLLIER, EMOJIS_LIST, TOKEN)
 from utils.bot import bot
 from utils.game.alliances import purge_empty_alliances
+from utils.game.immuniteCollar import (give_immunite_collar,
+                                       move_immunite_collar_down)
 from utils.game.players import join
 from utils.game.timer import cancel_timer, start_new_timer
 from utils.game.votes import EqualityView, check_if_last_eliminate_is_saved
-from utils.game.immuniteCollar import give_immunite_collar, move_immunite_collar_down
 from utils.log import send_log, send_logs_file
 from utils.logging import get_logger
 from utils.models import Player, Variables, setup_db_connection
 from utils.punishments import timeout
-import utils.models
 
 # ***** CONSTANTES *****
 logger = get_logger(__name__)
