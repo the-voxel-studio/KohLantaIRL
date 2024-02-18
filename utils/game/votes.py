@@ -743,7 +743,6 @@ async def set_finalist(interaction: discord.Interaction, member: discord.Member)
 
 async def check_if_last_eliminate_is_saved():
     logger.info(f"check if last eliminate is saved > start")
-    # TODO verify functionning
     last_vote_log = VoteLog(last=True)
     if last_vote_log.eliminated == [] and last_vote_log._id:
         tied_players = last_vote_log.tied_players
