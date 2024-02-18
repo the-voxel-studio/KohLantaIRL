@@ -61,7 +61,6 @@ class NewPlayer:
 
 
 class Player:
-    # CHECK add lastGeneralMessageDate
 
     def __init__(self, **kwargs):
         logger.info(f"PlayerObjectCreation | args: {kwargs}")
@@ -191,7 +190,6 @@ class Player:
 
 
 class Variables:
-    # CHECK delete last_vote_date
 
     def open_joining() -> None:
         db.Variables.update_one({"id": 0}, {"$set": {"state": 0}}, upsert=False)
@@ -432,7 +430,6 @@ class NewVoteLog:
 
 
 class VoteLog:
-    # CHECK change eliminated_dict to list
     def __init__(self, **kwargs):
         logger.info(f"VoteLogObjectCreation | args: {kwargs}")
         self._id = kwargs.get("_id", None)
@@ -484,7 +481,6 @@ class VoteLog:
             logger.info(f"fn > Vote Log find > OK | log: {self.vote_log}")
 
     def update_eliminated(self, eliminated):
-        # CHECK with multiples eliminated players after a unique vote
         if type(eliminated) != list:
             eliminated = [eliminated]
         for el in eliminated:
