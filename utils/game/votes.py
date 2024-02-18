@@ -102,7 +102,6 @@ async def open(interaction: discord.Interaction = None):
 
 
 class EqualityView(discord.ui.View):
-    # [ ] add logging
     def __init__(self):
         super().__init__(timeout=None)
         self.council_number = get_council_number()
@@ -115,8 +114,10 @@ class EqualityView(discord.ui.View):
         )
         self.select.callback = self.select_callback
         self.add_item(self.select)
+        logger.info(f"EqualityView __init__ > OK | select_options: {select_options}")
 
     async def select_callback(self, interaction):
+        logger.info(f"EqualityView select_callback > start | user: {interaction.user} (id: {interaction.user.id})")
         await interaction.response.defer()
         self.select.disabled = True
         await interaction.message.edit(view=self)
@@ -125,7 +126,8 @@ class EqualityView(discord.ui.View):
             VoteLog(last=True).date, "%d/%m/%Y %H:%M:%S"
         )
         time_delta = now_date - last_vote_date
-        if time_delta < datetime.timedelta(hours=17):  # 14h the day after the tie vote
+        in_time = time_delta < datetime.timedelta(hours=17) # 14h the day after the tie vote
+        if in_time:
             eliminated_nickname = interaction.data["values"][0]
             embed = discord.Embed(
                 title=f"**Tu as éliminé {eliminated_nickname} !**", color=9807270
@@ -152,6 +154,7 @@ class EqualityView(discord.ui.View):
             )
             embed.set_image(url="https://media.tenor.com/CCLg0rGFVHEAAAAC/ah-denis.gif")
             await interaction.followup.send(embed=embed)
+        logger.info(f"EqualityView select_callback > OK | user: {interaction.user} (id: {interaction.user.id}) | in_time: {in_time}")
 
 
 async def arrange_votes(reactions: list) -> dict:
@@ -196,7 +199,6 @@ async def deal_with_cheaters(reactions_list: dict, reactions: list) -> int:
 
 
 async def count_votes(reactions: list) -> typing.Union[list, int, bool, bool]:
-    # [ ] add logging
     logger.info(f"count votes > start")
     max_reactions = []
     max_count = 0
@@ -218,7 +220,8 @@ async def count_votes(reactions: list) -> typing.Union[list, int, bool, bool]:
 async def close_final_vote(
     max_reactions, reactions_list, cheaters_number, max_count
 ) -> None:
-    # [ ] add logging
+    logger.info(f"close_final_vote > start ")
+    logger.info(f"EqualityView select_callback > start | max_rea")
     winner = Player(letter=chr(EMOJIS_LIST.index(max_reactions[0]) + 65))
     new_vote_log = NewVoteLog(
         votes=reactions_list, eliminated=[winner], cheaters_number=cheaters_number
@@ -267,12 +270,13 @@ async def close_final_vote(
     member = guild.get_member(winner.id)
     await member.send(embed=embed)
     await reset_roles("Joueur", "Eliminé", "Finaliste", "Votant Final")
+    logger.info(f"close_final_vote > OK ")
 
 
 async def close_normal(
     max_reactions, reactions_list, cheaters_number, max_count, reactions
 ) -> None:
-    # [ ] add logging
+    logger.info(f"close_normal > start ")
     eliminated = Player(letter=chr(EMOJIS_LIST.index(max_reactions[0]) + 65))
     new_vote_log = NewVoteLog(
         votes=reactions_list,
@@ -341,14 +345,15 @@ async def close_normal(
     await member.remove_roles(role)
     await member.add_roles(new_role)
     eliminated.eliminate()
-    # if nb_remaining_players == 1 : Variables.wait_for_last_vote()
+    if nb_remaining_players == 1 : Variables.wait_for_last_vote()
+    logger.info(f"close_normal > OK ")
 
 
 async def close_normal_equality(
     reactions_list, cheaters_number, council_number, it_is_the_final, tied_players
 ) -> None:
     global select_options
-    # [ ] add logging
+    logger.info(f"close_normal_equality > start ")
     NewVoteLog(
         votes=reactions_list, cheaters_number=cheaters_number, tied_players=tied_players
     ).save()
@@ -406,12 +411,13 @@ async def close_normal_equality(
         for p in tied_players
     ]
     await chooser.send(embed=embed, view=EqualityView())
+    logger.info(f"close_normal_equality > OK ")
 
 
 async def close_first_vote_equality(
     reactions_list, cheaters_number, tied_players
 ) -> None:
-    # [ ] add logging
+    logger.info(f"close_first_vote_equality > start ")
     new_vote_log = NewVoteLog(
         votes=reactions_list,
         eliminated=tied_players,
@@ -472,11 +478,13 @@ async def close_first_vote_equality(
         await member.add_roles(new_role)
         await member.send(embed=dm_embed)
         el.eliminate()
+    logger.info(f"close_first_vote_equality > OK ")
 
 
 async def close_without_eliminated(
     max_reactions, reactions_list, cheaters_number, immune, reactions
 ) -> None:
+    logger.info(f"close_without_eliminated > start ")
     new_vote_log = NewVoteLog(
         votes=reactions_list,
         eliminated=[],
@@ -510,6 +518,7 @@ async def close_without_eliminated(
     file = discord.File(file_path)
     channel = bot.get_channel(CHANNEL_ID_RESULTATS)
     await channel.send(embed=embed, file=file)
+    logger.info(f"close_without_eliminated > OK ")
 
 
 async def close(interaction: discord.Interaction = None) -> None:

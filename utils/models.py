@@ -386,7 +386,6 @@ class Alliance:
 
 class NewVoteLog:
     def __init__(self, **kwargs):
-        # [ ] add logging
         self.votes = kwargs.get("votes", None)
         self.eliminated = kwargs.get("eliminated", None)
         self.date = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
@@ -414,6 +413,7 @@ class NewVoteLog:
             self.tied_players = [{"_id": el._id} for el in self.tied_players]
 
     def save(self):
+        self.alliance_number = get_alliances_number()
         db.VoteLog.insert_one(
             {
                 "votes": self.votes_list,
@@ -423,8 +423,11 @@ class NewVoteLog:
                 "votersNumber": self.voters_number,
                 "cheatersNumber": self.cheaters_number,
                 "tied_players": self.tied_players,
-                "alliance_number": get_alliances_number()
+                "alliance_number": self.alliance_number,
             }
+        )
+        logger.info(
+            f"fn > NewVoteLog saving > OK | votes: {self.votes_list} | date: {self.date} | number: {self.number} | eliminated: {self.eliminated_dict} | voters_number: {self.voters_number} | cheaters_number: {self.cheaters_number} | tied_players {self.tied_players} | alliance_number: {self.alliance_number}"
         )
 
 
@@ -500,6 +503,7 @@ def get_council_number():
 
 def get_alliances_number():
     return db.Alliances.count_documents({})
+
 
 def delete_all_vote_logs() -> None:
     db.VoteLog.delete_many({})
