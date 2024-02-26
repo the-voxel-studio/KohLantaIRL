@@ -91,6 +91,7 @@ async def open(interaction: discord.Interaction = None):
     channel = bot.get_channel(CHANNEL_ID_VOTE)
     msg = await channel.send(embed=embed)
     Variables.set_vote_msg_id(msg.id)
+    Variables.start_last_vote()
     for r in reactions:
         await msg.add_reaction(r)
     if interaction:
