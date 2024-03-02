@@ -11,6 +11,7 @@ from config.values import (
     COLOR_ORANGE,
     EMOJIS_LIST,
     GUILD_ID,
+    CATEGORIE_ID_ALLIANCES,
 )
 from utils.bot import bot
 from utils.log import get_logger
@@ -63,7 +64,7 @@ async def open(interaction: discord.Interaction = None):
             await guild.get_member(v.get("id", 0)).add_roles(
                 v_role
             )  # Assignation du nouveau role
-        category = discord.utils.get(guild.categories, name="Alliances")
+        category = discord.utils.get(guild.categories, id=CATEGORIE_ID_ALLIANCES)
         for f in players_list:
             await guild.get_member(int(f.get("id", 0))).add_roles(
                 f_role
