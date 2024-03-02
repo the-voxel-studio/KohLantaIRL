@@ -109,3 +109,17 @@ async def purge_empty_alliances():
     logger.info(f"fn > Empty Alliances Purge > start")
     Alliance().purge_empty_alliances()
     logger.info(f"fn > Empty Alliances Purge > OK")
+
+async def purge_alliances(interaction: discord.Interaction = None):
+    logger.info(f"fn > Alliances Purge > start")
+    category = bot.get_channel(CATEGORIE_ID_ALLIANCES)
+    for channel in category.channels:
+        logger.info(f"fn > Alliances Purge > delete {channel.name} alliance")
+        await channel.delete()
+    embed = discord.Embed(
+        title=f":robot: Suppression des alliances :moyai:",
+        description=f"Toutes les alliances ont été supprimées.",
+        color=COLOR_GREEN,
+    )
+    if interaction: await interaction.followup.send(embed=embed)
+    logger.info(f"fn > Alliances Purge > OK")

@@ -6,7 +6,7 @@ from config.values import COLOR_GREEN, COLOR_ORANGE
 from utils.bot import bot
 from utils.logging import get_logger
 from utils.models import Alliance, Player
-from utils.game.alliances import close_alliance
+from utils.game.alliances import close_alliance, purge_alliances
 
 from bson.objectid import ObjectId
 
@@ -112,6 +112,17 @@ class AlliancesCog(commands.Cog):
         )
         await interaction.response.defer()
         await close_alliance(interaction.channel.id, interaction.user)
+
+    @app_commands.command(name="purge_alliances", description="Supprime toutes les alliances")
+    @app_commands.guild_only()
+    @app_commands.default_permissions(manage_messages=True)
+    async def purge_alliances(self, interaction: discord.Interaction):
+        # TODO add alliance deletion in db
+        logger.info(
+            f"Alliances purge | Requested by {interaction.user} (id:{interaction.user.id})"
+        )
+        await interaction.response.defer()
+        await purge_alliances(interaction)
 
     @app_commands.command(
         name="expulser", description="Supprimer un membre d'une alliance"

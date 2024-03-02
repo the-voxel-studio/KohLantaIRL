@@ -20,6 +20,7 @@ from utils.punishments import timeout
 from utils.game.players import reset_roles
 from utils.pdf import generate as pdfGenerate
 from utils.game.immuniteCollar import remove_potential_immune_player
+from utils.game.alliances import purge_alliances
 import datetime
 
 logger = get_logger(__name__)
@@ -272,6 +273,7 @@ async def close_final_vote(
     member = guild.get_member(winner.id)
     await member.send(embed=embed)
     await reset_roles("Joueur", "Eliminé", "Finaliste", "Votant Final")
+    await purge_alliances()
     logger.info(f"close_final_vote > OK ")
 
 
