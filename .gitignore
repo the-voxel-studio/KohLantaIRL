@@ -2,11 +2,9 @@
 !/Example/.example.env
 lines_count.py
 
-pdf
-logs
+pdf/*
+logs/*
 .venv
-
-logs
 
 __pycache__/
 *.py[cod]
