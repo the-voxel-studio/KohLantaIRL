@@ -2,8 +2,8 @@
 !/Example/.example.env
 lines_count.py
 
-pdf/*
-logs/*
+pdf/
+logs/
 .venv
 
 __pycache__/
