@@ -1,5 +1,3 @@
-import random
-
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -14,7 +12,7 @@ class HelpCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(name="help", description="Commands infos")
+    @app_commands.command(name='help', description='Commands infos')
     @app_commands.guild_only()
     async def help(self, interaction: discord.Interaction, command: str = None):
         if command is not None:
@@ -30,30 +28,30 @@ class HelpCog(commands.Cog):
                 await interaction.response.send_message(embed=embed)
             except AttributeError:  # command not found
                 e = discord.Embed(
-                    title="Error:",
-                    description=f"Command {command} not found",
+                    title='Error:',
+                    description=f'Command {command} not found',
                     color=0xFF0000,
                 )
                 await interaction.response.send_message(embed=e)
             return
         else:
             command_dict = {}
-            available_commands = ""
+            available_commands = ''
             for command in bot.tree.get_commands():
-                module = ".".join(command.module.split(".")[1:])
+                module = '.'.join(command.module.split('.')[1:])
                 if command_dict.get(module):
-                    command_dict[module].append(f"{command.name} : {command.description}")
+                    command_dict[module].append(f'{command.name} : {command.description}')
                 else:
-                    command_dict[module] = [f"{command.name} : {command.description}"]
+                    command_dict[module] = [f'{command.name} : {command.description}']
             for cog in command_dict:
                 commands = command_dict.get(cog)
-                available_commands += "### " + (cog) + " :\n"
+                available_commands += '### ' + (cog) + ' :\n'
                 for c in commands:
-                    available_commands += "- " + c + "\n"
-            embed = discord.Embed(title=f"Commands :", description=available_commands)
+                    available_commands += '- ' + c + '\n'
+            embed = discord.Embed(title='Commands :', description=available_commands)
             await interaction.response.send_message(embed=embed)
 
 
 async def setup(bot):
     await bot.add_cog(HelpCog(bot))
-    logger.info(f"Loaded !")
+    logger.info('Loaded !')

@@ -1,9 +1,8 @@
-from discord.ext import commands
 import discord
 
 
 def is_admin(user: discord.Member) -> bool:
-    admin_role = discord.utils.get(user.guild.roles, name="Admin")
+    admin_role = discord.utils.get(user.guild.roles, name='Admin')
     if admin_role in user.roles:
         return True
     return False

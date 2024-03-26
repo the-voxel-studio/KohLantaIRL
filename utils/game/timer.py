@@ -15,18 +15,18 @@ timer_thread = None
 
 async def timed_action():
     # TODO return vote for eliminates
-    logger.info("fn > Timer Loop > A thread timer has ended.")
+    logger.info('fn > Timer Loop > A thread timer has ended.')
     time = datetime.datetime.now()
-    hour = int(time.strftime("%H"))
+    hour = int(time.strftime('%H'))
     if hour == 1:
-        logger.warning("Preparing for automatic reboot.")
+        logger.warning('Preparing for automatic reboot.')
         timer_thread.cancel()
-        await send_log("Redémarrage automatique en cours", color="orange")
-        logger.info("Ready to reboot.")
-        system("sudo reboot")
+        await send_log('Redémarrage automatique en cours', color='orange')
+        logger.info('Ready to reboot.')
+        system('sudo reboot')
     elif hour == 14 and Variables.get_state() == 1:
         await vote.check_if_last_eliminate_is_saved()
-    elif hour == 17 and Variables.get_state() in [1,2]:
+    elif hour == 17 and Variables.get_state() in [1, 2]:
         await vote.open()
     elif hour == 21 and Variables.get_vote_msg_id() != 0 and Variables.get_state() == 1:
         await vote.close()
@@ -50,7 +50,7 @@ async def start_new_timer():
     delta = (next_time - time).total_seconds()
     if delta == 0:
         logger.info(
-            f"fn > Timer Loop > Waiting for {time.hour+1}:00:00 to start a new thread timer"
+            f'fn > Timer Loop > Waiting for {time.hour+1}:00:00 to start a new thread timer'
         )
         while delta == 0:
             next_time = time.replace(
@@ -59,7 +59,7 @@ async def start_new_timer():
             delta = (next_time - time).total_seconds()
     timer_thread = Timer(delta, timed_action_sync)
     timer_thread.start()
-    logger.info(f"fn > Timer Loop > New thread timer triggered | delta: {delta}")
+    logger.info(f'fn > Timer Loop > New thread timer triggered | delta: {delta}')
 
 
 def cancel_timer():

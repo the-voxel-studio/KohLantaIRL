@@ -8,13 +8,23 @@ import discord
 from discord.ext import commands
 
 from cogs.how_to import AllianceView
-from config.values import (BOT_ID, CHANNEL_ID_BOT, CHANNEL_ID_INSCRIPTION,
-                           CHANNEL_ID_VOTE, COLOR_GREEN, COLOR_ORANGE,
-                           COLOR_RED, EMOJI_ID_COLLIER, EMOJIS_LIST, TOKEN)
+from config.values import (
+    BOT_ID,
+    CHANNEL_ID_BOT,
+    CHANNEL_ID_INSCRIPTION,
+    CHANNEL_ID_VOTE,
+    COLOR_ORANGE,
+    COLOR_RED,
+    EMOJI_ID_COLLIER,
+    EMOJIS_LIST,
+    TOKEN,
+)
 from utils.bot import bot
 from utils.game.alliances import purge_empty_alliances
-from utils.game.immuniteCollar import (give_immunite_collar,
-                                       move_immunite_collar_down)
+from utils.game.immuniteCollar import (
+    give_immunite_collar,
+    move_immunite_collar_down,
+)
 from utils.game.players import join
 from utils.game.timer import cancel_timer, start_new_timer
 from utils.game.votes import EqualityView
@@ -26,14 +36,14 @@ from utils.punishments import timeout
 # ***** CONSTANTES *****
 logger = get_logger(__name__)
 COGS = [
-    "cogs.admin",
-    "cogs.how_to",
-    "cogs.game.alliances",
-    "cogs.game.steps",
-    "cogs.game.votes",
-    "cogs.game.immuniteCollar",
-    "cogs.help",
-    "cogs.punishments.muting",
+    'cogs.admin',
+    'cogs.how_to',
+    'cogs.game.alliances',
+    'cogs.game.steps',
+    'cogs.game.votes',
+    'cogs.game.immuniteCollar',
+    'cogs.help',
+    'cogs.punishments.muting',
 ]
 
 
@@ -42,29 +52,29 @@ async def on_ready():
     for cog in COGS:
         await bot.load_extension(cog)
     setup_db_connection()
-    time = datetime.datetime.now().strftime("%d/%m/%Y **%H:%M**")
+    time = datetime.datetime.now().strftime('%d/%m/%Y **%H:%M**')
     await purge_empty_alliances()
     await start_new_timer()
-    if os_name == "nt":
+    if os_name == 'nt':
         await send_log(
-            "BOT restarted and ready",
-            ":tools: mode : **DEV**",
-            f":clock: time   : {time}",
-            color="orange",
+            'BOT restarted and ready',
+            ':tools: mode : **DEV**',
+            f':clock: time   : {time}',
+            color='orange',
         )
     else:
         await send_log(
-            "BOT restarted and ready",
-            ":tools: mode : **PRODUCTION**",
-            f":clock: time   : {time}",
-            color="green",
+            'BOT restarted and ready',
+            ':tools: mode : **PRODUCTION**',
+            f':clock: time   : {time}',
+            color='green',
         )
     await send_logs_file()
     bot.add_view(EqualityView())
     bot.add_view(AllianceView())
     await move_immunite_collar_down()
     await bot.tree.sync()
-    logger.info("Bot started and ready.")
+    logger.info('Bot started and ready.')
 
 
 @bot.event
@@ -73,17 +83,17 @@ async def on_message(message):
         message
     )  # Execute les commandes, même si le message a été envoyé en DM au robot
     if message.author.id != BOT_ID:
-        if ":collierimmunite:" in message.content:
+        if ':collierimmunite:' in message.content:
             logger.warning(
-                f"Use of immunity collar in message by : {message.author} (id:{message.author.id})."
+                f'Use of immunity collar in message by : {message.author} (id:{message.author.id}).'
             )
-            if not message.content.startswith("/"):
+            if not message.content.startswith('/'):
                 await message.delete()
             logger.info(
-                "Sending a message reminding of the rules relating to the immunity collar."
+                'Sending a message reminding of the rules relating to the immunity collar.'
             )
             embed = discord.Embed(
-                title=f":robot: RAPPEL AUX JOUEURS :moyai:",
+                title=':robot: RAPPEL AUX JOUEURS :moyai:',
                 description=f":no_entry: L'usage de l'emoji <:collierimmunite:{EMOJI_ID_COLLIER}> est interdit sur le serveur afin de ne pas embrouiller les joueurs à la recherche du collier d'immunité.",
                 color=COLOR_RED,
             )
@@ -93,26 +103,26 @@ async def on_message(message):
                 reason=f"Usage de l'emoji <:collierimmunite:{EMOJI_ID_COLLIER}>",
             )
         elif message.channel.id == CHANNEL_ID_INSCRIPTION:
-            logger.info("New message in the join channel.")
-            if not message.content.startswith("/"):
+            logger.info('New message in the join channel.')
+            if not message.content.startswith('/'):
                 await message.delete()  # Supprime le message s'il ne s'agit pas d'une commande (auquel cas le message a déjà été supprimé)
                 await join(message)
         elif not message.guild:
-            if not message.content.startswith("/"):
+            if not message.content.startswith('/'):
                 embed = discord.Embed(
-                    title=f":robot: **Je ne comprend que les commandes !** :moyai:",
-                    description=f"Je suis incapable de répondre à tout autre contenu...",
+                    title=':robot: **Je ne comprend que les commandes !** :moyai:',
+                    description='Je suis incapable de répondre à tout autre contenu...',
                     color=COLOR_ORANGE,
                 )
                 embed.set_image(
                     url=choice(
                         [
-                            "https://media.giphy.com/media/l2JhJGdpV4Uc3mffy/giphy.gif",
-                            "https://media1.tenor.com/m/1fLwP04D_IIAAAAC/shrek-donkey.gif",
-                            "https://media1.tenor.com/m/m8euCQ_x3U8AAAAC/kaamelott-arthur.gif",
-                            "https://media1.tenor.com/m/VAgfPZcM340AAAAd/bof-i-dont-mind.gif",
-                            "https://media1.tenor.com/m/LjCBqxySvecAAAAd/huh-rabbit.gif",
-                            "https://media1.tenor.com/m/13frun_noiAAAAAC/miss-j-j-alexander.gif",
+                            'https://media.giphy.com/media/l2JhJGdpV4Uc3mffy/giphy.gif',
+                            'https://media1.tenor.com/m/1fLwP04D_IIAAAAC/shrek-donkey.gif',
+                            'https://media1.tenor.com/m/m8euCQ_x3U8AAAAC/kaamelott-arthur.gif',
+                            'https://media1.tenor.com/m/VAgfPZcM340AAAAd/bof-i-dont-mind.gif',
+                            'https://media1.tenor.com/m/LjCBqxySvecAAAAd/huh-rabbit.gif',
+                            'https://media1.tenor.com/m/13frun_noiAAAAAC/miss-j-j-alexander.gif',
                         ]
                     )
                 )
@@ -125,15 +135,15 @@ async def on_command_error(ctx, error):
         if ctx.message.guild:
             await ctx.message.delete()
         logger.warning(
-            f"CommandNotFound | Sent by {ctx.author} (id:{ctx.author.id}) | Content: {ctx.message.content}"
+            f'CommandNotFound | Sent by {ctx.author} (id:{ctx.author.id}) | Content: {ctx.message.content}'
         )
         embed = discord.Embed(
-            title=f":robot: Commande inconnue :moyai:",
-            description=f":warning: Veuillez vérifier l'orthographe.\nJe ne comprend que les commandes proposées dans la liste défilante.",
+            title=':robot: Commande inconnue :moyai:',
+            description=":warning: Veuillez vérifier l'orthographe.\nJe ne comprend que les commandes proposées dans la liste défilante.",
             color=COLOR_ORANGE,
         )
         embed.set_image(
-            url="https://media1.tenor.com/m/uNew5ACeNHkAAAAd/bescherelle-orthographe.gif"
+            url='https://media1.tenor.com/m/uNew5ACeNHkAAAAd/bescherelle-orthographe.gif'
         )
         await ctx.author.send(embed=embed)
     elif (
@@ -143,55 +153,55 @@ async def on_command_error(ctx, error):
     ):
         if ctx.message.guild:
             await ctx.message.delete()
-        command = ctx.message.content.split(" ")[0]
+        command = ctx.message.content.split(' ')[0]
         logger.warning(
-            f"MissingPermissions | Sent by {ctx.author} (id:{ctx.author.id}) | Attempted to use the command: {command}"
+            f'MissingPermissions | Sent by {ctx.author} (id:{ctx.author.id}) | Attempted to use the command: {command}'
         )
         embed = discord.Embed(
-            title=f":robot: Commande interdite :moyai:",
+            title=':robot: Commande interdite :moyai:',
             description=f":no_entry: Vous n'avez pas les permissions nécessaires pour utiliser la commande !\n\nCommande : {command}",
             color=COLOR_RED,
         )
         embed.set_footer(
-            text=f"Essayer à plusieurs reprises d'utiliser une commande interdite ou y parvenir sans autorisation des administrateurs entrainera systématiquement un bannissement temporaire ou définitif du joueur."
+            text="Essayer à plusieurs reprises d'utiliser une commande interdite ou y parvenir sans autorisation des administrateurs entrainera systématiquement un bannissement temporaire ou définitif du joueur."
         )
         await ctx.author.send(embed=embed)
         embed = discord.Embed(
-            title=f":robot: Commande bloquée :moyai:",
-            description=f"sent by **{ctx.author.display_name}**\nattempted to use the command **{command}**",
+            title=':robot: Commande bloquée :moyai:',
+            description=f'sent by **{ctx.author.display_name}**\nattempted to use the command **{command}**',
             color=COLOR_RED,
         )
         await bot.get_channel(CHANNEL_ID_BOT).send(embed=embed)
     elif isinstance(error, commands.errors.NoPrivateMessage):
-        command = ctx.message.content.split(" ")[0]
+        command = ctx.message.content.split(' ')[0]
         logger.warning(
-            f"NoPrivateMessage | Sent by {ctx.author} (id:{ctx.author.id}) | Attempted to use the command: {command}"
+            f'NoPrivateMessage | Sent by {ctx.author} (id:{ctx.author.id}) | Attempted to use the command: {command}'
         )
         embed = discord.Embed(
-            title=f":robot: Commande de serveur :moyai:",
+            title=':robot: Commande de serveur :moyai:',
             description=f":no_entry: Cette commande n'est pas disponible en message privé.\n\nCommande : {command}",
             color=COLOR_ORANGE,
         )
         embed.set_footer(
-            text=f"Essayer à plusieurs reprises d'utiliser une commande interdite ou y parvenir sans autorisation des administrateurs entrainera systématiquement un bannissement temporaire ou définitif du joueur."
+            text="Essayer à plusieurs reprises d'utiliser une commande interdite ou y parvenir sans autorisation des administrateurs entrainera systématiquement un bannissement temporaire ou définitif du joueur."
         )
         await ctx.author.send(embed=embed)
         embed = discord.Embed(
-            title=f":robot: Commande MP bloquée :moyai:",
-            description=f"sent by **{ctx.author.display_name}**\nattempted to use the command **{command}**",
+            title=':robot: Commande MP bloquée :moyai:',
+            description=f'sent by **{ctx.author.display_name}**\nattempted to use the command **{command}**',
             color=COLOR_ORANGE,
         )
         await bot.get_channel(CHANNEL_ID_BOT).send(embed=embed)
     else:
         try:
             await ctx.message.delete()
-        except:
+        except discord.Forbidden:
             pass
         logger.error(
-            f"Command error | Sent by {ctx.author} (id:{ctx.author.id}) | {error}"
+            f'Command error | Sent by {ctx.author} (id:{ctx.author.id}) | {error}'
         )
         embed = discord.Embed(
-            title=f":robot: Erreur :moyai:",
+            title=':robot: Erreur :moyai:',
             description=f":warning: Une erreur est survenue lors de l'execution de cette commande.\n\nCommande : {ctx.message.content}",
             color=COLOR_ORANGE,
         )
@@ -202,74 +212,76 @@ async def on_command_error(ctx, error):
 async def on_app_command_error(interaction: discord.Interaction, error):
     if isinstance(error, discord.app_commands.errors.CommandNotFound):
         logger.warning(
-            f"CommandNotFound | Sent by {interaction.user} (id:{interaction.user.id}) | Content: {error}"
+            f'CommandNotFound | Sent by {interaction.user} (id:{interaction.user.id}) | Content: {error}'
         )
         embed = discord.Embed(
-            title=f":robot: Commande inconnue :moyai:",
-            description=f":warning: Veuillez vérifier l'orthographe.\nJe ne comprend que les commandes proposées dans la liste défilante.",
+            title=':robot: Commande inconnue :moyai:',
+            description=":warning: Veuillez vérifier l'orthographe.\nJe ne comprend que les commandes proposées dans la liste défilante.",
             color=COLOR_ORANGE,
         )
         embed.set_image(
-            url="https://media1.tenor.com/m/uNew5ACeNHkAAAAd/bescherelle-orthographe.gif"
+            url='https://media1.tenor.com/m/uNew5ACeNHkAAAAd/bescherelle-orthographe.gif'
         )
         await interaction.response.send_message(embed=embed)
     elif (
         isinstance(error.original, commands.errors.MissingPermissions)
         or isinstance(error.original, discord.ext.commands.errors.MissingRole)
-        or isinstance(error.original, discord.ext.commands.errors.MissingAnyRole)
+        or isinstance(
+            error.original, discord.ext.commands.errors.MissingAnyRole
+        )
     ):
-        command = "/" + interaction.command.name
+        command = '/' + interaction.command.name
         logger.warning(
-            f"MissingPermissions | Sent by {interaction.user} (id:{interaction.user.id}) | Attempted to use the command: {command}"
+            f'MissingPermissions | Sent by {interaction.user} (id:{interaction.user.id}) | Attempted to use the command: {command}'
         )
         embed = discord.Embed(
-            title=f":robot: Commande interdite :moyai:",
-            description=f":no_entry: Vous n'avez pas les permissions nécessaires pour utiliser la commande !",
+            title=':robot: Commande interdite :moyai:',
+            description=":no_entry: Vous n'avez pas les permissions nécessaires pour utiliser la commande !",
             color=COLOR_RED,
         )
         embed.set_footer(
-            text=f"Essayer à plusieurs reprises d'utiliser une commande interdite ou y parvenir sans autorisation des administrateurs entrainera systématiquement un bannissement temporaire ou définitif du joueur."
+            text="Essayer à plusieurs reprises d'utiliser une commande interdite ou y parvenir sans autorisation des administrateurs entrainera systématiquement un bannissement temporaire ou définitif du joueur."
         )
         if interaction.response.is_done():
             await interaction.followup.send(embed=embed)
         else:
             await interaction.response.send_message(embed=embed)
         embed = discord.Embed(
-            title=f":robot: Commande bloquée :moyai:",
-            description=f"sent by **{interaction.user.display_name}**\nattempted to use the command **{command}**",
+            title=':robot: Commande bloquée :moyai:',
+            description=f'sent by **{interaction.user.display_name}**\nattempted to use the command **{command}**',
             color=COLOR_RED,
         )
         await bot.get_channel(CHANNEL_ID_BOT).send(embed=embed)
     elif isinstance(error.original, commands.errors.NoPrivateMessage):
-        command = "/" + interaction.command.name
+        command = '/' + interaction.command.name
         logger.warning(
-            f"NoPrivateMessage | Sent by {interaction.user} (id:{interaction.user.id}) | Attempted to use the command: {command}"
+            f'NoPrivateMessage | Sent by {interaction.user} (id:{interaction.user.id}) | Attempted to use the command: {command}'
         )
         embed = discord.Embed(
-            title=f":robot: Commande de serveur :moyai:",
-            description=f":no_entry: Cette commande n'est pas disponible en message privé.",
+            title=':robot: Commande de serveur :moyai:',
+            description=":no_entry: Cette commande n'est pas disponible en message privé.",
             color=COLOR_ORANGE,
         )
         embed.set_footer(
-            text=f"Essayer à plusieurs reprises d'utiliser une commande interdite ou y parvenir sans autorisation des administrateurs entrainera systématiquement un bannissement temporaire ou définitif du joueur."
+            text="Essayer à plusieurs reprises d'utiliser une commande interdite ou y parvenir sans autorisation des administrateurs entrainera systématiquement un bannissement temporaire ou définitif du joueur."
         )
         if interaction.response.is_done():
             await interaction.followup.send(embed=embed)
         else:
             await interaction.response.send_message(embed=embed)
         embed = discord.Embed(
-            title=f":robot: Commande MP bloquée :moyai:",
-            description=f"sent by **{interaction.user.display_name}**\nattempted to use the command **{command}**",
+            title=':robot: Commande MP bloquée :moyai:',
+            description=f'sent by **{interaction.user.display_name}**\nattempted to use the command **{command}**',
             color=COLOR_ORANGE,
         )
         await bot.get_channel(CHANNEL_ID_BOT).send(embed=embed)
     else:
         logger.error(
-            f"Command error | Sent by {interaction.user} (id:{interaction.user.id}) | {error}"
+            f'Command error | Sent by {interaction.user} (id:{interaction.user.id}) | {error}'
         )
         embed = discord.Embed(
-            title=f":robot: Erreur :moyai:",
-            description=f":warning: Une erreur est survenue lors de l'execution de cette commande.",
+            title=':robot: Erreur :moyai:',
+            description=":warning: Une erreur est survenue lors de l'execution de cette commande.",
             color=COLOR_ORANGE,
         )
         if interaction.response.is_done():
@@ -283,32 +295,34 @@ async def on_raw_reaction_add(payload):
     if payload.emoji.name in EMOJIS_LIST:
         emoji = chr(EMOJIS_LIST.index(payload.emoji.name) + 65)
     else:
-        emoji = "not an alphabet emoji"
+        emoji = 'not an alphabet emoji'
     logger.info(
-        f"New raw reaction | user: {payload.member} (id: {payload.member.id}) | msg id: {payload.message_id} | emoji: {emoji}"
+        f'New raw reaction | user: {payload.member} (id: {payload.member.id}) | msg id: {payload.message_id} | emoji: {emoji}'
     )
     user = payload.member
     if user.id != bot.user.id:
         player = Player(id=payload.user_id)
         channel = bot.get_channel(payload.channel_id)
         msg = await channel.fetch_message(payload.message_id)
-        if type(payload.emoji) != str and payload.emoji.id == EMOJI_ID_COLLIER:
+        if isinstance(payload.emoji, str) and payload.emoji.id == EMOJI_ID_COLLIER:
             await msg.remove_reaction(payload.emoji, user)
             if (
                 msg.id == Variables.get_immunite_collar_msg_id()
                 and Player(id=user.id).alive
             ):
-                await msg.clear_reaction(f"<:collierimmunite:{EMOJI_ID_COLLIER}>")
+                await msg.clear_reaction(
+                    f'<:collierimmunite:{EMOJI_ID_COLLIER}>'
+                )
                 await give_immunite_collar(payload, player)
             else:
                 logger.warning(
-                    f"Use of immunity collar in reaction by : {user} (id:{user.id})."
+                    f'Use of immunity collar in reaction by : {user} (id:{user.id}).'
                 )
                 logger.info(
-                    "Sending a message reminding of the rules relating to the immunity collar."
+                    'Sending a message reminding of the rules relating to the immunity collar.'
                 )
                 embed = discord.Embed(
-                    title=f":robot: RAPPEL AUX JOUEURS :moyai:",
+                    title=':robot: RAPPEL AUX JOUEURS :moyai:',
                     description=f":no_entry: L'usage de l'emoji <:collierimmunite:{EMOJI_ID_COLLIER}> est interdit sur le serveur afin de ne pas embrouiller les joueurs à la recherche du collier d'immunité.",
                     color=COLOR_RED,
                 )
@@ -317,15 +331,17 @@ async def on_raw_reaction_add(payload):
                     user,
                     reason=f"Usage de l'emoji <:collierimmunite:{EMOJI_ID_COLLIER}>",
                 )
-        elif channel.id == CHANNEL_ID_VOTE and (not player.exists or not player.alive):
-            if not "Votant Final" in [r.name for r in user.roles]:
+        elif channel.id == CHANNEL_ID_VOTE and (
+            not player.exists or not player.alive
+        ):
+            if 'Votant Final' not in [r.name for r in user.roles]:
                 await msg.remove_reaction(payload.emoji, user)
                 logger.warning(
-                    f"Vote received from an eliminated player. Sent by : {user} (id:{user.id})."
+                    f'Vote received from an eliminated player. Sent by : {user} (id:{user.id}).'
                 )
                 embed = discord.Embed(
-                    title=f":robot: Action interdite :moyai:",
-                    description=f":no_entry: Les aventuriers éliminés ne peuvent pas participer au vote.",
+                    title=':robot: Action interdite :moyai:',
+                    description=':no_entry: Les aventuriers éliminés ne peuvent pas participer au vote.',
                     color=COLOR_RED,
                 )
                 await user.send(embed=embed)
@@ -338,9 +354,9 @@ async def on_raw_reaction_add(payload):
 
 
 def signal_handler(sig, frame):
-    logger.warning("Start of shutdown procedure.")
+    logger.warning('Start of shutdown procedure.')
     cancel_timer()
-    logger.warning("Complete shutdown procedure.")
+    logger.warning('Complete shutdown procedure.')
     sys.exit(0)
 
 

@@ -11,26 +11,26 @@ logger = get_logger(__name__)
 
 async def new_alliance(interaction: discord.Interaction):
     player = Player(id=interaction.user.id)
-    channel_name = "new_channel_" + "_".join(interaction.user.nick.lower().split(" "))
+    channel_name = 'new_channel_' + '_'.join(interaction.user.nick.lower().split(' '))
     same_named_alliance_by_channels = discord.utils.get(
         interaction.guild.channels, name=channel_name
     )
     if not player.alive:
         logger.warning(
-            f"EliminatedPlayer | Sent by {interaction.user} (id:{interaction.user.id}) | Attempted to use the command: /alliance"
+            f'EliminatedPlayer | Sent by {interaction.user} (id:{interaction.user.id}) | Attempted to use the command: /alliance'
         )
         embed = discord.Embed(
-            title=f":robot: Action impossible :moyai:",
-            description=f":warning: Impossible d'effectuer l'action demandée : les joueurs éliminés ne peuvent pas créer d'alliance.",
+            title=':robot: Action impossible :moyai:',
+            description=":warning: Impossible d'effectuer l'action demandée : les joueurs éliminés ne peuvent pas créer d'alliance.",
             color=COLOR_ORANGE,
         )
         await interaction.followup.send(embed=embed, ephemeral=True)
     elif same_named_alliance_by_channels:
         logger.warning(
-            f"AlreadyHaveNewAlliance | Sent by {interaction.user} (id:{interaction.user.id}) | Attempted to use the command: /alliance"
+            f'AlreadyHaveNewAlliance | Sent by {interaction.user} (id:{interaction.user.id}) | Attempted to use the command: /alliance'
         )
         embed = discord.Embed(
-            title=f":robot: Action impossible :moyai:",
+            title=':robot: Action impossible :moyai:',
             description=f":warning: Impossible d'effectuer l'action demandée : vous disposez déjà d'une alliance neuve, non renommée et sans membre (excepté vous). Rendez-vous ici <#{same_named_alliance_by_channels.id}> pour la renommer !",
             color=COLOR_ORANGE,
         )
@@ -40,7 +40,7 @@ async def new_alliance(interaction: discord.Interaction):
         await interaction.followup.send(embed=embed, ephemeral=True)
     else:
         logger.info(
-            f"New alliance creation started | Requested by {interaction.user} (id:{interaction.user.id})."
+            f'New alliance creation started | Requested by {interaction.user} (id:{interaction.user.id}).'
         )
         same_named_alliance_by_db = Alliance(name=channel_name)
         if same_named_alliance_by_db.exists:
@@ -66,17 +66,17 @@ async def new_alliance(interaction: discord.Interaction):
         new_alliance.creator = player._id
         new_alliance.save()
         embed = discord.Embed(
-            title=f":robot: ✏️ Renomme ton alliance dès maintenant ! :moyai:",
-            description=f"Tu dois d'abord renommer ton alliance afin de pouvoir ajouter des membres.",
+            title=':robot: ✏️ Renomme ton alliance dès maintenant ! :moyai:',
+            description="Tu dois d'abord renommer ton alliance afin de pouvoir ajouter des membres.",
         )
         embed.add_field(
-            name='/nom "nouveau-nom-de-l-alliance"',
-            value='L\'expression "nouveau-nom-de-l-alliance" est à remplacer par le nouveau nom que vous souhaitez définir.',
+            name="/nom 'nouveau-nom-de-l-alliance'",
+            value="L'expression 'nouveau-nom-de-l-alliance' est à remplacer par le nouveau nom que vous souhaitez définir.",
         )
         await new_text_channel.send(embed=embed)
         embed = discord.Embed(
-            title=f":robot: Nouvelle alliance :moyai:",
-            description=f":white_check_mark: L'alliance {channel_name} a bien été créée : rendez-vous ici <#{new_text_channel.id}> pour la renommer !",
+            title=':robot: Nouvelle alliance :moyai:',
+            description=":white_check_mark: L'alliance {channel_name} a bien été créée : rendez-vous ici <#{new_text_channel.id}> pour la renommer !",
             color=COLOR_GREEN,
         )
         embed.set_footer(
@@ -84,7 +84,7 @@ async def new_alliance(interaction: discord.Interaction):
         )
         await interaction.followup.send(embed=embed, ephemeral=True)
         logger.info(
-            f"New Alliance created | Requested by {interaction.user} (id:{interaction.user.id}) | Alliance text channel id: {new_text_channel.id}"
+            f'New Alliance created | Requested by {interaction.user} (id:{interaction.user.id}) | Alliance text channel id: {new_text_channel.id}'
         )
 
 
@@ -92,7 +92,7 @@ async def close_alliance(
     txt_channel_id: discord.TextChannel.id, user: discord.User = None
 ):
     logger.info(
-        f"fn > Alliance Close > start | Requested by {user} (id:{user.id}) | Alliance text channel id: {txt_channel_id}"
+        f'fn > Alliance Close > start | Requested by {user} (id:{user.id}) | Alliance text channel id: {txt_channel_id}'
     )
     alliance = Alliance(text_id=txt_channel_id)
     text_channel = bot.get_channel(alliance.text_id)
@@ -101,25 +101,27 @@ async def close_alliance(
     await voice_channel.delete()
     alliance.close(user)
     logger.info(
-        f"fn > Alliance Close > OK | Requested by {user} (id:{user.id}) | Alliance text channel id: {txt_channel_id} | Alliance voice channel id: {alliance.voice_id}"
+        f'fn > Alliance Close > OK | Requested by {user} (id:{user.id}) | Alliance text channel id: {txt_channel_id} | Alliance voice channel id: {alliance.voice_id}'
     )
 
 
 async def purge_empty_alliances():
-    logger.info(f"fn > Empty Alliances Purge > start")
+    logger.info('fn > Empty Alliances Purge > start')
     Alliance().purge_empty_alliances()
-    logger.info(f"fn > Empty Alliances Purge > OK")
+    logger.info('fn > Empty Alliances Purge > OK')
+
 
 async def purge_alliances(interaction: discord.Interaction = None):
-    logger.info(f"fn > Alliances Purge > start")
+    logger.info('fn > Alliances Purge > start')
     category = bot.get_channel(CATEGORIE_ID_ALLIANCES)
     for channel in category.channels:
-        logger.info(f"fn > Alliances Purge > delete {channel.name} alliance")
+        logger.info(f'fn > Alliances Purge > delete {channel.name} alliance')
         await channel.delete()
     embed = discord.Embed(
-        title=f":robot: Suppression des alliances :moyai:",
-        description=f"Toutes les alliances ont été supprimées.",
+        title=':robot: Suppression des alliances :moyai:',
+        description='Toutes les alliances ont été supprimées.',
         color=COLOR_GREEN,
     )
-    if interaction: await interaction.followup.send(embed=embed)
-    logger.info(f"fn > Alliances Purge > OK")
+    if interaction:
+        await interaction.followup.send(embed=embed)
+    logger.info('fn > Alliances Purge > OK')
