@@ -63,4 +63,8 @@ async def start_new_timer():
 
 
 def cancel_timer():
-    timer_thread.cancel()
+    try:
+        timer_thread.cancel()
+        logger.info('One timer canceled.')
+    except AttributeError:
+        logger.info('Any timer to cancel.')

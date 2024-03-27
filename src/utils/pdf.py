@@ -15,8 +15,7 @@ import os
 logger = get_logger(__name__)
 
 logger.info('Setup running...')
-DIRNAME = Path(__file__).parent.parent
-DIRNAME = Path(__file__).parent.parent
+DIRNAME = Path(__file__).parent.parent.parent
 styles = getSampleStyleSheet()
 styles['Title'].textColor = colors.whitesmoke
 styles['h2'].textColor = colors.whitesmoke

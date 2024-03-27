@@ -33,8 +33,9 @@ from utils.logging import get_logger
 from utils.models import Player, Variables, setup_db_connection
 from utils.punishments import timeout
 
-# ***** CONSTANTES *****
+
 logger = get_logger(__name__)
+
 COGS = [
     'cogs.admin',
     'cogs.how_to',
@@ -357,7 +358,7 @@ def signal_handler(sig, frame):
     logger.warning('Start of shutdown procedure.')
     cancel_timer()
     logger.warning('Complete shutdown procedure.')
-    sys.exit(0)
+    exit()
 
 
 signal.signal(signal.SIGINT, signal_handler)

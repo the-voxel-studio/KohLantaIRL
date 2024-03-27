@@ -15,7 +15,7 @@ from utils.logging import get_logger
 
 logger = get_logger(__name__)
 COLOR_GREEN, COLOR_ORANGE, COLOR_RED  # COULEURS OBLIGATOIRES (utilisation de la fonction eval)
-DIRNAME = Path(__file__).parent.parent
+DIRNAME = Path(__file__).parent.parent.parent
 
 
 async def send_log(title: str, *args, **kwargs):
