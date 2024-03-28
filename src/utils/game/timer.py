@@ -7,7 +7,7 @@ import utils.game.votes as vote
 from utils.bot import bot
 from utils.log import send_log
 from utils.logging import get_logger
-from utils.models import Variables
+from utils.models import Variables, get_council_number
 
 logger = get_logger(__name__)
 timer_thread = None
@@ -15,6 +15,11 @@ timer_thread = None
 
 async def timed_action():
     # TODO return vote for eliminates
+    # TODO à faire
+    # FIX à faire
+    # [ ] à faire
+    # [x] à faire
+    # CHECK à faire
     logger.info('fn > Timer Loop > A thread timer has ended.')
     time = datetime.datetime.now()
     hour = int(time.strftime('%H'))
