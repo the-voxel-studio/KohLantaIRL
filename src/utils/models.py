@@ -4,6 +4,7 @@ import discord
 import dns.resolver
 from bson.objectid import ObjectId
 from pymongo.mongo_client import MongoClient
+from random import random 
 
 from config.values import EMOJIS_LIST, MONGODB_URI
 from utils.logging import get_logger
@@ -377,17 +378,31 @@ class Alliance:
         )
 
 
-class NewVoteLog:
+class NewVoteLog:  # Cette classe sert à créer et sauvegarder des journaux de votes
+
     def __init__(self, **kwargs):
+        # La variable 'hidden' est définie aléatoirement à True ou False lors de la création d'une nouvelle instance.
+        if random() < 0.5 :
+            self.hidden = False  # Création d'une variable 'hidden' à chaque nouveau journal de votes
+        else : 
+            self.hidden = True
+
+        # Les votes et les joueurs éliminés sont récupérés à partir des arguments fournis, s'ils existent.
         self.votes = kwargs.get('votes', None)
         self.eliminated = kwargs.get('eliminated', None)
+        
+        # La date actuelle est enregistrée au format spécifié.
         self.date = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+        
+        # D'autres informations comme le numéro du conseil, le nombre de votants, etc., sont récupérées ou calculées.
         self.votes_logs = db.VoteLog
         self.number = get_council_number() + 1
         self.players_list = Player(option='living').list
         self.voters_number = len(self.players_list)
         self.cheaters_number = kwargs.get('cheaters_number', 0)
         self.tied_players = kwargs.get('tied_players', [])
+        
+        # Les votes sont formatés pour être enregistrés dans une liste spécifique.
         self.votes_list = []
         for v in self.votes:
             self.votes_list.append(
@@ -398,6 +413,8 @@ class NewVoteLog:
                     )._id,
                 }
             )
+        
+        # Les joueurs éliminés et les joueurs à égalité sont formatés pour être enregistrés dans des dictionnaires.
         if self.eliminated:
             self.eliminated_dict = [{'_id': el._id} for el in self.eliminated]
         else:
@@ -405,10 +422,12 @@ class NewVoteLog:
         if self.tied_players:
             self.tied_players = [{'_id': el._id} for el in self.tied_players]
 
-    def save(self):
+    def save(self):  
+        # Les informations du journal de votes sont enregistrées dans la base de données.
         self.alliance_number = get_alliances_number()
         db.VoteLog.insert_one(
             {
+                'hidden': self.hidden,
                 'votes': self.votes_list,
                 'date': self.date,
                 'number': self.number,
@@ -419,14 +438,18 @@ class NewVoteLog:
                 'alliance_number': self.alliance_number,
             }
         )
+        # Un message est envoyé sur la console pour indiquer que la sauvegarde est effectuée.
         logger.info(
-            f'fn > NewVoteLog saving > OK | votes: {self.votes_list} | date: {self.date} | number: {self.number} | eliminated: {self.eliminated_dict} | voters_number: {self.voters_number} | cheaters_number: {self.cheaters_number} | tied_players {self.tied_players} | alliance_number: {self.alliance_number}'
+            f'fn > NewVoteLog saving > OK | votes: {self.votes_list} | date: {self.date} | number: {self.number} | eliminated: {self.eliminated_dict} | voters_number: {self.voters_number} | cheaters_number: {self.cheaters_number} | tied_players {self.tied_players} | alliance_number: {self.alliance_number} | hidden: {self.hidden}'
         )
 
 
-class VoteLog:
+class VoteLog:  # Cette classe est utilisée pour retrouver et mettre à jour des journaux de votes déjà existants dans la base de données.
+
     def __init__(self, **kwargs):
+        # Les arguments sont stockés dans un dictionnaire pour une manipulation facile, grâce à kwargs.
         logger.info(f'VoteLogObjectCreation | args: {kwargs}')
+        self.hidden = None
         self._id = kwargs.get('_id', None)
         self.number = kwargs.get('number', None)
         self.date = kwargs.get('date', None)
@@ -444,6 +467,7 @@ class VoteLog:
         self.find()
 
     def find(self):
+        # La méthode trouve le journal de votes correspondant en fonction des critères spécifiés.
         if self._id is not None:
             self.vote_log = db.VoteLog.find_one(filter={'_id': self._id})
         elif self.number is not None:
@@ -454,7 +478,9 @@ class VoteLog:
             self.vote_log = db.VoteLog.find_one(
                 filter={'number': get_council_number() + self.last}
             )
+        # Si le journal de votes est trouvé, ses valeurs sont mises à jour.
         if self.vote_log:
+            self.hidden = self.vote_log.get('hidden', None)
             self._id = self.vote_log.get('_id', None) if not self._id else self._id
             self.number = (
                 self.vote_log.get('number', None) if not self.number else self.number
@@ -466,6 +492,7 @@ class VoteLog:
             self.eliminated_dict = self.vote_log.get('eliminated', [])
             self.tied_players = self.vote_log.get('tied_players', [])
             self.alliance_number = self.vote_log.get('alliance_number', None)
+            # Si le vote est le dernier, il est marqué comme tel.
             if self.eliminated_dict != []:
                 self.eliminated = [
                     Player(_id=ObjectId(el['_id'])) for el in self.eliminated_dict
@@ -475,16 +502,20 @@ class VoteLog:
             logger.info(f'fn > Vote Log find > OK | log: {self.vote_log}')
 
     def update_eliminated(self, eliminated):
+        # Cette méthode met à jour la liste des joueurs éliminés dans le journal de votes.
         if isinstance(eliminated, list):
             eliminated = [eliminated]
         for el in eliminated:
             self.eliminated.append({'_id': el._id})
+        # La base de données est mise à jour pour refléter les changements.
         db.VoteLog.update_one(
             {'_id': self._id}, {'$set': {'eliminated': self.eliminated}}, upsert=False
         )
+        # Un message est enregistré dans le journal pour indiquer la mise à jour.
         logger.info(
             f'fn > Vote Log eliminated update > OK | _id: {self._id} | eliminated: {eliminated}'
         )
+
 
 
 def get_council_number():
