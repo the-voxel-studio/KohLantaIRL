@@ -4,7 +4,7 @@ import discord
 import dns.resolver
 from bson.objectid import ObjectId
 from pymongo.mongo_client import MongoClient
-from random import random 
+from random import random
 
 from config.values import EMOJIS_LIST, MONGODB_URI
 from utils.logging import get_logger
@@ -374,7 +374,7 @@ class Alliance:
             {'_id': self._id}, {'$set': {'name': name}}, upsert=False
         )
         logger.info(
-            f'fn > Alliance renamation > OK | Alliance _id: {self._id} | Old name : {self.name} | New name : {name}'
+            f'fn > Alliance renamation > OK | Alliance _id: {self._id} | Old name: {self.name} | New name: {name}'
         )
 
 
@@ -382,18 +382,18 @@ class NewVoteLog:  # Cette classe sert à créer et sauvegarder des journaux de 
 
     def __init__(self, **kwargs):
         # La variable 'hidden' est définie aléatoirement à True ou False lors de la création d'une nouvelle instance.
-        if random() < 0.5 :
+        if random() < 0.5:
             self.hidden = False  # Création d'une variable 'hidden' à chaque nouveau journal de votes
-        else : 
+        else:
             self.hidden = True
 
         # Les votes et les joueurs éliminés sont récupérés à partir des arguments fournis, s'ils existent.
         self.votes = kwargs.get('votes', None)
         self.eliminated = kwargs.get('eliminated', None)
-        
+
         # La date actuelle est enregistrée au format spécifié.
         self.date = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-        
+
         # D'autres informations comme le numéro du conseil, le nombre de votants, etc., sont récupérées ou calculées.
         self.votes_logs = db.VoteLog
         self.number = get_council_number() + 1
@@ -401,7 +401,7 @@ class NewVoteLog:  # Cette classe sert à créer et sauvegarder des journaux de 
         self.voters_number = len(self.players_list)
         self.cheaters_number = kwargs.get('cheaters_number', 0)
         self.tied_players = kwargs.get('tied_players', [])
-        
+
         # Les votes sont formatés pour être enregistrés dans une liste spécifique.
         self.votes_list = []
         for v in self.votes:
@@ -413,7 +413,7 @@ class NewVoteLog:  # Cette classe sert à créer et sauvegarder des journaux de 
                     )._id,
                 }
             )
-        
+
         # Les joueurs éliminés et les joueurs à égalité sont formatés pour être enregistrés dans des dictionnaires.
         if self.eliminated:
             self.eliminated_dict = [{'_id': el._id} for el in self.eliminated]
@@ -422,7 +422,7 @@ class NewVoteLog:  # Cette classe sert à créer et sauvegarder des journaux de 
         if self.tied_players:
             self.tied_players = [{'_id': el._id} for el in self.tied_players]
 
-    def save(self):  
+    def save(self):
         # Les informations du journal de votes sont enregistrées dans la base de données.
         self.alliance_number = get_alliances_number()
         db.VoteLog.insert_one(
@@ -515,7 +515,6 @@ class VoteLog:  # Cette classe est utilisée pour retrouver et mettre à jour de
         logger.info(
             f'fn > Vote Log eliminated update > OK | _id: {self._id} | eliminated: {eliminated}'
         )
-
 
 
 def get_council_number():

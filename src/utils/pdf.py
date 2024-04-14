@@ -103,7 +103,7 @@ def render_vote(number: int, **kwargs):
     title_paragraph = Paragraph(title, title_style)
     elements.append(title_paragraph)
 
-    if vote_log.hidden :
+    if vote_log.hidden:
         text = 'Ce vote était anonyme'
         paragraph = Paragraph(text, styles['h1'])
         elements.append(paragraph)
@@ -114,7 +114,7 @@ def render_vote(number: int, **kwargs):
 
     date = datetime.strptime(vote_log.date, '%d/%m/%Y %H:%M:%S')
 
-    data = [ #Tout ce qui est en lien avec le tableau du pdf.
+    data = [  # Tout ce qui est en lien avec le tableau du pdf.
         [
             'Date',
             'Ouverture',
@@ -146,9 +146,9 @@ def render_vote(number: int, **kwargs):
     table = Table(data, style=table_style, hAlign='LEFT')
     elements.append(table)
 
-    #TODO en cas de vote anonyme, créer tableau qui recense le nombre de votes reçu par chacun sans mentionner les votants
+    # TODO en cas de vote anonyme, créer tableau qui recense le nombre de votes reçu par chacun sans mentionner les votants
 
-    if not vote_log.hidden :
+    if not vote_log.hidden:
         text = '2. Votes exprimés'
         paragraph = Paragraph(text, styles['h2'])
         elements.append(paragraph)
@@ -244,12 +244,12 @@ def render_vote(number: int, **kwargs):
         table = Table(data, style=table_style, hAlign='LEFT')
         elements.append(table)
 
-    if not vote_log.hidden :
-        text = f"3. Elimination{'s' if eliminated_at_this_vote_number>1 else ''}" if not final else '2. Victoire' #Juste pour changer le chiffre
+    if not vote_log.hidden:
+        text = f"3. Elimination{'s' if eliminated_at_this_vote_number>1 else ''}" if not final else '2. Victoire'  # Juste pour changer le chiffre
         paragraph = Paragraph(text, styles['h2'])
         elements.append(paragraph)
-    else :
-        text = f"2. Elimination{'s' if eliminated_at_this_vote_number>1 else ''}" if not final else '2. Victoire' #Juste pour changer le chiffre
+    else:
+        text = f"2. Elimination{'s' if eliminated_at_this_vote_number>1 else ''}" if not final else '2. Victoire'  # Juste pour changer le chiffre
         paragraph = Paragraph(text, styles['h2'])
         elements.append(paragraph)
 
@@ -264,11 +264,11 @@ def render_vote(number: int, **kwargs):
     paragraph = Paragraph(text, styles['Normal'])
     elements.append(paragraph)
 
-    if not vote_log.hidden :
+    if not vote_log.hidden:
         text = '4. Alliances'
         paragraph = Paragraph(text, styles['h2'])
         elements.append(paragraph)
-    else :
+    else:
         text = '3. Alliances'
         paragraph = Paragraph(text, styles['h2'])
         elements.append(paragraph)
@@ -278,11 +278,11 @@ def render_vote(number: int, **kwargs):
     elements.append(paragraph)
 
     if last and number != 1:
-        if not vote_log.hidden :
+        if not vote_log.hidden:
             text = '5. Joueurs éliminés'
             paragraph = Paragraph(text, styles['h2'])
             elements.append(paragraph)
-        else :
+        else:
             text = '4. Joueurs éliminés'
             paragraph = Paragraph(text, styles['h2'])
             elements.append(paragraph)
@@ -333,7 +333,7 @@ def render_rules():
     content = """
         Un vote est organisé tous les deux jours sur le présent serveur Discord , la personne recueillant le plus de voix est éliminée du jeu.<br />
         L'objectif est d'être le dernier joueur en jeu.<br />
-        Tout est autorisé : traîtrises, alliances etc, faites vous plaisir !'
+        Tout est autorisé: traîtrises, alliances etc, faites vous plaisir !'
     """
     elements.append(Paragraph(content, styles['Normal']))
 
@@ -349,10 +349,10 @@ def render_rules():
         "En cas d'égalité, le dernier joueur éliminé aura le dernier mot. Les modalités de vote",
         'Le dernier vote (lors de la finale) est ouvert à tous les éliminés et dure du 8h00 à 20h59. A partir de l’ouverture de ce vote, les finalistes se voient retirer leur droit de parole sur l’ensemble des salons.',
         'Une fois éliminé, les personnes ne peuvent plus participer aux votes, ne peuvent plus interagir sur le groupe de discussion général, peuvent interagir sur le groupe des éliminés.',
-        'Un système de collier d’immunité a été mis en place. En voici les règles :',
+        'Un système de collier d’immunité a été mis en place. En voici les règles:',
         [
-            'Un smiley :collierimmunite:  est dissimulé quelque part sur le serveur, dans une discussion accessible à tous les joueurs restants, à une date tenue secrète.',
-            'Toute personne qui trouve le smiley :collierimmunite:  est enjoint à cliquer dessus au plus vite. Ce dernier disparaitra de façon quasi instantanée. Dès à présent, vous êtes détenteur (de façon secrète) du collier d’immunité.',
+            'Un smiley:collierimmunite:  est dissimulé quelque part sur le serveur, dans une discussion accessible à tous les joueurs restants, à une date tenue secrète.',
+            'Toute personne qui trouve le smiley:collierimmunite:  est enjoint à cliquer dessus au plus vite. Ce dernier disparaitra de façon quasi instantanée. Dès à présent, vous êtes détenteur (de façon secrète) du collier d’immunité.',
         ],
         "Le collier d'immunité est utilisé automatiquement après un vote dont vous êtes le perdant, les votes contre vous ne sont alors pas comptabilisés. Ce dispositif ne fonctionne qu’une seule fois. Vous conservez le collier tant qu’il n’a pas servi à vous protéger d’une expulsion par un vote.",
         'Le collier d’immunité n’a aucun effet en finale.',
