@@ -27,7 +27,7 @@ class Player:
             self.find()
 
     def find(self) -> None:
-        data = db.Players.find_one(filter=self.query)
+        data: dict = db.Players.find_one(filter=self.query)
         if data:
             self.object = PlayerData(data)
             logger.info(f'Player found: {self.object.__dict__}')
