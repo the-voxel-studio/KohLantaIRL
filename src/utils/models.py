@@ -5,8 +5,12 @@ import dns.resolver
 from bson.objectid import ObjectId
 from pymongo.mongo_client import MongoClient
 
-from config.values import EMOJIS_LIST, MONGODB_URI
-from utils.logging import get_logger
+try:
+    from config.values import EMOJIS_LIST, MONGODB_URI
+    from utils.logging import get_logger
+except:
+    from ..config.values import EMOJIS_LIST, MONGODB_URI
+    from ..utils.logging import get_logger
 
 logger = get_logger(__name__)
 client = None

@@ -15,12 +15,13 @@ from config.values import (
 )
 from utils.bot import bot
 from utils.log import get_logger
-from utils.models import Player, Variables, NewVoteLog, VoteLog, get_council_number
+from utils.models import Player as OldPlayer, Variables, NewVoteLog, VoteLog, get_council_number
 from utils.punishments import timeout
 from utils.game.players import reset_roles
 from utils.pdf import generate as pdfGenerate
 from utils.game.immuniteCollar import remove_potential_immune_player
 from utils.game.alliances import purge_alliances
+from database.player import Player, PlayerList
 import datetime
 
 logger = get_logger(__name__)
@@ -30,9 +31,9 @@ select_options = []
 
 async def open(interaction: discord.Interaction = None):
     logger.info(f'vote opening > start | interaction: {interaction}')
-    players = Player(option='living')
-    players_list = players.list
-    if len(players_list) > 2:
+    # players = OldPlayer(option='living')
+    players = PlayerList(alive=True)
+    if len(players.objects) > 2:
         embed = discord.Embed(
             title='Qui souhaitez-vous éliminer ce soir ?',
             description="Vous avez jusqu'à 21h ce soir pour choisir la personne que vous souhaitez éliminer en réagissant à ce message.",
@@ -59,19 +60,19 @@ async def open(interaction: discord.Interaction = None):
         f_role = discord.utils.get(
             guild.roles, name='Finaliste'
         )  # Récupération du role 'Finaliste'
-        voters = Player(option='eliminated')
+        voters = OldPlayer(option='eliminated')
         voters_list = voters.list
         for v in voters_list:
             await guild.get_member(v.get('id', 0)).add_roles(
                 v_role
             )  # Assignation du nouveau role
         category = discord.utils.get(guild.categories, id=CATEGORIE_ID_ALLIANCES)
-        for f in players_list:
-            await guild.get_member(int(f.get('id', 0))).add_roles(
+        for f in players.objects:
+            await guild.get_member(int(f.object.get('id', 0))).add_roles(
                 f_role
             )  # Assignation du nouveau role
             for channel in category.channels:
-                user = bot.get_user(int(f.get('id', 0)))
+                user = bot.get_user(int(f.object.get('id', 0)))
                 perms = channel.overwrites_for(user)
                 perms.read_messages = False
                 await channel.set_permissions(user, overwrite=perms)
@@ -82,13 +83,14 @@ async def open(interaction: discord.Interaction = None):
         text='Choisissez la personne pour qui vous votez en cliquant sur une des cases ci-dessous.\nVous souhaitez savoir combien de personnes ont voté pour une personne ? Il suffit de soustraire 1 aux nombres inscrits ci-dessous. '
     )
     reactions = []
-    for i, pl in enumerate(players_list):
+    for i, pl in enumerate(players.objects):
         embed.add_field(
-            name=pl.get('nickname', 'unknown'),
+            name=pl.object.get('nickname', 'unknown'),
             value=f'Choisir le logo {EMOJIS_LIST[i]}',
             inline=True,
         )
-        Player(id=pl.get('id')).set_letter(chr(i + 65))
+        pl.letter = chr(i + 65)
+        pl.save()
         reactions.append(EMOJIS_LIST[i])
     channel = bot.get_channel(CHANNEL_ID_VOTE)
     msg = await channel.send(embed=embed)
@@ -225,13 +227,14 @@ async def close_final_vote(
 ) -> None:
     logger.info('close_final_vote > start ')
     logger.info('EqualityView select_callback > start | max_rea')
+    # winner = OldPlayer(letter=chr(EMOJIS_LIST.index(max_reactions[0]) + 65))
     winner = Player(letter=chr(EMOJIS_LIST.index(max_reactions[0]) + 65))
     new_vote_log = NewVoteLog(
-        votes=reactions_list, eliminated=[winner], cheaters_number=cheaters_number
+        votes=reactions_list, eliminated=[winner.object], cheaters_number=cheaters_number
     )
     new_vote_log.save()
     embed = discord.Embed(
-        title=f'**{winner.nickname}** remporte la partie !',
+        title=f'**{winner.object.nickname}** remporte la partie !',
         description="Les aventuriers de la tribu ont décidé de l'élire en tant que vainqueur de cette saison et leur sentence est irrévocable !",
         color=COLOR_GREEN,
     )
@@ -270,7 +273,7 @@ async def close_final_vote(
     )
     embed.set_image(url='https://media.tenor.com/b4GVF1aUlgIAAAAC/chirac-victoire.gif')
     guild = bot.get_guild(GUILD_ID)
-    member = guild.get_member(winner.id)
+    member = guild.get_member(winner.object.id)
     await member.send(embed=embed)
     await reset_roles('Joueur', 'Eliminé', 'Finaliste', 'Votant Final')
     await purge_alliances()
@@ -281,16 +284,17 @@ async def close_normal(
     max_reactions, reactions_list, cheaters_number, max_count, reactions
 ) -> None:
     logger.info('close_normal > start ')
+    # eliminated = OldPlayer(letter=chr(EMOJIS_LIST.index(max_reactions[0]) + 65))
     eliminated = Player(letter=chr(EMOJIS_LIST.index(max_reactions[0]) + 65))
     new_vote_log = NewVoteLog(
         votes=reactions_list,
-        eliminated=[eliminated],
+        eliminated=[eliminated.object],
         cheaters_number=cheaters_number,
     )
     new_vote_log.save()
     nb_remaining_players = len(reactions) - 1
     embed = discord.Embed(
-        title=f'**{eliminated.nickname}**',
+        title=f'**{eliminated.object.nickname}**',
         description="Les aventuriers de la tribu ont décidé de l'éliminer et leur sentence est irrévocable !",
         color=15548997,
     )
@@ -554,7 +558,7 @@ async def close(interaction: discord.Interaction = None) -> None:
         else:
             council_number = get_council_number()+1
             tied_players = [
-                Player(letter=chr(EMOJIS_LIST.index(r) + 65)) for r in max_reactions
+                Player(letter=chr(EMOJIS_LIST.index(r) + 65)).object for r in max_reactions
             ]
             if council_number != 1:  # if it's not the first vote
                 await close_normal_equality(
@@ -587,12 +591,11 @@ async def eliminate(
 ) -> None:
     logger.info(f'eliminate > start | member: {member} | reason: {reason}')
     eliminated = Player(id=member.id)
-    players = Player(option='living')
-    players_list = players.list
+    players = PlayerList(alive=True)
     channel = bot.get_channel(CHANNEL_ID_RESULTATS)
     if reason == 'After equality':
         public_embed = discord.Embed(
-            title='**{eliminated.nickname}**',
+            title='**{eliminated.object.nickname}**',
             description="Le dernier éliminé a décidé de l'éliminer et sa sentence est irrévocable !",
             color=15548997,
         )
@@ -605,7 +608,7 @@ async def eliminate(
         )
         public_embed.add_field(
             name='Cet aventurier a reçu le vote du dernier éliminé suite à une égalité.',
-            value=f'Il reste {len(players_list)-1} aventuriers en jeu.',
+            value=f'Il reste {len(players.objects)-1} aventuriers en jeu.',
             inline=True,
         )
         dm_embed = discord.Embed(
@@ -633,7 +636,7 @@ async def eliminate(
             value=f"Exemple : `/dv \'Vous n'auriez pas dû m'éliminer...\'`\nEnvoi moi simplement un message sous cette forme.\nTu peux utiliser cette commande jusqu'à la date suivante : {max_date.strftime('%d/%m/%Y %H:%M:%S')}",
         )
         last_vote_log = VoteLog(last=True)
-        last_vote_log.update_eliminated(Player(id=member.id))
+        last_vote_log.update_eliminated(Player(id=member.id).object)
         file_path = pdfGenerate(last_vote_log.number)
         file = discord.File(file_path)
         await channel.send(embed=public_embed, file=file)
@@ -652,7 +655,7 @@ async def eliminate(
         )
         public_embed.add_field(
             name='Cet aventurier a été éliminé par un administrateur.',
-            value=f'Il reste {len(players_list)-1} aventuriers en jeu.',
+            value=f'Il reste {len(players.objects)-1} aventuriers en jeu.',
             inline=True,
         )
         dm_embed = discord.Embed(
@@ -765,7 +768,7 @@ async def check_if_last_eliminate_is_saved():
         )
         public_embed.add_field(
             name="Le dernier éliminé n'ayant pas fait son choix dans le temps imparti, tous les joueurs à égalité ont été éliminés.",
-            value=f"Il reste {len(Player(option='living').list)-1} aventuriers en jeu.",
+            value=f"Il reste {len(PlayerList(alive=True).objects)-1} aventuriers en jeu.",
             inline=True,
         )
         dm_embed = discord.Embed(
