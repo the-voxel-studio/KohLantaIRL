@@ -3,10 +3,11 @@ from discord import app_commands
 from discord.ext import commands
 
 from config.values import COLOR_GREEN, COLOR_ORANGE
+from database.alliance import Alliance
+from database.player import Player
 from utils.bot import bot
-from utils.logging import get_logger
-from utils.models import Alliance, Player
 from utils.game.alliances import close_alliance, purge_alliances
+from utils.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -29,8 +30,9 @@ class AlliancesCog(commands.Cog):
         )
         await interaction.response.defer()
         alliance = Alliance(text_id=interaction.channel.id)
-        alliance.rename(nouveau_nom)
-        voice_channel = bot.get_channel(alliance.voice_id)
+        alliance.object.name = nouveau_nom
+        alliance.save()
+        voice_channel = bot.get_channel(alliance.object.voice_id)
         await interaction.channel.edit(name=nouveau_nom)
         await voice_channel.edit(name=nouveau_nom)
         logger.info(
@@ -53,7 +55,7 @@ class AlliancesCog(commands.Cog):
         player = Player(id=user.id)
         if not await self.id_renamed(interaction):
             logger.warning(
-                f'NewAllianceNotRenamed | Requested by {interaction.user} (id:{interaction.user.id}) | New member: {player} (id:{user.id}) | Alliance text channel id: {interaction.channel.id}'
+                f'NewAllianceNotRenamed | Requested by {interaction.user} (id:{interaction.user.id}) | New member: {player.object.nickname} (id:{user.id}) | Alliance text channel id: {interaction.channel.id}'
             )
             embed = discord.Embed(
                 title=':robot: Action impossible :moyai:',
@@ -65,16 +67,16 @@ class AlliancesCog(commands.Cog):
                 value="Il suffit d'utiliser la commande `/nom` dans le champ de texte ci-desous. Tapez simplement / et la commande vous  sera proposée.",
             )
             await interaction.followup.send(embed=embed)
-        elif player.alive:
+        elif player.object.alive:
             alliance = Alliance(text_id=interaction.channel.id)
             perms = interaction.channel.overwrites_for(user)
             perms.read_messages = True
             await interaction.channel.set_permissions(user, overwrite=perms)
-            voice_channel = bot.get_channel(alliance.voice_id)
+            voice_channel = bot.get_channel(alliance.object.voice_id)
             perms = voice_channel.overwrites_for(user)
             perms.read_messages = True
             await voice_channel.set_permissions(user, overwrite=perms)
-            alliance.add_member(player._id)
+            alliance.add_member(player)
             embed = discord.Embed(
                 title=':robot: Nouvelle alliance :moyai:',
                 description=f":new: Vous avez été ajouté à l'alliance <#{interaction.channel.id}> par <@{interaction.user.id}> !",
@@ -88,12 +90,12 @@ class AlliancesCog(commands.Cog):
             )
             await interaction.followup.send(embed=embed)
             logger.info(
-                f'New alliance member added | Requested by {interaction.user} (id:{interaction.user.id}) | New member: {player} (id:{user.id}) | Alliance text channel id: {interaction.channel.id}'
+                f'New alliance member added | Requested by {interaction.user} (id:{interaction.user.id}) | New member: {player.object.nickname} (id:{user.id}) | Alliance text channel id: {interaction.channel.id}'
             )
 
         else:
             logger.warning(
-                f'NewAllianceMemberNotAlive | Requested by {interaction.user} (id:{interaction.user.id}) | New member: {player} (id:{user.id}) | Alliance text channel id: {interaction.channel.id}'
+                f'NewAllianceMemberNotAlive | Requested by {interaction.user} (id:{interaction.user.id}) | New member: {player.object.nickname} (id:{user.id}) | Alliance text channel id: {interaction.channel.id}'
             )
             embed = discord.Embed(
                 title=':robot: Action impossible :moyai:',
@@ -134,8 +136,8 @@ class AlliancesCog(commands.Cog):
         player = Player(id=member.id)
         alliance = Alliance(text_id=interaction.channel.id)
         await interaction.channel.set_permissions(member, overwrite=None)
-        await bot.get_channel(alliance.voice_id).set_permissions(member, overwrite=None)
-        alliance.remove_member(player._id)
+        await bot.get_channel(alliance.object.voice_id).set_permissions(member, overwrite=None)
+        alliance.remove_member(player)
         embed = discord.Embed(
             title=":robot: Expulsion d'une alliance :moyai:",
             description=f":warning: Vous avez été supprimé de l'alliance *{interaction.channel.name}* par <@{interaction.user.id}> !",

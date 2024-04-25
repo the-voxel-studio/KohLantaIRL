@@ -3,13 +3,8 @@ from pathlib import Path
 
 import discord
 
-from config.values import (
-    CHANNEL_ID_BOT,
-    CHANNEL_ID_BOT_LOGS,
-    COLOR_GREEN,
-    COLOR_ORANGE,
-    COLOR_RED,
-)
+from config.values import (CHANNEL_ID_BOT, CHANNEL_ID_BOT_LOGS, COLOR_GREEN,
+                           COLOR_ORANGE, COLOR_RED)
 from utils.bot import bot
 from utils.logging import get_logger
 

@@ -101,7 +101,7 @@ class HowToCog(commands.Cog):
         )
         embed.add_field(
             name="Le prénom ne doit pas contenir d'espace ou de caractère spécial autre que '-'.",
-            value='Vous avez un prénom composé ? Remplacez les espaces par un caractère '-'.',
+            value="Vous avez un prénom composé ? Remplacez les espaces par un caractère '-'.",
             inline=False,
         )
         embed.set_footer(

@@ -2,10 +2,11 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from utils.logging import get_logger
-from utils.control import is_admin
-from utils.game.immuniteCollar import send_immunite_collar, reset_immunite_collar
 from config.values import COLOR_GREEN
+from utils.control import is_admin
+from utils.game.immuniteCollar import (reset_immunite_collar,
+                                       send_immunite_collar)
+from utils.logging import get_logger
 
 logger = get_logger(__name__)
 

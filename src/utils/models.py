@@ -8,7 +8,7 @@ from pymongo.mongo_client import MongoClient
 try:
     from config.values import EMOJIS_LIST, MONGODB_URI
     from utils.logging import get_logger
-except:
+except ImportError:
     from ..config.values import EMOJIS_LIST, MONGODB_URI
     from ..utils.logging import get_logger
 

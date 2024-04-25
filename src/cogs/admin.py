@@ -1,19 +1,18 @@
 import typing
-from os import system, name as os_name
+from os import name as os_name
+from os import system
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 
+from config.values import COLOR_ORANGE  # used by a eval() function
+from config.values import COLOR_RED  # used by a eval() function
 from config.values import (  # OBLIGATOIRES (utilisation de la fonction eval)
-    CHANNEL_ID_BOT_LOGS,
-    COLOR_GREEN,
-    COLOR_ORANGE,  # used by a eval() function
-    COLOR_RED,  # used by a eval() function
-)
+    CHANNEL_ID_BOT_LOGS, COLOR_GREEN)
+from utils.control import is_admin
 from utils.log import send_log, send_logs_file
 from utils.logging import get_logger
-from utils.control import is_admin
 
 logger = get_logger(__name__)
 
@@ -49,7 +48,7 @@ class AdminCog(commands.Cog):
         self.embed.set_author(
             name=interaction.user.display_name,
             icon_url=interaction.user.avatar.url
-            )
+        )
         self.embed.set_footer(text='Ce message est envoyé par un administrateur.')
         await channel.send(embed=self.embed)
         await interaction.response.send_message(

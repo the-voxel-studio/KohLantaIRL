@@ -5,7 +5,7 @@ from pymongo.mongo_client import MongoClient
 try:
     from config.values import MONGODB_URI
     from utils.logging import get_logger
-except:
+except ImportError:
     from ..config.values import MONGODB_URI
     from ..utils.logging import get_logger
 
@@ -13,6 +13,7 @@ except:
 logger = get_logger(__name__)
 client: MongoClient = None
 db: Database = None
+
 
 def setup_db_connection():
     global client, db
@@ -29,5 +30,6 @@ def setup_db_connection():
     except Exception as e:
         logger.error('Connection to MongoDb FAILED')
         logger.error(e)
+
 
 setup_db_connection()

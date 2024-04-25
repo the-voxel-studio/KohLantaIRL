@@ -1,3 +1,4 @@
+import datetime
 import typing
 
 import discord
@@ -5,12 +6,11 @@ from discord import app_commands
 from discord.ext import commands
 
 import utils.game.votes as vote
-from config.values import COLOR_GREEN, COLOR_ORANGE, CHANNEL_ID_GENERAL
+from config.values import CHANNEL_ID_GENERAL, COLOR_GREEN, COLOR_ORANGE
 from utils.bot import bot
 from utils.control import is_admin
 from utils.logging import get_logger
 from utils.models import VoteLog
-import datetime
 
 logger = get_logger(__name__)
 

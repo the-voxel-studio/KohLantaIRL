@@ -2,17 +2,12 @@ import random
 
 import discord
 
-from config.values import (
-    CHANNEL_ID_GENERAL,
-    CHANNEL_RULES,
-    COLOR_GREEN,
-    EMOJI_ID_COLLIER,
-    EMOJIS_LIST,
-    GUILD_ID
-)
+from config.values import (CHANNEL_ID_GENERAL, CHANNEL_RULES, COLOR_GREEN,
+                           EMOJI_ID_COLLIER, EMOJIS_LIST, GUILD_ID)
 from utils.bot import bot
 from utils.logging import get_logger
-from utils.models import Player, Variables
+from utils.models import Variables
+from database.player import Player
 
 logger = get_logger(__name__)
 
@@ -53,7 +48,7 @@ async def give_immunite_collar(
     payload: discord.RawReactionActionEvent, player: Player
 ) -> None:
     logger.info('fn > Give Immunite Collar > start')
-    Variables.set_immunite_collar_player_id(player._id)
+    Variables.set_immunite_collar_player_id(player.object._id)
     Variables.set_immunite_collar_msg_id(0)
     embed = discord.Embed(
         title="**Tu l'as trouvé !**",
@@ -82,7 +77,7 @@ async def give_immunite_collar(
 async def remove_potential_immune_player(max_reactions) -> list:
     logger.info('fn > Remove Potential Immune Player > start')
     immune_player__id = Variables.get_immunite_collar_player_id()
-    eliminated = [r for r in max_reactions if Player(letter=chr(EMOJIS_LIST.index(r) + 65))._id != immune_player__id]
+    eliminated = [r for r in max_reactions if Player(letter=chr(EMOJIS_LIST.index(r) + 65)).object._id != immune_player__id]
     immune = [r for r in max_reactions if r not in eliminated]
     if len(immune) > 0:
         immune = immune[0]
@@ -118,6 +113,6 @@ async def send_immunite_collar_used(immune) -> None:
         url='https://gifsec.com/wp-content/uploads/2022/09/congrats-gif-1.gif'
     )
     guild = bot.get_guild(GUILD_ID)
-    member = guild.get_member(immune.id)
+    member = guild.get_member(immune.object.id)
     await member.send(embed=private_embed)
     logger.info('fn > Send Immunite Collar Used > ok')

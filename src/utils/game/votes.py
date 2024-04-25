@@ -1,28 +1,21 @@
+import datetime
 import typing
 
 import discord
 
-from config.values import (
-    BOT_ID,
-    CHANNEL_ID_RESULTATS,
-    CHANNEL_ID_VOTE,
-    COLOR_GREEN,
-    COLOR_RED,
-    COLOR_ORANGE,
-    EMOJIS_LIST,
-    GUILD_ID,
-    CATEGORIE_ID_ALLIANCES,
-)
-from utils.bot import bot
-from utils.log import get_logger
-from utils.models import Player as OldPlayer, Variables, NewVoteLog, VoteLog, get_council_number
-from utils.punishments import timeout
-from utils.game.players import reset_roles
-from utils.pdf import generate as pdfGenerate
-from utils.game.immuniteCollar import remove_potential_immune_player
-from utils.game.alliances import purge_alliances
+from config.values import (BOT_ID, CATEGORIE_ID_ALLIANCES,
+                           CHANNEL_ID_RESULTATS, CHANNEL_ID_VOTE, COLOR_GREEN,
+                           COLOR_ORANGE, COLOR_RED, EMOJIS_LIST, GUILD_ID)
 from database.player import Player, PlayerList
-import datetime
+from database.votelog import VoteLog
+from utils.bot import bot
+from utils.game.alliances import purge_alliances
+from utils.game.immuniteCollar import remove_potential_immune_player
+from utils.game.players import reset_roles
+from utils.log import get_logger
+from utils.models import Variables, get_council_number
+from utils.pdf import generate as pdfGenerate
+from utils.punishments import timeout
 
 logger = get_logger(__name__)
 
@@ -31,7 +24,6 @@ select_options = []
 
 async def open(interaction: discord.Interaction = None):
     logger.info(f'vote opening > start | interaction: {interaction}')
-    # players = OldPlayer(option='living')
     players = PlayerList(alive=True)
     if len(players.objects) > 2:
         embed = discord.Embed(
@@ -59,20 +51,20 @@ async def open(interaction: discord.Interaction = None):
         )  # Récupération du role 'Votant final'
         f_role = discord.utils.get(
             guild.roles, name='Finaliste'
-        )  # Récupération du role 'Finaliste'
-        voters = OldPlayer(option='eliminated')
-        voters_list = voters.list
+        )  # Récupération du role 'Finaliste
+        voters = PlayerList(alive=False)
+        voters_list = voters.objects
         for v in voters_list:
-            await guild.get_member(v.get('id', 0)).add_roles(
+            await guild.get_member(v.object.id).add_roles(
                 v_role
             )  # Assignation du nouveau role
         category = discord.utils.get(guild.categories, id=CATEGORIE_ID_ALLIANCES)
         for f in players.objects:
-            await guild.get_member(int(f.object.get('id', 0))).add_roles(
+            await guild.get_member(int(f.object.id)).add_roles(
                 f_role
             )  # Assignation du nouveau role
             for channel in category.channels:
-                user = bot.get_user(int(f.object.get('id', 0)))
+                user = bot.get_user(int(f.object.id))
                 perms = channel.overwrites_for(user)
                 perms.read_messages = False
                 await channel.set_permissions(user, overwrite=perms)
@@ -85,7 +77,7 @@ async def open(interaction: discord.Interaction = None):
     reactions = []
     for i, pl in enumerate(players.objects):
         embed.add_field(
-            name=pl.object.get('nickname', 'unknown'),
+            name=pl.object.nickname,
             value=f'Choisir le logo {EMOJIS_LIST[i]}',
             inline=True,
         )
@@ -128,7 +120,7 @@ class EqualityView(discord.ui.View):
         await interaction.message.edit(view=self)
         now_date = datetime.datetime.now()
         last_vote_date = datetime.datetime.strptime(
-            VoteLog(last=True).date, '%d/%m/%Y %H:%M:%S'
+            VoteLog(last=True).object.date, '%d/%m/%Y %H:%M:%S'
         )
         time_delta = now_date - last_vote_date
         in_time = time_delta < datetime.timedelta(hours=17)  # 14h the day after the tie vote
@@ -227,11 +219,13 @@ async def close_final_vote(
 ) -> None:
     logger.info('close_final_vote > start ')
     logger.info('EqualityView select_callback > start | max_rea')
-    # winner = OldPlayer(letter=chr(EMOJIS_LIST.index(max_reactions[0]) + 65))
     winner = Player(letter=chr(EMOJIS_LIST.index(max_reactions[0]) + 65))
-    new_vote_log = NewVoteLog(
-        votes=reactions_list, eliminated=[winner.object], cheaters_number=cheaters_number
-    )
+    data = {
+        'votes': reactions_list,
+        'eliminated': [winner.object],
+        'cheaters_number': cheaters_number,
+    }
+    new_vote_log = VoteLog(data=data)
     new_vote_log.save()
     embed = discord.Embed(
         title=f'**{winner.object.nickname}** remporte la partie !',
@@ -284,7 +278,6 @@ async def close_normal(
     max_reactions, reactions_list, cheaters_number, max_count, reactions
 ) -> None:
     logger.info('close_normal > start ')
-    # eliminated = OldPlayer(letter=chr(EMOJIS_LIST.index(max_reactions[0]) + 65))
     eliminated = Player(letter=chr(EMOJIS_LIST.index(max_reactions[0]) + 65))
     new_vote_log = NewVoteLog(
         votes=reactions_list,
@@ -346,7 +339,7 @@ async def close_normal(
     embed.set_image(url='https://media.tenor.com/dvnQzSrXuGQAAAAC/sam-koh-lanta.gif')
     guild = bot.get_guild(GUILD_ID)
     logger.warning(f'eliminated: {eliminated}')
-    member = guild.get_member(eliminated.id)
+    member = guild.get_member(eliminated.object.id)
     await member.send(embed=embed)
     role = discord.utils.get(guild.roles, name='Joueur')
     new_role = discord.utils.get(guild.roles, name='Eliminé')
@@ -556,7 +549,7 @@ async def close(interaction: discord.Interaction = None) -> None:
                     max_reactions, reactions_list, cheaters_number, max_count, reactions
                 )
         else:
-            council_number = get_council_number()+1
+            council_number = get_council_number() + 1
             tied_players = [
                 Player(letter=chr(EMOJIS_LIST.index(r) + 65)).object for r in max_reactions
             ]
@@ -768,7 +761,7 @@ async def check_if_last_eliminate_is_saved():
         )
         public_embed.add_field(
             name="Le dernier éliminé n'ayant pas fait son choix dans le temps imparti, tous les joueurs à égalité ont été éliminés.",
-            value=f"Il reste {len(PlayerList(alive=True).objects)-1} aventuriers en jeu.",
+            value=f'Il reste {len(PlayerList(alive=True).objects)-1} aventuriers en jeu.',
             inline=True,
         )
         dm_embed = discord.Embed(

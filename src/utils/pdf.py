@@ -1,4 +1,5 @@
 import html
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -8,9 +9,9 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import (BaseDocTemplate, Frame, PageBreak,
                                 PageTemplate, Paragraph, Table)
 
+from database.player import PlayerList
 from utils.logging import get_logger
-from utils.models import Player, VoteLog
-import os
+from utils.models import VoteLog
 
 logger = get_logger(__name__)
 
@@ -74,24 +75,24 @@ def render_vote(number: int, **kwargs):
     vote_log = VoteLog(number=number)
     votes_number = len(vote_log.votes)
 
-    players = Player(option='living').list
+    players = PlayerList(alive=True).objects
 
     votes = {v['voter']: v['for'] for v in vote_log.votes}
 
-    eliminated_players = Player(option='eliminated').list
+    eliminated_players = PlayerList(alive=False).objects
 
     eliminated_at_this_vote = vote_log.eliminated
     eliminated_at_this_vote_number = len(eliminated_at_this_vote)
 
     if not final:
 
-        in_vote_living_participants = [el for el in eliminated_players if el.get('deathCouncilNumber', 1000) >= number]
+        in_vote_living_participants = [el for el in eliminated_players if el.object.death_council_number >= number]
 
         players.extend(in_vote_living_participants)
 
     players_number = len(players)
-    players__id = [p.get('_id') for p in players]
-    players_username = [p.get('nickname') for p in players]
+    players__id = [p.object._id for p in players]
+    players_username = [p.object.nickname for p in players]
 
     last = kwargs.get('last', False)
     elements = []
@@ -166,49 +167,49 @@ def render_vote(number: int, **kwargs):
     if len(players) > 8:
         data[0].append('A voté pour')
         for p in players:
-            voter__id = p['_id']
+            voter__id = p.object._id
             if voter__id in votes:
                 middle_content = players_username[players__id.index(votes[voter__id])]
             else:
                 middle_content = ''
             data.append([
-                p.get('nickname', 'unknown'),
+                p.object.nickname,
                 middle_content,
                 '',
                 ''
             ])
     elif not final:
         for p in players:
-            data[0].append(p.get('nickname', 'unknown'))
+            data[0].append(p.object.nickname)
             middle_content = ['' for i in range(players_number + 1)]
-            voter__id = p['_id']
+            voter__id = p.object._id
             if voter__id in votes:
                 vote_column = players__id.index(votes[voter__id])
                 middle_content[vote_column] = 'X'
-            data.append([p.get('nickname', 'unknown')] + middle_content + [0])
+            data.append([p.object.nickname] + middle_content + [0])
     else:
         for p in players:
-            data[0].append(p.get('nickname', 'unknown'))
+            data[0].append(p.object.nickname)
         for ep in eliminated_players:
             middle_content = ['' for i in range(players_number + 1)]
-            voter__id = ep['_id']
+            voter__id = ep.object._id
             if voter__id in votes:
                 vote_column = players__id.index(votes[voter__id])
                 middle_content[vote_column] = 'X'
-            data.append([ep.get('nickname', 'unknown')] + middle_content)
+            data.append([ep.object.nickname] + middle_content)
     # [ ] vote hour
     data[0].append('Horaire')
 
     data[0].append('Total reçu')
     if len(players) > 8:
         for i in range(players_number):
-            data[i+1][-1] = sum(1 for row in data[1:] if row[1] == data[i+1][0])
+            data[i + 1][-1] = sum(1 for row in data[1:] if row[1] == data[i + 1][0])
     elif not final:
         for i in range(players_number):
-            data[i+1][-1] = sum(1 for row in data[1:] if row[i+1] != '')
+            data[i + 1][-1] = sum(1 for row in data[1:] if row[i + 1] != '')
     else:
         for i in range(players_number):
-            data[-1].append(sum(1 for row in data[1:-1] if row[i+1] != ''))
+            data[-1].append(sum(1 for row in data[1:-1] if row[i + 1] != ''))
 
     table_style = [
         ('BACKGROUND', (0, 0), (-1, 0), '#1e1f22'),
@@ -263,12 +264,12 @@ def render_vote(number: int, **kwargs):
         elements.append(paragraph)
 
         data = [['Pseudo', 'Discord id', 'Eliminé au vote n°']]
-        for p in sorted(eliminated_players, key=lambda x: x['deathCouncilNumber']):
+        for p in sorted(eliminated_players, key=lambda x: x.object.death_council_number):
             data.append(
                 [
-                    p.get('nickname', 'unknown'),
-                    p.get('id', 'unknown'),
-                    p.get('deathCouncilNumber', 'unknown')
+                    p.object.nickname,
+                    p.object.id,
+                    p.object.death_council_number
                 ]
             )  # [ ] vote count
 

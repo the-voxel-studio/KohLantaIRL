@@ -3,9 +3,9 @@ from discord import app_commands
 from discord.ext import commands
 
 from config.values import COLOR_GREEN
+from utils.control import is_admin
 from utils.logging import get_logger
 from utils.models import Variables
-from utils.control import is_admin
 
 logger = get_logger(__name__)
 
