@@ -246,12 +246,10 @@ def render_vote(number: int, **kwargs):
 
     if not vote_log.hidden :
         text = f"3. Elimination{'s' if eliminated_at_this_vote_number>1 else ''}" if not final else '2. Victoire' #Juste pour changer le chiffre
-        paragraph = Paragraph(text, styles['h2'])
-        elements.append(paragraph)
     else :
         text = f"2. Elimination{'s' if eliminated_at_this_vote_number>1 else ''}" if not final else '2. Victoire' #Juste pour changer le chiffre
-        paragraph = Paragraph(text, styles['h2'])
-        elements.append(paragraph)
+    paragraph = Paragraph(text, styles['h2'])
+    elements.append(paragraph)
 
     if final:
         text = f'{eliminated_at_this_vote[0].nickname} a remporté cette partie de KohLanta.'
@@ -266,12 +264,10 @@ def render_vote(number: int, **kwargs):
 
     if not vote_log.hidden :
         text = '4. Alliances'
-        paragraph = Paragraph(text, styles['h2'])
-        elements.append(paragraph)
     else :
         text = '3. Alliances'
-        paragraph = Paragraph(text, styles['h2'])
-        elements.append(paragraph)
+    paragraph = Paragraph(text, styles['h2'])
+    elements.append(paragraph)
 
     text = f"Nombre d'alliances créées à date: {vote_log.alliance_number if vote_log.alliance_number else 'inconnu'}"
     paragraph = Paragraph(text, styles['Normal'])
@@ -280,12 +276,10 @@ def render_vote(number: int, **kwargs):
     if last and number != 1:
         if not vote_log.hidden :
             text = '5. Joueurs éliminés'
-            paragraph = Paragraph(text, styles['h2'])
-            elements.append(paragraph)
         else :
             text = '4. Joueurs éliminés'
-            paragraph = Paragraph(text, styles['h2'])
-            elements.append(paragraph)
+        paragraph = Paragraph(text, styles['h2'])
+        elements.append(paragraph)
 
         data = [['Pseudo', 'Discord id', 'Eliminé au vote n°']]
         for p in sorted(eliminated_players, key=lambda x: x['deathCouncilNumber']):
