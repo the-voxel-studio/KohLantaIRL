@@ -74,11 +74,12 @@ class VoteLog:
         data: dict = db.VoteLog.find_one(filter=self.query)
         if data:
             self.object = VoteLogData(data)
-            logger.info(f'VoteLog found: {self.object.__dict__}')
+            logger.info(f'found: {self.object.__dict__}')
 
     def set_from_data(self, data: dict) -> None:
         if data:
             self.object = VoteLogData(data)
+            logger.info(f'created from data: {self.object.__dict__}')
 
     def save(self) -> None:
         if self.object:

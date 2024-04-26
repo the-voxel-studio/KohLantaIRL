@@ -36,12 +36,12 @@ class Player:
         data: dict = db.Players.find_one(filter=self.query)
         if data:
             self.object = PlayerData(data)
-            logger.info(f'Player found: {self.object.__dict__}')
+            logger.info(f'found: {self.object.__dict__}')
 
     def set_from_data(self, data: dict) -> None:
         if data:
             self.object = PlayerData(data)
-            logger.info(f'Player created from data: {self.object.__dict__}')
+            logger.info(f'created from data: {self.object.__dict__}')
 
     def save(self) -> None:
         if self.object:

@@ -40,10 +40,11 @@ class Alliance:
         data: dict = db.Alliances.find_one(filter=self.query)
         if data:
             self.object = AllianceData(data)
-            logger.info(f'Alliance found: {self.object.__dict__}')
+            logger.info(f'found: {self.object.__dict__}')
 
     def set_from_data(self) -> None:
         self.object = AllianceData(self.query)
+        logger.info(f'created from data: {self.object.__dict__}')
 
     def save(self) -> None:
         if self.object:
