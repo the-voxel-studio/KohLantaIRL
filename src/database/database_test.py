@@ -322,7 +322,7 @@ class TestDatabaseGame(unittest.TestCase):
     def test_game_data(self):
         game = Game
         self.assertEqual(game.state, game_data['state'])
-        self.assertEqual(game.vote_message_id, game_data['vote_message_id'])
+        self.assertEqual(game.vote_msg_id, game_data['vote_msg_id'])
         self.assertEqual(game.btn_how_to_alliance_msg_id, game_data['btn_how_to_alliance_msg_id'])
         self.assertEqual(game.last_winner_id, game_data['last_winner_id'])
         self.assertEqual(game.immunite_collar_msg_id, game_data['immunite_collar_msg_id'])
@@ -334,21 +334,21 @@ class TestDatabaseGame(unittest.TestCase):
         game = Game
 
         game.state = self.__backup_data['state'] + 1
-        game.vote_message_id = self.__backup_data['vote_message_id'] + 2
+        game.vote_msg_id = self.__backup_data['vote_msg_id'] + 2
         game.btn_how_to_alliance_msg_id = self.__backup_data['btn_how_to_alliance_msg_id'] + 3
         game.last_winner_id = self.__backup_data['last_winner_id'] + 4
         game.immunite_collar_msg_id = self.__backup_data['immunite_collar_msg_id'] + 5
         game.immunite_collar_player_id = self.__backup_data['immunite_collar_player_id'] + 6
 
         self.assertEqual(game.state, game_data['state'] + 1)
-        self.assertEqual(game.vote_message_id, game_data['vote_message_id'] + 2)
+        self.assertEqual(game.vote_msg_id, game_data['vote_msg_id'] + 2)
         self.assertEqual(game.btn_how_to_alliance_msg_id, game_data['btn_how_to_alliance_msg_id'] + 3)
         self.assertEqual(game.last_winner_id, game_data['last_winner_id'] + 4)
         self.assertEqual(game.immunite_collar_msg_id, game_data['immunite_collar_msg_id'] + 5)
         self.assertEqual(game.immunite_collar_player_id, game_data['immunite_collar_player_id'] + 6)
 
         game.state = self.__backup_data['state']
-        game.vote_message_id = self.__backup_data['vote_message_id']
+        game.vote_msg_id = self.__backup_data['vote_msg_id']
         game.btn_how_to_alliance_msg_id = self.__backup_data['btn_how_to_alliance_msg_id']
         game.last_winner_id = self.__backup_data['last_winner_id']
         game.immunite_collar_msg_id = self.__backup_data['immunite_collar_msg_id']
