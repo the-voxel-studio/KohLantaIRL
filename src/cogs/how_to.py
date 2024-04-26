@@ -4,10 +4,10 @@ from discord.ext import commands
 
 from config.values import (CHANNEL_ID_HELP_ALLIANCE, CHANNEL_ID_INSCRIPTION,
                            COLOR_GREEN)
+from database.game import Game
 from utils.bot import bot
 from utils.game.alliances import new_alliance
 from utils.logging import get_logger
-from utils.models import Variables
 
 
 class AllianceView(discord.ui.View):
@@ -69,7 +69,7 @@ class HowToCog(commands.Cog):
             description='Cliquez sur le bouton ci-dessous.'
         )
         self.msg = await self.channel.send(embed=self.embed, view=self.view)
-        Variables.set_btn_how_to_alliance_msg_id(self.msg.id)
+        Game.btn_how_to_alliance_msg_id = self.msg.id
         embed = discord.Embed(
             title=":robot: Message d'aide généré :moyai:", color=COLOR_GREEN
         )

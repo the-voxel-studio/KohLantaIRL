@@ -4,17 +4,17 @@ import discord
 
 from config.values import (CHANNEL_ID_GENERAL, CHANNEL_RULES, COLOR_GREEN,
                            EMOJI_ID_COLLIER, EMOJIS_LIST, GUILD_ID)
+from database.game import Game
+from database.player import Player
 from utils.bot import bot
 from utils.logging import get_logger
-from utils.models import Variables
-from database.player import Player
 
 logger = get_logger(__name__)
 
 
 async def move_immunite_collar_down() -> None:
     logger.info('fn > Move Immunite Collar Down > start')
-    ic_msg_id = Variables.get_immunite_collar_msg_id()
+    ic_msg_id = Game.immunite_collar_msg_id
     if ic_msg_id != 0:
         ic_msg = await bot.get_channel(CHANNEL_ID_GENERAL).fetch_message(ic_msg_id)
         await ic_msg.remove_reaction(f'<:collierimmunite:{EMOJI_ID_COLLIER}>', bot.user)
@@ -29,18 +29,18 @@ async def send_immunite_collar() -> None:
     msgs = [msg async for msg in channel.history(limit=20)][5:]
     msg = random.choice(msgs)
     await msg.add_reaction(f'<:collierimmunite:{EMOJI_ID_COLLIER}>')
-    Variables.set_immunite_collar_msg_id(msg.id)
+    Game.immunite_collar_msg_id = msg.id
     logger.info('fn > Send Immunite Collar > OK')
 
 
 async def reset_immunite_collar() -> None:
     logger.info('fn > Reset Immunite Collar > start')
-    ic_msg_id = Variables.get_immunite_collar_msg_id()
+    ic_msg_id = Game.immunite_collar_msg_id
     if ic_msg_id != 0:
         ic_msg = await bot.get_channel(CHANNEL_ID_GENERAL).fetch_message(ic_msg_id)
         await ic_msg.remove_reaction(f'<:collierimmunite:{EMOJI_ID_COLLIER}>', bot.user)
-    Variables.set_immunite_collar_msg_id(0)
-    Variables.set_immunite_collar_player_id(0)
+    Game.immunite_collar_msg_id = 0
+    Game.immunite_collar_player_id = 0
     logger.info('fn > Reset Immunite Collar > OK')
 
 
@@ -48,8 +48,8 @@ async def give_immunite_collar(
     payload: discord.RawReactionActionEvent, player: Player
 ) -> None:
     logger.info('fn > Give Immunite Collar > start')
-    Variables.set_immunite_collar_player_id(player.object._id)
-    Variables.set_immunite_collar_msg_id(0)
+    Game.immunite_collar_player_id = player.object.id
+    Game.immunite_collar_msg_id = 0
     embed = discord.Embed(
         title="**Tu l'as trouvé !**",
         description='De tous les aventuriers, tu es sans aucun doute le plus malin !',
@@ -76,7 +76,7 @@ async def give_immunite_collar(
 
 async def remove_potential_immune_player(max_reactions) -> list:
     logger.info('fn > Remove Potential Immune Player > start')
-    immune_player__id = Variables.get_immunite_collar_player_id()
+    immune_player__id = Game.immunite_collar_player_id
     eliminated = [r for r in max_reactions if Player(letter=chr(EMOJIS_LIST.index(r) + 65)).object._id != immune_player__id]
     immune = [r for r in max_reactions if r not in eliminated]
     if len(immune) > 0:

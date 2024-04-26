@@ -4,10 +4,10 @@ from os import system
 from threading import Timer
 
 import utils.game.votes as vote
+from database.game import Game
 from utils.bot import bot
 from utils.log import send_log
 from utils.logging import get_logger
-from utils.models import Variables
 
 logger = get_logger(__name__)
 timer_thread = None
@@ -24,14 +24,14 @@ async def timed_action():
         await send_log('Redémarrage automatique en cours', color='orange')
         logger.info('Ready to reboot.')
         system('sudo reboot')
-    elif hour == 14 and Variables.get_state() == 1:
+    elif hour == 14 and Game.state == 1:
         await vote.check_if_last_eliminate_is_saved()
-    elif hour == 17 and Variables.get_state() in [1, 2]:
+    elif hour == 17 and Game.state in [1, 2]:
         await vote.open()
-    elif hour == 21 and Variables.get_vote_msg_id() != 0 and Variables.get_state() == 1:
+    elif hour == 21 and Game.vote_msg_id != 0 and Game.state == 1:
         await vote.close()
-    elif hour == 0 and Variables.get_vote_msg_id() != 0 and Variables.get_state() == 3:
-        Variables.game_end()
+    elif hour == 0 and Game.vote_msg_id != 0 and Game.state == 3:
+        Game.game_end()
         await vote.close()
     await start_new_timer()
 

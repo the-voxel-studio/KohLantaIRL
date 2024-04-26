@@ -10,8 +10,8 @@ from reportlab.platypus import (BaseDocTemplate, Frame, PageBreak,
                                 PageTemplate, Paragraph, Table)
 
 from database.player import PlayerList
+from database.votelog import VoteLog
 from utils.logging import get_logger
-from utils.models import VoteLog
 
 logger = get_logger(__name__)
 
@@ -73,15 +73,15 @@ def render_vote(number: int, **kwargs):
     final = kwargs.get('final', False)
 
     vote_log = VoteLog(number=number)
-    votes_number = len(vote_log.votes)
+    votes_number = len(vote_log.object.votes)
 
     players = PlayerList(alive=True).objects
 
-    votes = {v['voter']: v['for'] for v in vote_log.votes}
+    votes = {v['voter']: v['for'] for v in vote_log.object.votes}
 
     eliminated_players = PlayerList(alive=False).objects
 
-    eliminated_at_this_vote = vote_log.eliminated
+    eliminated_at_this_vote = vote_log.object.eliminated
     eliminated_at_this_vote_number = len(eliminated_at_this_vote)
 
     if not final:
@@ -106,7 +106,7 @@ def render_vote(number: int, **kwargs):
     paragraph = Paragraph(text, styles['h2'])
     elements.append(paragraph)
 
-    date = datetime.strptime(vote_log.date, '%d/%m/%Y %H:%M:%S')
+    date = datetime.strptime(vote_log.object.date, '%d/%m/%Y %H:%M:%S')
 
     data = [
         [
@@ -121,9 +121,9 @@ def render_vote(number: int, **kwargs):
             date.strftime('%d/%m/%Y'),
             '17h00',
             date.strftime('%Hh%M'),
-            vote_log.voters_number,
+            vote_log.object.voters_number,
             votes_number,
-            vote_log.cheaters_number,
+            vote_log.object.cheaters_number,
         ],
     ]
     table_style = [
@@ -254,7 +254,7 @@ def render_vote(number: int, **kwargs):
     paragraph = Paragraph(text, styles['h2'])
     elements.append(paragraph)
 
-    text = f"Nombre d'alliances créées à date: {vote_log.alliance_number if vote_log.alliance_number else 'inconnu'}"
+    text = f"Nombre d'alliances créées à date: {vote_log.object.alliance_number if vote_log.object.alliance_number else 'inconnu'}"
     paragraph = Paragraph(text, styles['Normal'])
     elements.append(paragraph)
 

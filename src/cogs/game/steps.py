@@ -3,9 +3,9 @@ from discord import app_commands
 from discord.ext import commands
 
 from config.values import COLOR_GREEN
+from database.game import Game
 from utils.control import is_admin
 from utils.logging import get_logger
-from utils.models import Variables
 
 logger = get_logger(__name__)
 
@@ -23,7 +23,7 @@ class StepsCog(commands.Cog):
         logger.info(
             f'Joining opening | Requested by {interaction.user} (id:{interaction.user.id}).'
         )
-        Variables.open_joining()
+        Game.open_joining()
         self.embed = discord.Embed(
             title=':robot: Inscriptions ouvertes :moyai:', color=COLOR_GREEN
         )
@@ -41,7 +41,7 @@ class StepsCog(commands.Cog):
         logger.info(
             f'Game start | Requested by {interaction.user} (id:{interaction.user.id}).'
         )
-        Variables.start_game()
+        Game.start_game()
         self.embed = discord.Embed(
             title=':robot: Partie démarrée :moyai:', color=COLOR_GREEN
         )

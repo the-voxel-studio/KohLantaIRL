@@ -93,3 +93,7 @@ class AllianceList:
             logger.info(f"{'AllianceList found' if data else 'AlliancesList created from data'}")
             for player in self.data:
                 self.objects.append(Alliance(data=player))
+
+
+def get_alliances_number():
+    return db.Alliances.count_documents({})

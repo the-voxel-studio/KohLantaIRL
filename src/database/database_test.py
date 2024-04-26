@@ -3,15 +3,16 @@ import unittest
 from bson.objectid import ObjectId
 
 from .alliance import Alliance, AllianceData
+from .database import db
+from .game import Game
 from .player import Player, PlayerData, PlayerList
 from .votelog import VoteLog, VoteLogData, VoteLogList
-from .database import db
-
 
 player_data = db.Players.find_one({})
 player_data['id'] = int(player_data['id'])
 alliance_data = db.Alliances.find_one({})
 votelog_data = db.VoteLog.find_one({})
+game_data = db.Game.find_one({})
 
 
 class TestDatabasePlayerData(unittest.TestCase):
@@ -184,7 +185,7 @@ class TestDatabaseVoteLogData(unittest.TestCase):
         self.assertEqual(votelog.votes[0]['for'].object.__dict__, Player(_id=votelog_data['votes'][0]['for']).object.__dict__)
         self.assertEqual(votelog.voters_number, votelog_data['voters_number'])
         self.assertEqual(votelog.cheaters_number, votelog_data['cheaters_number'])
-        self.assertEqual(votelog.tied_players, votelog_data['tied_players'])
+        self.assertEqual(type(votelog.tied_players), PlayerList)
         self.assertEqual(votelog.alliance_number, votelog_data['alliance_number'])
 
 
@@ -200,7 +201,7 @@ class TestDatabaseVoteLog(unittest.TestCase):
         self.assertEqual(type(votelog.object.votes[0]['for'].object), PlayerData)
         self.assertEqual(type(votelog.object.voters_number), int)
         self.assertEqual(type(votelog.object.cheaters_number), int)
-        self.assertEqual(type(votelog.object.tied_players), list)
+        self.assertEqual(type(votelog.object.tied_players), PlayerList)
         self.assertEqual(type(votelog.object.alliance_number), int)
 
     def test_votelog_by_number(self):
@@ -213,7 +214,7 @@ class TestDatabaseVoteLog(unittest.TestCase):
         self.assertEqual(type(votelog.object.votes[0]['for'].object), PlayerData)
         self.assertEqual(type(votelog.object.voters_number), int)
         self.assertEqual(type(votelog.object.cheaters_number), int)
-        self.assertEqual(type(votelog.object.tied_players), list)
+        self.assertEqual(type(votelog.object.tied_players), PlayerList)
         self.assertEqual(type(votelog.object.alliance_number), int)
 
     def test_votelog_by_date(self):
@@ -226,7 +227,7 @@ class TestDatabaseVoteLog(unittest.TestCase):
         self.assertEqual(type(votelog.object.votes[0]['for'].object), PlayerData)
         self.assertEqual(type(votelog.object.voters_number), int)
         self.assertEqual(type(votelog.object.cheaters_number), int)
-        self.assertEqual(type(votelog.object.tied_players), list)
+        self.assertEqual(type(votelog.object.tied_players), PlayerList)
         self.assertEqual(type(votelog.object.alliance_number), int)
 
     def test_votelog_by_eliminated(self):
@@ -239,7 +240,7 @@ class TestDatabaseVoteLog(unittest.TestCase):
         self.assertEqual(type(votelog.object.votes[0]['for'].object), PlayerData)
         self.assertEqual(type(votelog.object.voters_number), int)
         self.assertEqual(type(votelog.object.cheaters_number), int)
-        self.assertEqual(type(votelog.object.tied_players), list)
+        self.assertEqual(type(votelog.object.tied_players), PlayerList)
         self.assertEqual(type(votelog.object.alliance_number), int)
 
     def test_votelog_by_votes(self):
@@ -252,7 +253,7 @@ class TestDatabaseVoteLog(unittest.TestCase):
         self.assertEqual(type(votelog.object.votes[0]['for'].object), PlayerData)
         self.assertEqual(type(votelog.object.voters_number), int)
         self.assertEqual(type(votelog.object.cheaters_number), int)
-        self.assertEqual(type(votelog.object.tied_players), list)
+        self.assertEqual(type(votelog.object.tied_players), PlayerList)
         self.assertEqual(type(votelog.object.alliance_number), int)
 
     def test_votelog_by_voters_number(self):
@@ -265,7 +266,7 @@ class TestDatabaseVoteLog(unittest.TestCase):
         self.assertEqual(type(votelog.object.votes[0]['for'].object), PlayerData)
         self.assertEqual(type(votelog.object.voters_number), int)
         self.assertEqual(type(votelog.object.cheaters_number), int)
-        self.assertEqual(type(votelog.object.tied_players), list)
+        self.assertEqual(type(votelog.object.tied_players), PlayerList)
         self.assertEqual(type(votelog.object.alliance_number), int)
 
     def test_votelog_by_cheaters_number(self):
@@ -278,7 +279,7 @@ class TestDatabaseVoteLog(unittest.TestCase):
         self.assertEqual(type(votelog.object.votes[0]['for'].object), PlayerData)
         self.assertEqual(type(votelog.object.voters_number), int)
         self.assertEqual(type(votelog.object.cheaters_number), int)
-        self.assertEqual(type(votelog.object.tied_players), list)
+        self.assertEqual(type(votelog.object.tied_players), PlayerList)
         self.assertEqual(type(votelog.object.alliance_number), int)
 
     def test_votelog_by_tied_players(self):
@@ -291,7 +292,7 @@ class TestDatabaseVoteLog(unittest.TestCase):
         self.assertEqual(type(votelog.object.votes[0]['for'].object), PlayerData)
         self.assertEqual(type(votelog.object.voters_number), int)
         self.assertEqual(type(votelog.object.cheaters_number), int)
-        self.assertEqual(type(votelog.object.tied_players), list)
+        self.assertEqual(type(votelog.object.tied_players), PlayerList)
         self.assertEqual(type(votelog.object.alliance_number), int)
 
     def test_votelog_by_alliance_number(self):
@@ -304,7 +305,7 @@ class TestDatabaseVoteLog(unittest.TestCase):
         self.assertEqual(type(votelog.object.votes[0]['for'].object), PlayerData)
         self.assertEqual(type(votelog.object.voters_number), int)
         self.assertEqual(type(votelog.object.cheaters_number), int)
-        self.assertEqual(type(votelog.object.tied_players), list)
+        self.assertEqual(type(votelog.object.tied_players), PlayerList)
         self.assertEqual(type(votelog.object.alliance_number), int)
 
 
@@ -314,6 +315,44 @@ class TestDatabaseVoteLogList(unittest.TestCase):
         votelogs = VoteLogList()
         self.assertEqual(len(votelogs.objects) > 0, True)
         self.assertEqual(type(votelogs.objects[0].object), VoteLogData)
+
+
+class TestDatabaseGame(unittest.TestCase):
+
+    def test_game_data(self):
+        game = Game
+        self.assertEqual(game.state, game_data['state'])
+        self.assertEqual(game.vote_message_id, game_data['vote_message_id'])
+        self.assertEqual(game.btn_how_to_alliance_msg_id, game_data['btn_how_to_alliance_msg_id'])
+        self.assertEqual(game.last_winner_id, game_data['last_winner_id'])
+        self.assertEqual(game.immunite_collar_msg_id, game_data['immunite_collar_msg_id'])
+        self.assertEqual(game.immunite_collar_player_id, game_data['immunite_collar_player_id'])
+
+    def test_game_data_modification(self):
+
+        self.__backup_data = game_data
+        game = Game
+
+        game.state = self.__backup_data['state'] + 1
+        game.vote_message_id = self.__backup_data['vote_message_id'] + 2
+        game.btn_how_to_alliance_msg_id = self.__backup_data['btn_how_to_alliance_msg_id'] + 3
+        game.last_winner_id = self.__backup_data['last_winner_id'] + 4
+        game.immunite_collar_msg_id = self.__backup_data['immunite_collar_msg_id'] + 5
+        game.immunite_collar_player_id = self.__backup_data['immunite_collar_player_id'] + 6
+
+        self.assertEqual(game.state, game_data['state'] + 1)
+        self.assertEqual(game.vote_message_id, game_data['vote_message_id'] + 2)
+        self.assertEqual(game.btn_how_to_alliance_msg_id, game_data['btn_how_to_alliance_msg_id'] + 3)
+        self.assertEqual(game.last_winner_id, game_data['last_winner_id'] + 4)
+        self.assertEqual(game.immunite_collar_msg_id, game_data['immunite_collar_msg_id'] + 5)
+        self.assertEqual(game.immunite_collar_player_id, game_data['immunite_collar_player_id'] + 6)
+
+        game.state = self.__backup_data['state']
+        game.vote_message_id = self.__backup_data['vote_message_id']
+        game.btn_how_to_alliance_msg_id = self.__backup_data['btn_how_to_alliance_msg_id']
+        game.last_winner_id = self.__backup_data['last_winner_id']
+        game.immunite_collar_msg_id = self.__backup_data['immunite_collar_msg_id']
+        game.immunite_collar_player_id = self.__backup_data['immunite_collar_player_id']
 
 
 if __name__ == '__main__':

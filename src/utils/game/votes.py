@@ -6,14 +6,14 @@ import discord
 from config.values import (BOT_ID, CATEGORIE_ID_ALLIANCES,
                            CHANNEL_ID_RESULTATS, CHANNEL_ID_VOTE, COLOR_GREEN,
                            COLOR_ORANGE, COLOR_RED, EMOJIS_LIST, GUILD_ID)
+from database.game import Game
 from database.player import Player, PlayerList
-from database.votelog import VoteLog
+from database.votelog import VoteLog, get_council_number
 from utils.bot import bot
 from utils.game.alliances import purge_alliances
 from utils.game.immuniteCollar import remove_potential_immune_player
 from utils.game.players import reset_roles
 from utils.log import get_logger
-from utils.models import Variables, get_council_number
 from utils.pdf import generate as pdfGenerate
 from utils.punishments import timeout
 
@@ -86,8 +86,8 @@ async def open(interaction: discord.Interaction = None):
         reactions.append(EMOJIS_LIST[i])
     channel = bot.get_channel(CHANNEL_ID_VOTE)
     msg = await channel.send(embed=embed)
-    Variables.set_vote_msg_id(msg.id)
-    Variables.start_last_vote()
+    Game.vote_msg_id = msg.id
+    Game.start_last_vote()
     for r in reactions:
         await msg.add_reaction(r)
     if interaction:
@@ -279,11 +279,11 @@ async def close_normal(
 ) -> None:
     logger.info('close_normal > start ')
     eliminated = Player(letter=chr(EMOJIS_LIST.index(max_reactions[0]) + 65))
-    new_vote_log = NewVoteLog(
-        votes=reactions_list,
-        eliminated=[eliminated.object],
-        cheaters_number=cheaters_number,
-    )
+    new_vote_log = VoteLog(data={
+        'votes': reactions_list,
+        'eliminated': [eliminated.object],
+        'cheaters_number': cheaters_number
+    })
     new_vote_log.save()
     nb_remaining_players = len(reactions) - 1
     embed = discord.Embed(
@@ -308,7 +308,7 @@ async def close_normal(
         value=value,
         inline=True,
     )
-    file_path = pdfGenerate(new_vote_log.number)
+    file_path = pdfGenerate(new_vote_log.object.number)
     file = discord.File(file_path)
     channel = bot.get_channel(CHANNEL_ID_RESULTATS)
     await channel.send(embed=embed, file=file)
@@ -338,7 +338,7 @@ async def close_normal(
     )
     embed.set_image(url='https://media.tenor.com/dvnQzSrXuGQAAAAC/sam-koh-lanta.gif')
     guild = bot.get_guild(GUILD_ID)
-    logger.warning(f'eliminated: {eliminated}')
+    logger.warning(f'eliminated: {eliminated.object.nickname} (id: {eliminated.object.id})')
     member = guild.get_member(eliminated.object.id)
     await member.send(embed=embed)
     role = discord.utils.get(guild.roles, name='Joueur')
@@ -347,7 +347,7 @@ async def close_normal(
     await member.add_roles(new_role)
     eliminated.eliminate()
     if nb_remaining_players == 1:
-        Variables.wait_for_last_vote()
+        Game.wait_for_last_vote()
     logger.info('close_normal > OK ')
 
 
@@ -356,9 +356,11 @@ async def close_normal_equality(
 ) -> None:
     global select_options
     logger.info('close_normal_equality > start ')
-    NewVoteLog(
-        votes=reactions_list, cheaters_number=cheaters_number, tied_players=tied_players
-    ).save()
+    VoteLog(data={
+        'votes': reactions_list,
+        'cheaters_number': cheaters_number,
+        'tied_players': tied_players,
+    }).save()
     embed = discord.Embed(
         title='**Egalité**',
         description="Les aventuriers de la tribu n'ont pas sus se décider !",
@@ -371,15 +373,15 @@ async def close_normal_equality(
         vote_denomination = 'final'
         vote_chooser1 = 'Le vainqueur de la saison précédente'
         vote_chooser2 = 'dernier vainqueur en date'
-        vote_chooser_id = Variables.get_last_winner_id()
+        vote_chooser_id = Game.last_winner_id
     else:
         vote_denomination = f'n°{council_number}'
         vote_chooser1 = 'La dernière personne éliminée'
         vote_chooser2 = 'dernière personne éliminée'
         try:
-            vote_chooser_id = VoteLog(last=-1).eliminated[0].id
+            vote_chooser_id = VoteLog(last=-1).object.eliminated[0].id
         except IndexError:
-            vote_chooser_id = VoteLog(last=-2).eliminated[0].id
+            vote_chooser_id = VoteLog(last=-2).object.eliminated[0].id
 
     embed.set_author(
         name=f'Résultat du conseil {vote_denomination}',
@@ -420,12 +422,12 @@ async def close_first_vote_equality(
     reactions_list, cheaters_number, tied_players
 ) -> None:
     logger.info('close_first_vote_equality > start ')
-    new_vote_log = NewVoteLog(
-        votes=reactions_list,
-        eliminated=tied_players,
-        cheaters_number=cheaters_number,
-        tied_players=tied_players,
-    )
+    new_vote_log = VoteLog(data={
+        'votes': reactions_list,
+        'eliminated': tied_players,
+        'cheaters_number': cheaters_number,
+        'tied_players': tied_players,
+    })
     new_vote_log.save()
     embed = discord.Embed(
         title='**Egalité**',
@@ -443,7 +445,7 @@ async def close_first_vote_equality(
         name='En vertue des règles du jeu, tous les joueurs à égalité ont donc été éliminés.',
         value='Pour les futures égalités, ce sera au dernier éliminé en date de choisir entre les personne à égalité.',
     )
-    file_path = pdfGenerate(new_vote_log.number)
+    file_path = pdfGenerate(new_vote_log.object.number)
     file = discord.File(file_path)
     channel = bot.get_channel(CHANNEL_ID_RESULTATS)
     await channel.send(embed=embed, file=file)
@@ -487,11 +489,11 @@ async def close_without_eliminated(
     max_reactions, reactions_list, cheaters_number, immune, reactions
 ) -> None:
     logger.info('close_without_eliminated > start ')
-    new_vote_log = NewVoteLog(
-        votes=reactions_list,
-        eliminated=[],
-        cheaters_number=cheaters_number,
-    )
+    new_vote_log = VoteLog(data={
+        'votes': reactions_list,
+        'eliminated': [],
+        'cheaters_number': cheaters_number,
+    })
     new_vote_log.save()
     nb_remaining_players = len(reactions) - 1
     embed = discord.Embed(
@@ -516,7 +518,7 @@ async def close_without_eliminated(
         value=value,
         inline=True,
     )
-    file_path = pdfGenerate(new_vote_log.number)
+    file_path = pdfGenerate(new_vote_log.object.number)
     file = discord.File(file_path)
     channel = bot.get_channel(CHANNEL_ID_RESULTATS)
     await channel.send(embed=embed, file=file)
@@ -527,11 +529,11 @@ async def close(interaction: discord.Interaction = None) -> None:
     # [ ] ? save immune persons in VoteLog
     logger.info('vote closing > start')
     channel = bot.get_channel(CHANNEL_ID_VOTE)
-    msg = await channel.fetch_message(Variables.get_vote_msg_id())
+    msg = await channel.fetch_message(Game.vote_msg_id)
     reactions = msg.reactions
     reactions_list = await arrange_votes(reactions)
     await msg.delete()
-    Variables.set_vote_msg_id(0)
+    Game.vote_msg_id = 0
     cheaters_number = await deal_with_cheaters(reactions_list, reactions)
     max_reactions, max_count, it_is_the_final, there_is_no_equality = await count_votes(
         reactions

@@ -2,10 +2,10 @@ import discord
 
 from config.values import (CHANNEL_ID_GENERAL, COLOR_GREEN, COLOR_ORANGE,
                            GUILD_ID, USER_ID_ADMIN)
+from database.game import Game
 from database.player import Player
 from utils.bot import bot
 from utils.logging import get_logger
-from utils.models import Variables
 
 logger = get_logger(__name__)
 
@@ -30,7 +30,7 @@ async def join(message):
     )  # Découpe du texte du contenu en fonciton des espaces
     player = message.author  # Récupère le joueur ayant envoyé la commande
     if (
-        Variables.get_state()
+        Game.state
     ):  # Vérification du statut du jeu : les inscriptions ne doivent pas être closes
         logger.warning(
             f'fn > join > GameAlreadyStarted | Requested by: {message.author} (id:{message.author.id}) | Message: {message.content}'

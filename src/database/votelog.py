@@ -1,13 +1,17 @@
+from datetime import datetime
+
+from bson.objectid import ObjectId
+
 try:
+    from database.alliance import get_alliances_number
     from database.database import db
     from database.player import Player
     from utils.logging import get_logger
 except ImportError:
-    from ..utils.logging import get_logger
+    from ..database.alliance import get_alliances_number
     from ..database.player import Player, PlayerList
+    from ..utils.logging import get_logger
     from .database import db
-
-from bson.objectid import ObjectId
 
 logger = get_logger(__name__)
 
@@ -17,12 +21,12 @@ class VoteLogData:
         self._id: int = data.get('_id', 0)
         self.number: int = data.get('number', 0)
         self.date: str = data.get('date', '')
-        eliminated: list[dict[str, ObjectId]] = data.get('eliminated', 0)
-        votes: list[dict] = data.get('votes', [])
+        eliminated: list[dict[str, ObjectId]] = data.get('eliminated', [])
+        votes: list[dict[str, ObjectId]] = data.get('votes', [])
         self.voice_id: int = data.get('voice_id', 0)
         self.voters_number: int = data.get('voters_number', 0)
         self.cheaters_number: int = data.get('cheaters_number', 0)
-        self.tied_players: list[ObjectId] = data.get('tied_players', [])
+        tied_players: list[dict[str, ObjectId]] = data.get('tied_players', [])
         self.alliance_number: int = data.get('alliance_number', 0)
         if votes:
             players: dict[ObjectId, Player] = {}
@@ -38,11 +42,15 @@ class VoteLogData:
                     }
                 ]
         else:
-            self.votes: list[dict[str, Player]] = None
+            self.votes: list[dict[str, Player]] = []
         if eliminated:
             self.eliminated = PlayerList([{'_id': player.get('_id')} for player in eliminated])
         else:
-            self.eliminated: PlayerList = None
+            self.eliminated = PlayerList()
+        if tied_players:
+            self.tied_players = PlayerList([{'_id': player} for player in tied_players])
+        else:
+            self.tied_players = PlayerList()
 
 
 class VoteLog:
@@ -63,7 +71,6 @@ class VoteLog:
             self.find()
 
     def find(self) -> None:
-        logger.warning(f'VoteLog query: {self.query}')
         data: dict = db.VoteLog.find_one(filter=self.query)
         if data:
             self.object = VoteLogData(data)
@@ -83,6 +90,10 @@ class VoteLog:
                 )
             else:
                 self.object._id = ObjectId()
+                self.object.date = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+                self.object.number = get_council_number() + 1
+                self.object.voters_number = len(PlayerList(alive=True).objects)
+                self.object.alliance_number = get_alliances_number()
                 db.VoteLog.insert_one(self.object.__dict__)
 
     def delete(self) -> None:

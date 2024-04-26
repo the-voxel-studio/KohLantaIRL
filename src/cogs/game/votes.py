@@ -7,10 +7,10 @@ from discord.ext import commands
 
 import utils.game.votes as vote
 from config.values import CHANNEL_ID_GENERAL, COLOR_GREEN, COLOR_ORANGE
+from database.votelog import VoteLog
 from utils.bot import bot
 from utils.control import is_admin
 from utils.logging import get_logger
-from utils.models import VoteLog
 
 logger = get_logger(__name__)
 
@@ -110,7 +110,7 @@ class VotesCog(commands.Cog):
         await interaction.response.defer(ephemeral=True)
         if isinstance(interaction.channel, discord.DMChannel):
             vote_log = VoteLog(last=True)
-            vote_date = datetime.datetime.strptime(vote_log.date, '%d/%m/%Y %H:%M:%S')
+            vote_date = datetime.datetime.strptime(vote_log.object.date, '%d/%m/%Y %H:%M:%S')
             actual_date = datetime.datetime.now()
             max_date = (vote_date + datetime.timedelta(days=1)).replace(
                 hour=21, minute=0, second=0, microsecond=0
@@ -118,11 +118,11 @@ class VotesCog(commands.Cog):
             not_timeout = actual_date <= max_date
             eliminated_list = [
                 i
-                for i, el in enumerate(vote_log.eliminated)
+                for i, el in enumerate(vote_log.object.eliminated)
                 if el.id == interaction.user.id
             ]
             try:
-                eliminated = vote_log.eliminated[eliminated_list[0]]
+                eliminated = vote_log.object.eliminated.objects[eliminated_list[0]]
                 is_last_eliminate = True
             except IndexError:
                 is_last_eliminate = False
