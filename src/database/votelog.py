@@ -114,7 +114,7 @@ class VoteLogList:
         else:
             self.data = db.VoteLog.find(filter=self.query)
         if self.data:
-            logger.info(f"{'VoteLogList found' if data else 'VoteLogList created from data'}")
+            logger.info(f"{'VoteLogList found' if not data else 'VoteLogList created from data'}")
             for player in self.data:
                 self.objects.append(VoteLog(data=player))
 

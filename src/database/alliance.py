@@ -91,7 +91,7 @@ class AllianceList:
         else:
             self.data = db.Alliances.find(filter=self.query)
         if self.data:
-            logger.info(f"{'AllianceList found' if data else 'AlliancesList created from data'}")
+            logger.info(f"{'AllianceList found' if not data else 'AlliancesList created from data'}")
             for player in self.data:
                 self.objects.append(Alliance(data=player))
 

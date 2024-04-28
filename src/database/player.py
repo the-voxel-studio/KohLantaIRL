@@ -86,6 +86,6 @@ class PlayerList:
         else:
             self.data = db.Players.find(filter=self.query)
         if self.data:
-            logger.info(f"{'PlayerList found' if data else 'PlayersList created from data'}")
+            logger.info(f"{'PlayerList found' if not data else 'PlayersList created from data'}")
             for player in self.data:
                 self.objects.append(Player(**player))

@@ -6,13 +6,13 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from config.values import COLOR_ORANGE  # used by a eval() function
-from config.values import COLOR_RED  # used by a eval() function
 from config.values import (  # OBLIGATOIRES (utilisation de la fonction eval)
-    CHANNEL_ID_BOT_LOGS, COLOR_GREEN)
+    CHANNEL_ID_BOT_LOGS, COLOR_GREEN, COLOR_ORANGE, COLOR_RED)
 from utils.control import is_admin
 from utils.log import send_log, send_logs_file
 from utils.logging import get_logger
+
+from database.player import PlayerList
 
 logger = get_logger(__name__)
 
@@ -170,6 +170,39 @@ class AdminCog(commands.Cog):
         logger.info(
             f'Bot tree synchronisation > OK | Requested by {interaction.user} (id:{interaction.user.id}) | Commands: {commands_list}'
         )
+
+    @app_commands.command(
+        name='player_infos',
+        description='Affiche les infos des joueurs'
+    )
+    @app_commands.default_permissions(manage_messages=True)
+    async def player_infos(self, interaction: discord.Interaction):
+        logger.info(
+            f'Player infos | Requested by {interaction.user} (id:{interaction.user.id})'
+        )
+        players = PlayerList()
+        self.embed = discord.Embed(
+            title=':robot: Informations joueurs :moyai:',
+            description=f'Informations sans spoil sur les joueurs.\nNombre de joueurs: **{len(players.objects)}**',
+            color=COLOR_GREEN,
+        )
+        for player in players.objects:
+            self.embed.add_field(
+                name=f':bust_in_silhouette: {player.object.nickname}',
+                value=f"""
+                    - Discord: <@{player.object.id}>
+                    \n- Id: `{player.object.id}`
+                    \n- Vivant: {':white_check_mark:' if player.object.alive else ':cross_mark:'}
+                    \n- Lettre: `{player.object.letter if player.object.letter else 'N/A'}`
+                    \n- Conseil d'élimination: `{player.object.death_council_number}`
+                    \n- Dernier souhait exprimé: {':white_check_mark:' if player.object.last_wish_expressed else ':cross_mark:'}
+                """,
+                inline=False
+            )
+        self.embed.set_footer(
+            text='Cette liste est strictement confidentielle et son accès est réservé aux administrateurs du serveur.'
+        )
+        await interaction.response.send_message(embed=self.embed)
 
 
 async def setup(bot):
