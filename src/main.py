@@ -39,27 +39,20 @@ COGS = [
 
 
 @bot.event
-async def on_ready():
+async def on_ready() -> None:
+    """Lancement du robot"""
+
     for cog in COGS:
         await bot.load_extension(cog)
-    # setup_db_connection()
     time = datetime.datetime.now().strftime('%d/%m/%Y **%H:%M**')
     await purge_empty_alliances()
     await start_new_timer()
-    if os_name == 'nt':
-        await send_log(
-            'BOT restarted and ready',
-            ':tools: mode : **DEV**',
-            f':clock: time   : {time}',
-            color='orange',
-        )
-    else:
-        await send_log(
-            'BOT restarted and ready',
-            ':tools: mode : **PRODUCTION**',
-            f':clock: time   : {time}',
-            color='green',
-        )
+    await send_log(
+        'BOT restarted and ready',
+        f":tools: mode : **{'DEV' if os_name == 'nt' else 'PRODUCTION'}**",
+        f':clock: time : {time}',
+        color=('orange' if os_name == 'nt' else 'green'),
+    )
     await send_logs_file()
     bot.add_view(EqualityView())
     bot.add_view(AllianceView())
@@ -69,7 +62,9 @@ async def on_ready():
 
 
 @bot.event
-async def on_message(message):
+async def on_message(message) -> None:
+    """Gestion des messages"""
+
     await bot.process_commands(
         message
     )  # Execute les commandes, même si le message a été envoyé en DM au robot
@@ -121,7 +116,9 @@ async def on_message(message):
 
 
 @bot.event
-async def on_command_error(ctx, error):
+async def on_command_error(ctx, error) -> None:
+    """Gestion des erreurs de commandes"""
+
     if isinstance(error, commands.errors.CommandNotFound):
         if ctx.message.guild:
             await ctx.message.delete()
@@ -198,7 +195,9 @@ async def on_command_error(ctx, error):
 
 
 @bot.tree.error
-async def on_app_command_error(interaction: discord.Interaction, error):
+async def on_app_command_error(interaction: discord.Interaction, error) -> None:
+    """Gestion des erreurs de commandes d'applications"""
+
     if isinstance(error, discord.app_commands.errors.CommandNotFound):
         logger.warning(
             f'CommandNotFound | Sent by {interaction.user} (id:{interaction.user.id}) | Content: {error}'
@@ -276,7 +275,9 @@ async def on_app_command_error(interaction: discord.Interaction, error):
 
 
 @bot.event
-async def on_raw_reaction_add(payload):
+async def on_raw_reaction_add(payload) -> None:
+    """Gestion des réactions ajoutées aux messages"""
+
     if payload.emoji.name in EMOJIS_LIST:
         emoji = chr(EMOJIS_LIST.index(payload.emoji.name) + 65)
     else:
@@ -335,13 +336,15 @@ async def on_raw_reaction_add(payload):
                 await msg.remove_reaction(payload.emoji, user)
 
 
-def signal_handler(sig, frame):
+def signal_handler(sig, frame) -> None:
+    """Gestion de l'interruption du programme"""
+
     logger.warning('Start of shutdown procedure.')
     cancel_timer()
     logger.warning('Complete shutdown procedure.')
     exit()
 
 
-signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGINT, signal_handler)  # Gestion de l'interruption du programme
 
 bot.run(TOKEN)  # Lancement du robot
