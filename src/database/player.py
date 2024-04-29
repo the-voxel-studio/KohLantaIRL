@@ -48,6 +48,7 @@ class Player:
             if self.object._id:
                 object = {k: v for k, v in self.object.__dict__.items() if k != '_id'}
                 object['id'] = str(object['id'])
+                logger.info(f'update: {self.object.__dict__}')
                 db.Players.update_one(
                     filter={'_id': self.object._id},
                     update={'$set': object}
@@ -56,6 +57,7 @@ class Player:
                 self.object._id = ObjectId()
                 object = self.object.__dict__
                 object['id'] = str(object['id'])
+                logger.info(f'save: {self.object.__dict__}')
                 db.Players.insert_one(object)
 
     def resurrect(self) -> None:
@@ -65,12 +67,14 @@ class Player:
             self.death_council_number = 0
             self.object.last_wish_expressed = False
             self.save()
+            logger.info(f'resurrect: {self.object.__dict__}')
 
     def eliminate(self) -> None:
         if self.object:
             self.object.alive = False
             self.object.letter = ''
             self.death_council_number = db.VoteLog.count_documents({})
+            logger.info(f'eliminate: {self.object.__dict__}')
             self.save()
 
 

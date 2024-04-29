@@ -13,6 +13,7 @@ logger = get_logger(__name__)
 class GameModel:
     def __init__(self) -> None:
         self.__id: ObjectId = db.Game.find_one({}).get('_id', 0)
+        logger.info(f'setup _id: {self.__id}')
 
     @property
     def state(self) -> int:

@@ -50,33 +50,40 @@ class Alliance:
         if self.object:
             if self.object._id:
                 object = {k: v for k, v in self.object.__dict__.items() if k != '_id'}
+                logger.info(f'update: {self.object.__dict__}')
                 db.Players.update_one(
                     filter={'_id': self.object._id},
                     update={'$set': object}
                 )
             else:
                 self.object._id = ObjectId()
+                logger.info(f'save: {self.object.__dict__}')
                 db.Players.insert_one(self.object.__dict__)
 
     def delete(self) -> None:
         db.Alliances.delete_one({'_id': self.object._id})
+        logger.info(f'delete: {self.object.__dict__}')
         self.object = AllianceData()
 
     def close(self) -> None:
         db.Alliances.update_one(filter=self.query, update={'$set': {'members': []}}, upsert=False)
+        logger.info(f'close: {self.object.__dict__}')
         self.object.members = []
 
     def add_member(self, player: Player) -> None:
         if player.object._id not in [member.object._id for member in self.object.members.objects]:
             self.object.members.objects.append(player)
             self.save()
+            logger.info(f'add_member: {self.object.__dict__}')
 
     def remove_member(self, player: Player) -> None:
         self.object.members.objects = [member for member in self.object.members.objects if member.object._id != player.object._id]
         self.save()
+        logger.info(f'remove_member: {self.object.__dict__}')
 
     def purge_empty_alliances(self):
         self.result = db.Alliances.delete_many({'members': []})
+        logger.info('purge_empty_alliances')
 
 
 class AllianceList:

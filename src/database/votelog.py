@@ -85,6 +85,7 @@ class VoteLog:
         if self.object:
             if self.object._id:
                 object = {k: v for k, v in self.object.__dict__.items() if k != '_id'}
+                logger.info(f'update: {self.object.__dict__}')
                 db.VoteLog.update_one(
                     filter={'_id': self.object._id},
                     update={'$set': object}
@@ -95,10 +96,12 @@ class VoteLog:
                 self.object.number = get_council_number() + 1
                 self.object.voters_number = len(PlayerList(alive=True).objects)
                 self.object.alliance_number = get_alliances_number()
+                logger.info(f'save: {self.object.__dict__}')
                 db.VoteLog.insert_one(self.object.__dict__)
 
     def delete(self) -> None:
         db.VoteLog.delete_one({'_id': self.object._id})
+        logger.info(f'delete: {self.object.__dict__}')
         self.object = VoteLogData()
 
 
