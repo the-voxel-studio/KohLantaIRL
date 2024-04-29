@@ -112,12 +112,13 @@ async def close_alliance(
     )
 
 
-async def purge_empty_alliances():
+async def purge_empty_alliances() -> int:
     """Purge empty alliances."""
 
     logger.info('fn > Empty Alliances Purge > start')
-    Alliance().purge_empty_alliances()
+    deleted_count = Alliance(_id=0).purge_empty_alliances()
     logger.info('fn > Empty Alliances Purge > OK')
+    return deleted_count
 
 
 async def purge_alliances(interaction: discord.Interaction = None):

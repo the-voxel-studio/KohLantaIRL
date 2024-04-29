@@ -113,11 +113,12 @@ class Alliance:
         self.save()
         logger.info(f'remove_member: {self.object.__dict__}')
 
-    def purge_empty_alliances(self):
+    def purge_empty_alliances(self) -> int:
         """Purge empty alliances."""
 
         self.result = db.Alliances.delete_many({'members': []})
         logger.info('purge_empty_alliances')
+        return self.result.deleted_count
 
 
 class AllianceList:

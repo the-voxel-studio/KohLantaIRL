@@ -21,7 +21,6 @@ from utils.game.timer import cancel_timer, start_new_timer
 from utils.game.votes import EqualityView
 from utils.log import send_log, send_logs_file
 from utils.logging import get_logger
-# from utils.models import Variables, setup_db_connection
 from utils.punishments import timeout
 
 logger = get_logger(__name__)
@@ -45,19 +44,22 @@ async def on_ready() -> None:
     for cog in COGS:
         await bot.load_extension(cog)
     time = datetime.datetime.now().strftime('%d/%m/%Y **%H:%M**')
-    await purge_empty_alliances()
+    deleted_count = await purge_empty_alliances()
     await start_new_timer()
-    await send_log(
-        'BOT restarted and ready',
-        f":tools: mode : **{'DEV' if os_name == 'nt' else 'PRODUCTION'}**",
-        f':clock: time : {time}',
-        color=('orange' if os_name == 'nt' else 'green'),
-    )
     await send_logs_file()
     bot.add_view(EqualityView())
     bot.add_view(AllianceView())
     await move_immunite_collar_down()
-    await bot.tree.sync()
+    synced = await bot.tree.sync()
+    await send_log(
+        'BOT restarted and ready',
+        f":tools: mode : **{'DEV' if os_name == 'nt' else 'PRODUCTION'}**",
+        f':clock: time : {time}',
+        f':handshake: empty alliances deleted : **{deleted_count}**',
+        f':dividers: cogs loaded : **{len(COGS)}**',
+        f':control_knobs: app commands : **{len(synced)}**',
+        color=('orange' if os_name == 'nt' else 'green'),
+    )
     logger.info('Bot started and ready.')
 
 
