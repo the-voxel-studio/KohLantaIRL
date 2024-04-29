@@ -17,7 +17,11 @@ logger = get_logger(__name__)
 
 
 class VoteLogData:
+    """VoteLog data class to store votelog data."""
+
     def __init__(self, data: dict = {}) -> None:
+        """Initialize the votelog data class with the data."""
+
         self._id: int = data.get('_id', 0)
         self.number: int = data.get('number', 0)
         self.date: str = data.get('date', '')
@@ -54,7 +58,11 @@ class VoteLogData:
 
 
 class VoteLog:
+    """VoteLog class to store votelog object and methods."""
+
     def __init__(self, data: dict = {}, **query) -> None:
+        """Initialize the votelog class with the data and query."""
+
         self.query: dict = query
         self.object: VoteLogData = None
         last = self.query.get('last', None)
@@ -70,18 +78,34 @@ class VoteLog:
         else:
             self.find()
 
+    def __str__(self) -> str:
+        """Return the string representation of the votelog object."""
+
+        return f'VoteLog<{(self.object._id, self.object.number)}>'
+
+    def __repr__(self) -> str:
+        """Return the string representation of the votelog object."""
+
+        return f'VoteLog<{(self.object._id, self.object.number)}>'
+
     def find(self) -> None:
+        """Find the votelog object from the database."""
+
         data: dict = db.VoteLog.find_one(filter=self.query)
         if data:
             self.object = VoteLogData(data)
             logger.info(f'found: {self.object.__dict__}')
 
     def set_from_data(self, data: dict) -> None:
+        """Set the votelog object from the data."""
+
         if data:
             self.object = VoteLogData(data)
             logger.info(f'created from data: {self.object.__dict__}')
 
     def save(self) -> None:
+        """Save the votelog object to the database."""
+
         if self.object:
             if self.object._id:
                 object = {k: v for k, v in self.object.__dict__.items() if k != '_id'}
@@ -100,18 +124,41 @@ class VoteLog:
                 db.VoteLog.insert_one(self.object.__dict__)
 
     def delete(self) -> None:
+        """Delete the votelog object from the database."""
+
         db.VoteLog.delete_one({'_id': self.object._id})
         logger.info(f'delete: {self.object.__dict__}')
         self.object = VoteLogData()
 
 
 class VoteLogList:
+    """VoteLog list class to store votelog objects."""
+
     def __init__(self, data: list = [], **query) -> None:
+        """Initialize the votelog list class with the data and query."""
+
         self.query: dict = query
         self.objects: list[VoteLog] = []
         self.find(data)
 
+    def __str__(self) -> str:
+        """Return the string representation of the votelog list."""
+
+        return f'VoteLogList<{[(votelog.object._id, votelog.object.number) for votelog in self.objects]}>'
+
+    def __repr__(self) -> str:
+        """Return the string representation of the votelog list."""
+
+        return f'VoteLogList<{[(votelog.object._id, votelog.object.number) for votelog in self.objects]}>'
+
+    def __len__(self) -> int:
+        """Return the number of votelogs in the list."""
+
+        return len(self.objects)
+
     def find(self, data) -> None:
+        """Find the votelogs from the database."""
+
         if data:
             self.data = data
         else:
@@ -123,4 +170,6 @@ class VoteLogList:
 
 
 def get_council_number():
+    """Return the number of council."""
+
     return db.VoteLog.count_documents({})

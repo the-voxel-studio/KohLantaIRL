@@ -11,6 +11,8 @@ logger = get_logger(__name__)
 
 
 async def new_alliance(interaction: discord.Interaction):
+    """Create a new alliance for the player."""
+
     player = Player(id=interaction.user.id)
     channel_name = 'new_channel_' + '_'.join(interaction.user.nick.lower().split(' '))
     same_named_alliance_by_channels = discord.utils.get(
@@ -94,6 +96,8 @@ async def new_alliance(interaction: discord.Interaction):
 async def close_alliance(
     txt_channel_id: discord.TextChannel.id, user: discord.User = None
 ):
+    """Close the alliance for the player."""
+
     logger.info(
         f'fn > Alliance Close > start | Requested by {user} (id:{user.id}) | Alliance text channel id: {txt_channel_id}'
     )
@@ -109,12 +113,16 @@ async def close_alliance(
 
 
 async def purge_empty_alliances():
+    """Purge empty alliances."""
+
     logger.info('fn > Empty Alliances Purge > start')
     Alliance().purge_empty_alliances()
     logger.info('fn > Empty Alliances Purge > OK')
 
 
 async def purge_alliances(interaction: discord.Interaction = None):
+    """Purge all alliances."""
+
     logger.info('fn > Alliances Purge > start')
     category = bot.get_channel(CATEGORIE_ID_ALLIANCES)
     for channel in category.channels:

@@ -11,13 +11,19 @@ logger = get_logger(__name__)
 
 
 class StepsCog(commands.Cog):
+    """Steps commands cog."""
+
     def __init__(self, bot):
+        """Init the cog."""
+
         self.bot = bot
 
     @app_commands.command(name='open_joining', description='Ouverture des inscriptions')
     @app_commands.guild_only()
     @app_commands.default_permissions(create_instant_invite=True)
     async def open_joining(self, interaction: discord.Interaction):
+        """Open the joining."""
+
         if not is_admin(interaction.user):
             raise commands.MissingPermissions(['Admin'])
         logger.info(
@@ -36,6 +42,8 @@ class StepsCog(commands.Cog):
     @app_commands.guild_only()
     @app_commands.default_permissions(create_instant_invite=True)
     async def start(self, interaction: discord.Interaction):
+        """Start the game."""
+
         if not is_admin(interaction.user):
             raise commands.MissingPermissions(['Admin'])
         logger.info(
@@ -49,5 +57,7 @@ class StepsCog(commands.Cog):
 
 
 async def setup(bot):
+    """Setup the cog."""
+
     await bot.add_cog(StepsCog(bot))
     logger.info('Loaded !')

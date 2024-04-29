@@ -9,6 +9,8 @@ LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 
 class ColoredFormatter(logging.Formatter):
+    """Logging formatter that adds colors to the log messages."""
+
     LEVEL_COLORS = {
         'DEBUG': Fore.GREEN,
         'INFO': Fore.BLUE,
@@ -18,6 +20,8 @@ class ColoredFormatter(logging.Formatter):
     }
 
     def format(self, record):
+        """Format the log message."""
+
         levelname = record.levelname
         colored_levelname = f'{self.LEVEL_COLORS.get(levelname, Fore.WHITE)}{Style.BRIGHT}{levelname}{Style.RESET_ALL}'
 
@@ -42,7 +46,11 @@ class ColoredFormatter(logging.Formatter):
 
 
 class FileFormatter(logging.Formatter):
+    """Logging formatter for the file handler."""
+
     def format(self, record):
+        """Format the log message."""
+
         levelname_length = len(record.levelname)
         spacing = ' ' * (8 - levelname_length)
 
@@ -60,6 +68,8 @@ class FileFormatter(logging.Formatter):
 
 
 def get_logger(name: str) -> logging.Logger:
+    """Get a logger with the specified name."""
+
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
 

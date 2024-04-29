@@ -2,6 +2,7 @@ import os
 
 
 def compte_lignes_code(directory):
+    """Compte le nombre de lignes de code dans les fichiers .py"""
     total_lignes = 0
 
     for root, dirs, files in os.walk(directory):

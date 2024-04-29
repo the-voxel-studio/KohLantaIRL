@@ -13,10 +13,16 @@ logger = get_logger(__name__)
 
 
 class AlliancesCog(commands.Cog):
+    """Alliances commands cog."""
+
     def __init__(self, bot):
+        """Init the cog."""
+
         self.bot = bot
 
     async def id_renamed(self, interaction: discord.Interaction):
+        """Check if the alliance has been renamed."""
+
         self.first_name = 'new_channel_' + '_'.join(
             interaction.user.nick.lower().split(' ')
         )
@@ -25,6 +31,8 @@ class AlliancesCog(commands.Cog):
     @app_commands.command(name='nom', description='Renommer une alliance')
     @app_commands.guild_only()
     async def rename(self, interaction: discord.Interaction, nouveau_nom: str):
+        """Rename an alliance."""
+
         logger.info(
             f'Alliance renaming > start | Requested by {interaction.user} (id:{interaction.user.id}) | New name: {nouveau_nom} | Alliance text channel id: {interaction.channel.id}'
         )
@@ -48,6 +56,8 @@ class AlliancesCog(commands.Cog):
     )
     @app_commands.guild_only()
     async def ajouter(self, interaction: discord.Interaction, user: discord.Member):
+        """Add a member to an alliance."""
+
         logger.info(
             f'New alliance member addition started | Requested by {interaction.user} (id:{interaction.user.id}) | Alliance text channel id: {interaction.channel.id}'
         )
@@ -107,6 +117,8 @@ class AlliancesCog(commands.Cog):
     @app_commands.command(name='dissoudre', description='Dissoudre une alliance')
     @app_commands.guild_only()
     async def dissolve(self, interaction: discord.Interaction):
+        """Dissolve an alliance."""
+
         logger.info(
             f'Alliance dissolution > start | Requested by {interaction.user} (id:{interaction.user.id}) | Alliance text channel id: {interaction.channel.id}'
         )
@@ -117,6 +129,8 @@ class AlliancesCog(commands.Cog):
     @app_commands.guild_only()
     @app_commands.default_permissions(manage_messages=True)
     async def purge_alliances(self, interaction: discord.Interaction):
+        """Purge all alliances."""
+
         # TODO add alliance deletion in db
         logger.info(
             f'Alliances purge | Requested by {interaction.user} (id:{interaction.user.id})'
@@ -129,6 +143,8 @@ class AlliancesCog(commands.Cog):
     )
     @app_commands.guild_only()
     async def expulser(self, interaction: discord.Interaction, member: discord.Member):
+        """Remove a member from an alliance."""
+
         logger.info(
             f'Alliance member removing started | Requested by {interaction.user} (id:{interaction.user.id}) | Member: {member} (id:{member.id}) | Alliance text channel id: {interaction.channel.id}'
         )
@@ -156,5 +172,7 @@ class AlliancesCog(commands.Cog):
 
 
 async def setup(bot):
+    """Setup the cog."""
+
     await bot.add_cog(AlliancesCog(bot))
     logger.info('Loaded !')

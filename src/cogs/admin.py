@@ -35,6 +35,7 @@ class AdminCog(commands.Cog):
         content: str,
         color: typing.Literal['green', 'orange', 'red'],
     ):
+        """Send a message from Denis Brogniart."""
 
         if not is_admin(interaction.user):
             raise commands.MissingPermissions(['Admin'])
@@ -61,6 +62,8 @@ class AdminCog(commands.Cog):
     @app_commands.guild_only()
     @app_commands.default_permissions(create_instant_invite=True)
     async def reboot(self, interaction: discord.Interaction):
+        """Reboot the server."""
+
         if not is_admin(interaction.user):
             raise commands.MissingPermissions(['Admin'])
         if os_name == 'posix':
@@ -85,6 +88,8 @@ class AdminCog(commands.Cog):
     @app_commands.guild_only()
     @app_commands.default_permissions(create_instant_invite=True)
     async def shutdown(self, interaction: discord.Interaction):
+        """Shutdown the server."""
+
         if not is_admin(interaction.user):
             raise commands.MissingPermissions(['Admin'])
         if os_name == 'posix':
@@ -107,6 +112,8 @@ class AdminCog(commands.Cog):
     @app_commands.guild_only()
     @app_commands.default_permissions(create_instant_invite=True)
     async def logs(self, interaction: discord.Interaction):
+        """Send the logs file."""
+
         logger.info(
             f'Send Logs File > start | requested by: {interaction.user} (id:{interaction.user.id})'
         )
@@ -131,6 +138,8 @@ class AdminCog(commands.Cog):
     @app_commands.guild_only()
     @app_commands.default_permissions(manage_messages=True)
     async def clear(self, interaction: discord.Interaction, amount: int):
+        """Clear a certain number of messages."""
+
         logger.info(
             f'Partial channel clearing | Requested by {interaction.user} (id:{interaction.user.id}) | Number: {amount} | Channel id: {interaction.channel.id}'
         )
@@ -139,6 +148,8 @@ class AdminCog(commands.Cog):
     @app_commands.command(name='ping', description='To verify bot connection')
     @app_commands.default_permissions(manage_messages=True)
     async def ping(self, interaction: discord.Interaction):
+        """Ping-Pong command."""
+
         logger.info(
             f'Ping-Pong | requested by: {interaction.user} (id:{interaction.user.id})'
         )
@@ -152,6 +163,8 @@ class AdminCog(commands.Cog):
     )
     @app_commands.default_permissions(manage_messages=True)
     async def tree_sync(self, interaction: discord.Interaction):
+        """Force the command tree synchronisation."""
+
         logger.info(
             f'Bot tree synchronisation > start | Requested by {interaction.user} (id:{interaction.user.id})'
         )
@@ -177,6 +190,8 @@ class AdminCog(commands.Cog):
     )
     @app_commands.default_permissions(manage_messages=True)
     async def player_infos(self, interaction: discord.Interaction):
+        """Display players infos."""
+
         logger.info(
             f'Player infos | Requested by {interaction.user} (id:{interaction.user.id})'
         )
@@ -206,5 +221,7 @@ class AdminCog(commands.Cog):
 
 
 async def setup(bot):
+    """Setup the cog."""
+
     await bot.add_cog(AdminCog(bot))
     logger.info('Loaded !')

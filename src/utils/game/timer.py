@@ -14,6 +14,8 @@ timer_thread = None
 
 
 async def timed_action():
+    """Timer loop for the game."""
+
     # TODO return vote for eliminates
     logger.info('fn > Timer Loop > A thread timer has ended.')
     time = datetime.datetime.now()
@@ -37,11 +39,15 @@ async def timed_action():
 
 
 def timed_action_sync():
+    """Run the timed_action function in the bot loop."""
+
     coro = timed_action()
     asyncio.run_coroutine_threadsafe(coro, bot.loop)
 
 
 async def start_new_timer():
+    """Start a new timer thread."""
+
     global timer_thread
     time = datetime.datetime.today()
     next_time = time.replace(
@@ -63,6 +69,8 @@ async def start_new_timer():
 
 
 def cancel_timer():
+    """Cancel the timer thread."""
+
     try:
         timer_thread.cancel()
         logger.info('One timer canceled.')

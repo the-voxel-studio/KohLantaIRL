@@ -16,6 +16,8 @@ db: Database = None
 
 
 def setup_db_connection():
+    """Setup the connection to the MongoDb."""
+
     global client, db
     logger.info('Connection to MongoDb...')
     dns.resolver.default_resolver = dns.resolver.Resolver(configure=False)

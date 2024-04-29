@@ -29,6 +29,8 @@ styles['Normal'].leftIndent = 40
 
 
 def background_canvas(canvas_obj, doc):
+    """Set the background color of the PDF."""
+
     canvas_obj.saveState()
     canvas_obj.setFillColor('#2b2d31')
     canvas_obj.rect(0, 0, A4[0], A4[1], fill=True, stroke=False)
@@ -36,6 +38,8 @@ def background_canvas(canvas_obj, doc):
 
 
 def create_pdf(file_path, vote_number, **kwargs):
+    """Create a PDF file."""
+
     logger.info(
         f'fn > create_pdf > start | file_path: {file_path} | vote_number: {vote_number}'
     )
@@ -68,6 +72,8 @@ def create_pdf(file_path, vote_number, **kwargs):
 
 
 def render_vote(number: int, **kwargs):
+    """Render a vote page."""
+
     logger.info(f'fn > render_vote > start | number: {number} | kwargs: {kwargs}')
 
     final = kwargs.get('final', False)
@@ -295,6 +301,8 @@ def render_vote(number: int, **kwargs):
 
 
 def render_rules():
+    """Render the rules page."""
+
     logger.info('fn > render_rules > start')
     elements = []
 
@@ -360,6 +368,8 @@ def render_rules():
 
 
 def generate(vote_number, **kwargs) -> str:
+    """Generate a PDF file."""
+
     vote_number = 50 if vote_number > 50 else vote_number
     logger.info(f'fn > generate > start | vote_number: {vote_number}')
     name = f'KohLantaVote{str(vote_number)}.pdf'

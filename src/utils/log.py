@@ -14,6 +14,8 @@ DIRNAME = Path(__file__).parent.parent.parent
 
 
 async def send_log(title: str, *args, **kwargs):
+    """Send a log to the bot channel."""
+
     bot_channel = bot.get_channel(CHANNEL_ID_BOT)
     if len(args) != 0:
         color = kwargs.get('color', 'ORANGE').upper()
@@ -27,6 +29,8 @@ async def send_log(title: str, *args, **kwargs):
 
 
 async def send_logs_file():
+    """Send the logs file to the bot logs channel."""
+
     logger.info('fn > send_logs_file > start')
     bot_logs_channel = bot.get_channel(CHANNEL_ID_BOT_LOGS)
     if os.name == 'nt':

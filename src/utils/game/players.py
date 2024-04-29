@@ -112,6 +112,8 @@ async def join(message):
 
 
 async def reset_roles(*roles) -> None:
+    """Reset the roles of the members."""
+
     logger.info(f'fn > reset_roles > start | Roles: {roles}')
     guild = bot.get_guild(GUILD_ID)
     for role_name in roles:

@@ -23,6 +23,8 @@ select_options = []
 
 
 async def open(interaction: discord.Interaction = None):
+    """Open the vote."""
+
     logger.info(f'vote opening > start | interaction: {interaction}')
     players = PlayerList(alive=True)
     if len(players.objects) > 2:
@@ -99,7 +101,11 @@ async def open(interaction: discord.Interaction = None):
 
 
 class EqualityView(discord.ui.View):
+    """Equality view for the vote after an equality."""
+
     def __init__(self):
+        """Initialize the view."""
+
         super().__init__(timeout=None)
         self.council_number = get_council_number()
         self.select = discord.ui.Select(
@@ -114,6 +120,8 @@ class EqualityView(discord.ui.View):
         logger.info(f'EqualityView __init__ > OK | select_options: {select_options}')
 
     async def select_callback(self, interaction):
+        """Callback for the select."""
+
         logger.info(f'EqualityView select_callback > start | user: {interaction.user} (id: {interaction.user.id})')
         await interaction.response.defer()
         self.select.disabled = True
@@ -155,6 +163,8 @@ class EqualityView(discord.ui.View):
 
 
 async def arrange_votes(reactions: list) -> dict:
+    """Arrange the votes in a dict."""
+
     logger.info('arrange vote > start')
     reactions_list = {}
     for r in reactions:
@@ -169,6 +179,8 @@ async def arrange_votes(reactions: list) -> dict:
 
 
 async def deal_with_cheaters(reactions_list: dict, reactions: list) -> int:
+    """Deal with the cheaters."""
+
     logger.info('deal with cheaters > start')
     cheaters_number = 0
     embed = discord.Embed(
@@ -196,6 +208,8 @@ async def deal_with_cheaters(reactions_list: dict, reactions: list) -> int:
 
 
 async def count_votes(reactions: list) -> typing.Union[list, int, bool, bool]:
+    """Count the votes."""
+
     logger.info('count votes > start')
     max_reactions = []
     max_count = 0
@@ -217,6 +231,8 @@ async def count_votes(reactions: list) -> typing.Union[list, int, bool, bool]:
 async def close_final_vote(
     max_reactions, reactions_list, cheaters_number, max_count
 ) -> None:
+    """Close the final vote."""
+
     logger.info('close_final_vote > start ')
     logger.info('EqualityView select_callback > start | max_rea')
     winner = Player(letter=chr(EMOJIS_LIST.index(max_reactions[0]) + 65))
@@ -277,6 +293,8 @@ async def close_final_vote(
 async def close_normal(
     max_reactions, reactions_list, cheaters_number, max_count, reactions
 ) -> None:
+    """Close the normal vote."""
+
     logger.info('close_normal > start ')
     eliminated = Player(letter=chr(EMOJIS_LIST.index(max_reactions[0]) + 65))
     new_vote_log = VoteLog(data={
@@ -354,6 +372,8 @@ async def close_normal(
 async def close_normal_equality(
     reactions_list, cheaters_number, council_number, it_is_the_final, tied_players
 ) -> None:
+    """Close the normal vote after an equality."""
+
     global select_options
     logger.info('close_normal_equality > start ')
     VoteLog(data={
@@ -421,6 +441,8 @@ async def close_normal_equality(
 async def close_first_vote_equality(
     reactions_list, cheaters_number, tied_players
 ) -> None:
+    """Close the first vote after an equality."""
+
     logger.info('close_first_vote_equality > start ')
     new_vote_log = VoteLog(data={
         'votes': reactions_list,
@@ -488,6 +510,8 @@ async def close_first_vote_equality(
 async def close_without_eliminated(
     max_reactions, reactions_list, cheaters_number, immune, reactions
 ) -> None:
+    """Close the vote without eliminated players."""
+
     logger.info('close_without_eliminated > start ')
     new_vote_log = VoteLog(data={
         'votes': reactions_list,
@@ -526,6 +550,8 @@ async def close_without_eliminated(
 
 
 async def close(interaction: discord.Interaction = None) -> None:
+    """Close the vote."""
+
     # [ ] ? save immune persons in VoteLog
     logger.info('vote closing > start')
     channel = bot.get_channel(CHANNEL_ID_VOTE)
@@ -584,6 +610,8 @@ async def eliminate(
     member: discord.Member,
     reason: typing.Literal['After equality', 'Other reason'],
 ) -> None:
+    """Eliminate a player."""
+
     logger.info(f'eliminate > start | member: {member} | reason: {reason}')
     eliminated = Player(id=member.id)
     players = PlayerList(alive=True)
@@ -687,6 +715,8 @@ async def eliminate(
 
 
 async def resurrect(interaction: discord.Interaction, member: discord.Member) -> None:
+    """Resurrect a player."""
+
     logger.info(f'resurrect > start | member: {member}')
     resurrected = Player(id=member.id)
     dm_embed = discord.Embed(
@@ -718,6 +748,8 @@ async def resurrect(interaction: discord.Interaction, member: discord.Member) ->
 
 
 async def set_finalist(interaction: discord.Interaction, member: discord.Member):
+    """Set a player as finalist."""
+
     logger.info(f'set finalist > start | member: {member}')
     dm_embed = discord.Embed(
         title='**Tu est élevé au rang de finaliste**',
@@ -745,6 +777,8 @@ async def set_finalist(interaction: discord.Interaction, member: discord.Member)
 
 
 async def check_if_last_eliminate_is_saved():
+    """Check if the last eliminate is saved."""
+
     logger.info('check if last eliminate is saved > start')
     last_vote_log = VoteLog(last=True)
     if last_vote_log.eliminated == [] and last_vote_log._id:

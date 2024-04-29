@@ -10,6 +10,8 @@ logger = get_logger(__name__)
 
 
 async def timeout(member: discord.User, **kwargs):
+    """Timeout a member."""
+
     if member.id not in [BOT_ID]:
         logger.info(f'fn > timeout > start | Member: {member} (id:{member.id})')
         author = kwargs.get('author', 'Denis Brogniart')
