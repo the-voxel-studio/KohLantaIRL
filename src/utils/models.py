@@ -382,10 +382,7 @@ class NewVoteLog:  # Cette classe sert à créer et sauvegarder des journaux de 
 
     def __init__(self, **kwargs):
         # La variable 'hidden' est définie aléatoirement à True ou False lors de la création d'une nouvelle instance.
-        if random() < 0.5:
-            self.hidden = False  # Création d'une variable 'hidden' à chaque nouveau journal de votes
-        else:
-            self.hidden = True
+        self.hidden = random() < 0.5
 
         # Les votes et les joueurs éliminés sont récupérés à partir des arguments fournis, s'ils existent.
         self.votes = kwargs.get('votes', None)

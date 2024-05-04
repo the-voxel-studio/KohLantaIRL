@@ -3,17 +3,14 @@ import datetime
 from os import system
 from threading import Timer
 import random
-
 import utils.game.votes as vote
 from utils.bot import bot
 from utils.log import send_log
 from utils.logging import get_logger
 from utils.models import Variables, get_council_number
 from utils.game.immuniteCollar import send_immunite_collar
-
 logger = get_logger(__name__)
 timer_thread = None
-
 
 
 async def timed_action():
@@ -22,8 +19,8 @@ async def timed_action():
     hour = int(time.strftime('%H'))
 
     variables = Variables()
-    if hour == 10*random()+10*random() and get_council_number() >= 4 and variables.get_immunite_collar_msg_id() == 0 and variables.get_immunite_collar_player_id() == 0:
-        send_immunite_collar()    
+    if hour == 10 * random() + 10 * random() and get_council_number() >= 4 and variables.get_immunite_collar_msg_id() == 0 and variables.get_immunite_collar_player_id() == 0:
+        send_immunite_collar() 
 
     if hour == 1:
         logger.warning('Preparing for automatic reboot.')

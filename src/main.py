@@ -360,8 +360,6 @@ def signal_handler(sig, frame):
     logger.warning('Complete shutdown procedure.')
     exit()
 
-#time_collar = random.randint(1, 24)
-
 signal.signal(signal.SIGINT, signal_handler)
 
 bot.run(TOKEN)  # Lancement du robot
