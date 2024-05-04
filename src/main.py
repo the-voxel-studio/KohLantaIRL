@@ -1,6 +1,5 @@
 import datetime
 import signal
-import sys
 from os import name as os_name
 from random import choice
 
@@ -147,11 +146,9 @@ async def on_command_error(ctx, error):
             url='https://media1.tenor.com/m/uNew5ACeNHkAAAAd/bescherelle-orthographe.gif'
         )
         await ctx.author.send(embed=embed)
-    elif (
-        isinstance(error, commands.errors.MissingPermissions)
-        or isinstance(error, discord.ext.commands.errors.MissingRole)
-        or isinstance(error, discord.ext.commands.errors.MissingAnyRole)
-    ):
+    elif isinstance(error, commands.errors.MissingPermissions) \
+            or isinstance(error, discord.ext.commands.errors.MissingRole) \
+            or isinstance(error, discord.ext.commands.errors.MissingAnyRole):
         if ctx.message.guild:
             await ctx.message.delete()
         command = ctx.message.content.split(' ')[0]
@@ -224,13 +221,9 @@ async def on_app_command_error(interaction: discord.Interaction, error):
             url='https://media1.tenor.com/m/uNew5ACeNHkAAAAd/bescherelle-orthographe.gif'
         )
         await interaction.response.send_message(embed=embed)
-    elif (
-        isinstance(error.original, commands.errors.MissingPermissions)
-        or isinstance(error.original, discord.ext.commands.errors.MissingRole)
-        or isinstance(
-            error.original, discord.ext.commands.errors.MissingAnyRole
-        )
-    ):
+    elif isinstance(error.original, commands.errors.MissingPermissions) \
+            or isinstance(error.original, discord.ext.commands.errors.MissingRole) \
+            or isinstance(error.original, discord.ext.commands.errors.MissingAnyRole):
         command = '/' + interaction.command.name
         logger.warning(
             f'MissingPermissions | Sent by {interaction.user} (id:{interaction.user.id}) | Attempted to use the command: {command}'
@@ -307,10 +300,7 @@ async def on_raw_reaction_add(payload):
         msg = await channel.fetch_message(payload.message_id)
         if isinstance(payload.emoji, str) and payload.emoji.id == EMOJI_ID_COLLIER:
             await msg.remove_reaction(payload.emoji, user)
-            if (
-                msg.id == Variables.get_immunite_collar_msg_id()
-                and Player(id=user.id).alive
-            ):
+            if msg.id == Variables.get_immunite_collar_msg_id() and Player(id=user.id).alive:
                 await msg.clear_reaction(
                     f'<:collierimmunite:{EMOJI_ID_COLLIER}>'
                 )
@@ -360,6 +350,8 @@ def signal_handler(sig, frame):
     logger.warning('Complete shutdown procedure.')
     exit()
 
+
 signal.signal(signal.SIGINT, signal_handler)
+
 
 bot.run(TOKEN)  # Lancement du robot

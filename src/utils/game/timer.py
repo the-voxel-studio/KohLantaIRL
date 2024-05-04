@@ -20,7 +20,7 @@ async def timed_action():
 
     variables = Variables()
     if hour == 10 * random() + 10 * random() and get_council_number() >= 4 and variables.get_immunite_collar_msg_id() == 0 and variables.get_immunite_collar_player_id() == 0:
-        send_immunite_collar() 
+        send_immunite_collar()
 
     if hour == 1:
         logger.warning('Preparing for automatic reboot.')

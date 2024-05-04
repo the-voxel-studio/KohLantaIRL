@@ -212,13 +212,13 @@ def render_vote(number: int, **kwargs):
         data[0].append('Total reçu')
         if len(players) > 8:
             for i in range(players_number):
-                data[i + 1][ - 1] = sum(1 for row in data[1 :] if row[1] == data[i + 1][0])
+                data[i + 1][-1] = sum(1 for row in data[1:] if row[1] == data[i + 1][0])
         elif not final:
             for i in range(players_number):
-                data[i + 1][- 1] = sum(1 for row in data[1 :] if row[i + 1] != '')
+                data[i + 1][-1] = sum(1 for row in data[1:] if row[i + 1] != '')
         else:
             for i in range(players_number):
-                data[- 1].append(sum(1 for row in data[1 : - 1] if row[i + 1] != ''))
+                data[-1].append(sum(1 for row in data[1:-1] if row[i + 1] != ''))
 
         table_style = [
             ('BACKGROUND', (0, 0), (-1, 0), '#1e1f22'),
@@ -266,8 +266,8 @@ def render_vote(number: int, **kwargs):
         text = '4. Alliances'
     else:
         text = '3. Alliances'
-paragraph = Paragraph(text, styles['h2'])
-elements.append(paragraph)
+    paragraph = Paragraph(text, styles['h2'])
+    elements.append(paragraph)
 
     text = f"Nombre d'alliances créées à date: {vote_log.alliance_number if vote_log.alliance_number else 'inconnu'}"
     paragraph = Paragraph(text, styles['Normal'])
@@ -276,8 +276,6 @@ elements.append(paragraph)
     if last and number != 1:
         if not vote_log.hidden:
             text = '5. Joueurs éliminés'
-            paragraph = Paragraph(text, styles['h2'])
-            elements.append(paragraph)
         else:
             text = '4. Joueurs éliminés'
         paragraph = Paragraph(text, styles['h2'])
@@ -347,7 +345,7 @@ def render_rules():
         'Une fois éliminé, les personnes ne peuvent plus participer aux votes, ne peuvent plus interagir sur le groupe de discussion général, peuvent interagir sur le groupe des éliminés.',
         'Un système de collier d’immunité a été mis en place. En voici les règles:',
         [
-            'Un smiley :collierimmunite:  est dissimulé quelque part sur le serveur, dans une discussion accessible à tous les joueurs restants, à une date tenue secrète.',
+            'Un smiley :collierimmunite: est dissimulé quelque part sur le serveur, dans une discussion accessible à tous les joueurs restants, à une date tenue secrète.',
             'Toute personne qui trouve le smiley:collierimmunite:  est enjoint à cliquer dessus au plus vite. Ce dernier disparaitra de façon quasi instantanée. Dès à présent, vous êtes détenteur (de façon secrète) du collier d’immunité.',
         ],
         "Le collier d'immunité est utilisé automatiquement après un vote dont vous êtes le perdant, les votes contre vous ne sont alors pas comptabilisés. Ce dispositif ne fonctionne qu’une seule fois. Vous conservez le collier tant qu’il n’a pas servi à vous protéger d’une expulsion par un vote.",
