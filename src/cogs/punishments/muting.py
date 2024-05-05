@@ -5,15 +5,19 @@ from discord import app_commands
 from discord.ext import commands
 
 from config.values import CHANNEL_ID_BOT, COLOR_GREEN
+from utils.control import is_admin
 from utils.logging import get_logger
 from utils.punishments import timeout
-from utils.control import is_admin
 
 logger = get_logger(__name__)
 
 
 class MutingCog(commands.Cog):
+    """Muting commands cog."""
+
     def __init__(self, bot):
+        """Init the cog."""
+
         self.bot = bot
 
     @app_commands.command(name='mute', description='Rendre muet un membre')
@@ -31,6 +35,8 @@ class MutingCog(commands.Cog):
         timedelta: typing.Literal['30s', '60s', '10min', '1h', '12h', '1j', '2j'],
         reason: str = None,
     ):
+        """Mute a member."""
+
         if not is_admin(interaction.user):
             raise commands.MissingPermissions(['Admin'])
         logger.info(
@@ -67,6 +73,8 @@ class MutingCog(commands.Cog):
     @app_commands.describe(member='The member to unmute')
     @app_commands.default_permissions(moderate_members=True)
     async def unmute(self, interaction: discord.Interaction, member: discord.Member):
+        """Unmute a member."""
+
         if not is_admin(interaction.user):
             raise commands.MissingPermissions(['Admin'])
         logger.info(
@@ -83,5 +91,7 @@ class MutingCog(commands.Cog):
 
 
 async def setup(bot):
+    """Setup the cog."""
+
     await bot.add_cog(MutingCog(bot))
     logger.info('Loaded !')

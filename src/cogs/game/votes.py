@@ -1,3 +1,4 @@
+import datetime
 import typing
 
 import discord
@@ -5,25 +6,29 @@ from discord import app_commands
 from discord.ext import commands
 
 import utils.game.votes as vote
-from config.values import COLOR_GREEN, COLOR_ORANGE, CHANNEL_ID_GENERAL
+from config.values import CHANNEL_ID_GENERAL, COLOR_GREEN, COLOR_ORANGE
+from database.votelog import VoteLog
 from utils.bot import bot
 from utils.control import is_admin
 from utils.logging import get_logger
-from utils.models import VoteLog
-import datetime
 
 logger = get_logger(__name__)
 
 
 class VotesCog(commands.Cog):
+    """Votes commands cog."""
 
     def __init__(self, bot):
+        """Init the cog."""
+
         self.bot = bot
 
     @app_commands.command(name='open_vote', description="Ouverture d'un nouveau vote")
     @app_commands.guild_only()
     @app_commands.default_permissions(create_instant_invite=True)
     async def open_vote(self, interaction: discord.Interaction):
+        """Open a new vote."""
+
         if not is_admin(interaction.user):
             raise commands.MissingPermissions(['Admin'])
         logger.info(
@@ -36,6 +41,8 @@ class VotesCog(commands.Cog):
     @app_commands.guild_only()
     @app_commands.default_permissions(create_instant_invite=True)
     async def close_vote(self, interaction: discord.Interaction):
+        """Close the current vote."""
+
         if not is_admin(interaction.user):
             raise commands.MissingPermissions(['Admin'])
         logger.info(
@@ -46,7 +53,7 @@ class VotesCog(commands.Cog):
 
     @app_commands.command(
         name='eliminate',
-        description='Elimine un joueur après le choix du dernier éliminé',
+        description='Elimine un joueur',
     )
     @app_commands.guild_only()
     @app_commands.default_permissions(moderate_members=True)
@@ -56,6 +63,8 @@ class VotesCog(commands.Cog):
         member: discord.Member,
         reason: typing.Literal['After equality', 'Other reason'],
     ):
+        """Eliminate a player."""
+
         await interaction.response.defer()
         if not is_admin(interaction.user):
             raise commands.MissingPermissions(['Admin'])
@@ -73,6 +82,8 @@ class VotesCog(commands.Cog):
     @app_commands.guild_only()
     @app_commands.default_permissions(moderate_members=True)
     async def resurrect(self, interaction: discord.Interaction, member: discord.Member):
+        """Resurrect a player."""
+
         await interaction.response.defer()
         if not is_admin(interaction.user):
             raise commands.MissingPermissions(['Admin'])
@@ -92,6 +103,8 @@ class VotesCog(commands.Cog):
     async def set_finalise(
         self, interaction: discord.Interaction, member: discord.Member
     ):
+        """Set a player as finalist."""
+
         await interaction.response.defer()
         if not is_admin(interaction.user):
             raise commands.MissingPermissions(['Admin'])
@@ -106,11 +119,13 @@ class VotesCog(commands.Cog):
     @app_commands.command(name='dv', description='Dernière volonté. (uniquement en mp)')
     @app_commands.describe(contenu='Contenu du message à envoyer')
     async def last_volontee(self, interaction: discord.Interaction, contenu: str):
+        """Last volontee."""
+
         # TODO modify with multiple eliminated after a unique vote
         await interaction.response.defer(ephemeral=True)
         if isinstance(interaction.channel, discord.DMChannel):
             vote_log = VoteLog(last=True)
-            vote_date = datetime.datetime.strptime(vote_log.date, '%d/%m/%Y %H:%M:%S')
+            vote_date = datetime.datetime.strptime(vote_log.object.date, '%d/%m/%Y %H:%M:%S')
             actual_date = datetime.datetime.now()
             max_date = (vote_date + datetime.timedelta(days=1)).replace(
                 hour=21, minute=0, second=0, microsecond=0
@@ -118,11 +133,11 @@ class VotesCog(commands.Cog):
             not_timeout = actual_date <= max_date
             eliminated_list = [
                 i
-                for i, el in enumerate(vote_log.eliminated)
+                for i, el in enumerate(vote_log.object.eliminated)
                 if el.id == interaction.user.id
             ]
             try:
-                eliminated = vote_log.eliminated[eliminated_list[0]]
+                eliminated = vote_log.object.eliminated.objects[eliminated_list[0]]
                 is_last_eliminate = True
             except IndexError:
                 is_last_eliminate = False
@@ -180,5 +195,7 @@ class VotesCog(commands.Cog):
 
 
 async def setup(bot):
+    """Setup the cog."""
+
     await bot.add_cog(VotesCog(bot))
     logger.info('Loaded !')

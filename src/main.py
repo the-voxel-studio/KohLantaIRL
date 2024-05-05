@@ -7,31 +7,21 @@ import discord
 from discord.ext import commands
 
 from cogs.how_to import AllianceView
-from config.values import (
-    BOT_ID,
-    CHANNEL_ID_BOT,
-    CHANNEL_ID_INSCRIPTION,
-    CHANNEL_ID_VOTE,
-    COLOR_ORANGE,
-    COLOR_RED,
-    EMOJI_ID_COLLIER,
-    EMOJIS_LIST,
-    TOKEN,
-)
+from config.values import (BOT_ID, CHANNEL_ID_BOT, CHANNEL_ID_INSCRIPTION,
+                           CHANNEL_ID_VOTE, COLOR_ORANGE, COLOR_RED,
+                           EMOJI_ID_COLLIER, EMOJIS_LIST, TOKEN)
+from database.game import Game
+from database.player import Player
 from utils.bot import bot
 from utils.game.alliances import purge_empty_alliances
-from utils.game.immuniteCollar import (
-    give_immunite_collar,
-    move_immunite_collar_down,
-)
+from utils.game.immuniteCollar import (give_immunite_collar,
+                                       move_immunite_collar_down)
 from utils.game.players import join
 from utils.game.timer import cancel_timer, start_new_timer
 from utils.game.votes import EqualityView
 from utils.log import send_log, send_logs_file
 from utils.logging import get_logger
-from utils.models import Player, Variables, setup_db_connection
 from utils.punishments import timeout
-
 
 logger = get_logger(__name__)
 
@@ -48,37 +38,35 @@ COGS = [
 
 
 @bot.event
-async def on_ready():
+async def on_ready() -> None:
+    """Lancement du robot"""
+
     for cog in COGS:
         await bot.load_extension(cog)
-    setup_db_connection()
     time = datetime.datetime.now().strftime('%d/%m/%Y **%H:%M**')
-    await purge_empty_alliances()
+    deleted_count = await purge_empty_alliances()
     await start_new_timer()
-    if os_name == 'nt':
-        await send_log(
-            'BOT restarted and ready',
-            ':tools: mode : **DEV**',
-            f':clock: time   : {time}',
-            color='orange',
-        )
-    else:
-        await send_log(
-            'BOT restarted and ready',
-            ':tools: mode : **PRODUCTION**',
-            f':clock: time   : {time}',
-            color='green',
-        )
     await send_logs_file()
     bot.add_view(EqualityView())
     bot.add_view(AllianceView())
     await move_immunite_collar_down()
-    await bot.tree.sync()
+    synced = await bot.tree.sync()
+    await send_log(
+        'BOT restarted and ready',
+        f":tools: mode : **{'DEV' if os_name == 'nt' else 'PRODUCTION'}**",
+        f':clock: time : {time}',
+        f':handshake: empty alliances deleted : **{deleted_count}**',
+        f':dividers: cogs loaded : **{len(COGS)}**',
+        f':control_knobs: app commands : **{len(synced)}**',
+        color=('orange' if os_name == 'nt' else 'green'),
+    )
     logger.info('Bot started and ready.')
 
 
 @bot.event
-async def on_message(message):
+async def on_message(message) -> None:
+    """Gestion des messages"""
+
     await bot.process_commands(
         message
     )  # Execute les commandes, même si le message a été envoyé en DM au robot
@@ -130,7 +118,9 @@ async def on_message(message):
 
 
 @bot.event
-async def on_command_error(ctx, error):
+async def on_command_error(ctx, error) -> None:
+    """Gestion des erreurs de commandes"""
+
     if isinstance(error, commands.errors.CommandNotFound):
         if ctx.message.guild:
             await ctx.message.delete()
@@ -207,7 +197,9 @@ async def on_command_error(ctx, error):
 
 
 @bot.tree.error
-async def on_app_command_error(interaction: discord.Interaction, error):
+async def on_app_command_error(interaction: discord.Interaction, error) -> None:
+    """Gestion des erreurs de commandes d'applications"""
+
     if isinstance(error, discord.app_commands.errors.CommandNotFound):
         logger.warning(
             f'CommandNotFound | Sent by {interaction.user} (id:{interaction.user.id}) | Content: {error}'
@@ -285,7 +277,9 @@ async def on_app_command_error(interaction: discord.Interaction, error):
 
 
 @bot.event
-async def on_raw_reaction_add(payload):
+async def on_raw_reaction_add(payload) -> None:
+    """Gestion des réactions ajoutées aux messages"""
+
     if payload.emoji.name in EMOJIS_LIST:
         emoji = chr(EMOJIS_LIST.index(payload.emoji.name) + 65)
     else:
@@ -300,7 +294,7 @@ async def on_raw_reaction_add(payload):
         msg = await channel.fetch_message(payload.message_id)
         if isinstance(payload.emoji, str) and payload.emoji.id == EMOJI_ID_COLLIER:
             await msg.remove_reaction(payload.emoji, user)
-            if msg.id == Variables.get_immunite_collar_msg_id() and Player(id=user.id).alive:
+            if msg.id == Game.immunite_collar_msg_id and Player(id=user.id).object.alive:
                 await msg.clear_reaction(
                     f'<:collierimmunite:{EMOJI_ID_COLLIER}>'
                 )
@@ -323,7 +317,7 @@ async def on_raw_reaction_add(payload):
                     reason=f"Usage de l'emoji <:collierimmunite:{EMOJI_ID_COLLIER}>",
                 )
         elif channel.id == CHANNEL_ID_VOTE and (
-            not player.exists or not player.alive
+            not player.object._id or not player.object.alive
         ):
             if 'Votant Final' not in [r.name for r in user.roles]:
                 await msg.remove_reaction(payload.emoji, user)
@@ -344,14 +338,15 @@ async def on_raw_reaction_add(payload):
                 await msg.remove_reaction(payload.emoji, user)
 
 
-def signal_handler(sig, frame):
+def signal_handler(sig, frame) -> None:
+    """Gestion de l'interruption du programme"""
+
     logger.warning('Start of shutdown procedure.')
     cancel_timer()
     logger.warning('Complete shutdown procedure.')
     exit()
 
 
-signal.signal(signal.SIGINT, signal_handler)
-
+signal.signal(signal.SIGINT, signal_handler)  # Gestion de l'interruption du programme
 
 bot.run(TOKEN)  # Lancement du robot

@@ -1,15 +1,11 @@
 import discord
 
-from config.values import (
-    CHANNEL_ID_GENERAL,
-    COLOR_GREEN,
-    COLOR_ORANGE,
-    USER_ID_ADMIN,
-    GUILD_ID,
-)
+from config.values import (CHANNEL_ID_GENERAL, COLOR_GREEN, COLOR_ORANGE,
+                           GUILD_ID, USER_ID_ADMIN)
+from database.game import Game
+from database.player import Player
 from utils.bot import bot
 from utils.logging import get_logger
-from utils.models import NewPlayer, Player, Variables
 
 logger = get_logger(__name__)
 
@@ -34,7 +30,7 @@ async def join(message):
     )  # Découpe du texte du contenu en fonciton des espaces
     player = message.author  # Récupère le joueur ayant envoyé la commande
     if (
-        Variables.get_state()
+        Game.state
     ):  # Vérification du statut du jeu : les inscriptions ne doivent pas être closes
         logger.warning(
             f'fn > join > GameAlreadyStarted | Requested by: {message.author} (id:{message.author.id}) | Message: {message.content}'
@@ -47,7 +43,7 @@ async def join(message):
         await player.send(embed=embed)
     elif Player(
         id=player.id
-    ).exists:  # Recherche de l'identifiant unique Discord du joueur pour vérifier qu'il n'est pas déjà inscrit
+    ).object:  # Recherche de l'identifiant unique Discord du joueur pour vérifier qu'il n'est pas déjà inscrit
         logger.warning(
             f'fn > join > PlayerAlreadyJoined | Requested by: {message.author} (id:{message.author.id}) | Message: {message.content}'
         )
@@ -88,11 +84,12 @@ async def join(message):
                 color=COLOR_ORANGE,
             )  # En cas d'erreur (il s'agit d'une commande un peu capricieuse)
             await player.send(embed=embed)
-        new_player = (
-            NewPlayer()
-        )  # Création d'un nouvel objet 'joueur' dans la base de donnée
-        new_player.id = player.id
-        new_player.nickname = nickname
+        data = {
+            'id': player.id,
+            'nickname': nickname,
+            'alive': True,
+        }
+        new_player = Player(data=data)  # Création d'un nouvel objet 'joueur' dans la base de donnée
         new_player.save()  # Enregistrement du joueur dans la base de données
         role = discord.utils.get(
             message.guild.roles, name='Joueur'
@@ -115,6 +112,8 @@ async def join(message):
 
 
 async def reset_roles(*roles) -> None:
+    """Reset the roles of the members."""
+
     logger.info(f'fn > reset_roles > start | Roles: {roles}')
     guild = bot.get_guild(GUILD_ID)
     for role_name in roles:

@@ -4,14 +4,18 @@ from discord.ext import commands
 
 from config.values import (CHANNEL_ID_HELP_ALLIANCE, CHANNEL_ID_INSCRIPTION,
                            COLOR_GREEN)
+from database.game import Game
 from utils.bot import bot
 from utils.game.alliances import new_alliance
 from utils.logging import get_logger
-from utils.models import Variables
 
 
 class AllianceView(discord.ui.View):
+    """Alliance view."""
+
     def __init__(self):
+        """Init the view."""
+
         super().__init__(timeout=None)
 
     @discord.ui.button(
@@ -20,12 +24,18 @@ class AllianceView(discord.ui.View):
         custom_id='new_alliance_btn',
     )
     async def button_callback(self, interaction, button):
+        """Button callback."""
+
         await interaction.response.defer(ephemeral=True)
         await new_alliance(interaction)
 
 
 class HowToCog(commands.Cog):
+    """How-To commands cog."""
+
     def __init__(self, bot):
+        """Init the cog."""
+
         self.bot = bot
 
     @app_commands.command(
@@ -34,6 +44,8 @@ class HowToCog(commands.Cog):
     @app_commands.guild_only()
     @app_commands.default_permissions(create_instant_invite=True)
     async def howto_alliances(self, interaction: discord.Interaction):
+        """Create the How-To of alliances."""
+
         await interaction.response.defer()
         self.channel = self.bot.get_channel(CHANNEL_ID_HELP_ALLIANCE)
         await self.channel.purge(limit=10)
@@ -69,7 +81,7 @@ class HowToCog(commands.Cog):
             description='Cliquez sur le bouton ci-dessous.'
         )
         self.msg = await self.channel.send(embed=self.embed, view=self.view)
-        Variables.set_btn_how_to_alliance_msg_id(self.msg.id)
+        Game.btn_how_to_alliance_msg_id = self.msg.id
         embed = discord.Embed(
             title=":robot: Message d'aide généré :moyai:", color=COLOR_GREEN
         )
@@ -82,6 +94,8 @@ class HowToCog(commands.Cog):
     @app_commands.guild_only()
     @app_commands.default_permissions(create_instant_invite=True)
     async def howto_joining(self, interaction: discord.Interaction):
+        """Create the How-To of joining."""
+
         embed = discord.Embed(
             title='Vous souhaitez nous rejoindre ?',
             description='Vous pouvez dès à présent vous inscrire à la prochaine saison de KohLanta IRL !',
@@ -101,7 +115,7 @@ class HowToCog(commands.Cog):
         )
         embed.add_field(
             name="Le prénom ne doit pas contenir d'espace ou de caractère spécial autre que '-'.",
-            value='Vous avez un prénom composé ? Remplacez les espaces par un caractère '-'.',
+            value="Vous avez un prénom composé ? Remplacez les espaces par un caractère '-'.",
             inline=False,
         )
         embed.set_footer(
@@ -112,6 +126,8 @@ class HowToCog(commands.Cog):
 
 
 async def setup(bot):
+    """Setup the cog."""
+
     logger = get_logger(__name__)
     await bot.add_cog(HowToCog(bot))
     logger.info('Loaded !')

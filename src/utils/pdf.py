@@ -1,4 +1,5 @@
 import html
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -8,9 +9,9 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import (BaseDocTemplate, Frame, PageBreak,
                                 PageTemplate, Paragraph, Table)
 
+from database.player import PlayerList
+from database.votelog import VoteLog
 from utils.logging import get_logger
-from utils.models import Player, VoteLog
-import os
 
 logger = get_logger(__name__)
 
@@ -29,6 +30,8 @@ styles['Normal'].leftIndent = 40
 
 
 def background_canvas(canvas_obj, doc):
+    """Set the background color of the PDF."""
+
     canvas_obj.saveState()
     canvas_obj.setFillColor('#2b2d31')
     canvas_obj.rect(0, 0, A4[0], A4[1], fill=True, stroke=False)
@@ -36,6 +39,8 @@ def background_canvas(canvas_obj, doc):
 
 
 def create_pdf(file_path, vote_number, **kwargs):
+    """Create a PDF file."""
+
     logger.info(
         f'fn > create_pdf > start | file_path: {file_path} | vote_number: {vote_number}'
     )
@@ -68,32 +73,33 @@ def create_pdf(file_path, vote_number, **kwargs):
 
 
 def render_vote(number: int, **kwargs):
+    """Render a vote page."""
 
     logger.info(f'fn > render_vote > start | number: {number} | kwargs: {kwargs}')
 
     final = kwargs.get('final', False)
 
     vote_log = VoteLog(number=number)
-    votes_number = len(vote_log.votes)
+    votes_number = len(vote_log.object.votes)
 
-    players = Player(option='living').list
+    players = PlayerList(alive=True).objects
 
-    votes = {v['voter']: v['for'] for v in vote_log.votes}
+    votes = {v['voter']: v['for'] for v in vote_log.object.votes}
 
-    eliminated_players = Player(option='eliminated').list
+    eliminated_players = PlayerList(alive=False).objects
 
-    eliminated_at_this_vote = vote_log.eliminated
+    eliminated_at_this_vote = vote_log.object.eliminated
     eliminated_at_this_vote_number = len(eliminated_at_this_vote)
 
     if not final:
 
-        in_vote_living_participants = [el for el in eliminated_players if el.get('deathCouncilNumber', 1000) >= number]
+        in_vote_living_participants = [el for el in eliminated_players if el.object.death_council_number >= number]
 
         players.extend(in_vote_living_participants)
 
     players_number = len(players)
-    players__id = [p.get('_id') for p in players]
-    players_username = [p.get('nickname') for p in players]
+    players__id = [p.object._id for p in players]
+    players_username = [p.object.nickname for p in players]
 
     last = kwargs.get('last', False)
     elements = []
@@ -112,7 +118,7 @@ def render_vote(number: int, **kwargs):
     paragraph = Paragraph(text, styles['h2'])
     elements.append(paragraph)
 
-    date = datetime.strptime(vote_log.date, '%d/%m/%Y %H:%M:%S')
+    date = datetime.strptime(vote_log.object.date, '%d/%m/%Y %H:%M:%S')
 
     data = [  # Tout ce qui est en lien avec le tableau du pdf.
         [
@@ -127,9 +133,9 @@ def render_vote(number: int, **kwargs):
             date.strftime('%d/%m/%Y'),
             '17h00',
             date.strftime('%Hh%M'),
-            vote_log.voters_number,
+            vote_log.object.voters_number,
             votes_number,
-            vote_log.cheaters_number,
+            vote_log.object.cheaters_number,
         ],
     ]
     table_style = [
@@ -148,7 +154,7 @@ def render_vote(number: int, **kwargs):
 
     # TODO en cas de vote anonyme, créer tableau qui recense le nombre de votes reçu par chacun sans mentionner les votants
 
-    if not vote_log.hidden:
+    if not vote_log.object.hidden:
         text = '2. Votes exprimés'
         paragraph = Paragraph(text, styles['h2'])
         elements.append(paragraph)
@@ -269,7 +275,7 @@ def render_vote(number: int, **kwargs):
     paragraph = Paragraph(text, styles['h2'])
     elements.append(paragraph)
 
-    text = f"Nombre d'alliances créées à date: {vote_log.alliance_number if vote_log.alliance_number else 'inconnu'}"
+    text = f"Nombre d'alliances créées à date: {vote_log.object.alliance_number if vote_log.object.alliance_number else 'inconnu'}"
     paragraph = Paragraph(text, styles['Normal'])
     elements.append(paragraph)
 
@@ -282,12 +288,12 @@ def render_vote(number: int, **kwargs):
         elements.append(paragraph)
 
         data = [['Pseudo', 'Discord id', 'Eliminé au vote n°']]
-        for p in sorted(eliminated_players, key=lambda x: x['deathCouncilNumber']):
+        for p in sorted(eliminated_players, key=lambda x: x.object.death_council_number):
             data.append(
                 [
-                    p.get('nickname', 'unknown'),
-                    p.get('id', 'unknown'),
-                    p.get('deathCouncilNumber', 'unknown')
+                    p.object.nickname,
+                    p.object.id,
+                    p.object.death_council_number
                 ]
             )  # [ ] vote count
 
@@ -313,6 +319,8 @@ def render_vote(number: int, **kwargs):
 
 
 def render_rules():
+    """Render the rules page."""
+
     logger.info('fn > render_rules > start')
     elements = []
 
@@ -378,6 +386,8 @@ def render_rules():
 
 
 def generate(vote_number, **kwargs) -> str:
+    """Generate a PDF file."""
+
     vote_number = 50 if vote_number > 50 else vote_number
     logger.info(f'fn > generate > start | vote_number: {vote_number}')
     name = f'KohLantaVote{str(vote_number)}.pdf'

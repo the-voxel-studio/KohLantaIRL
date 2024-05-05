@@ -1,21 +1,24 @@
-from utils.models import Player, NewAlliance, Alliance
-from utils.logging import get_logger
-from utils.bot import bot
-
-from config.values import GUILD_ID, CATEGORIE_ID_ALLIANCES, COLOR_GREEN, COLOR_ORANGE
-
 import discord
+
+from config.values import (CATEGORIE_ID_ALLIANCES, COLOR_GREEN, COLOR_ORANGE,
+                           GUILD_ID)
+from database.alliance import Alliance
+from database.player import Player
+from utils.bot import bot
+from utils.logging import get_logger
 
 logger = get_logger(__name__)
 
 
 async def new_alliance(interaction: discord.Interaction):
+    """Create a new alliance for the player."""
+
     player = Player(id=interaction.user.id)
     channel_name = 'new_channel_' + '_'.join(interaction.user.nick.lower().split(' '))
     same_named_alliance_by_channels = discord.utils.get(
         interaction.guild.channels, name=channel_name
     )
-    if not player.alive:
+    if not player.object.alive:
         logger.warning(
             f'EliminatedPlayer | Sent by {interaction.user} (id:{interaction.user.id}) | Attempted to use the command: /alliance'
         )
@@ -43,27 +46,29 @@ async def new_alliance(interaction: discord.Interaction):
             f'New alliance creation started | Requested by {interaction.user} (id:{interaction.user.id}).'
         )
         same_named_alliance_by_db = Alliance(name=channel_name)
-        if same_named_alliance_by_db.exists:
-            same_named_alliance_by_db.delete(interaction.user)
+        if same_named_alliance_by_db.object:
+            same_named_alliance_by_db.delete()
         general_guild = bot.get_guild(GUILD_ID)
-        guild = discord.utils.get(general_guild.categories, id=CATEGORIE_ID_ALLIANCES)
+        guild: discord.CategoryChannel = discord.utils.get(general_guild.categories, id=CATEGORIE_ID_ALLIANCES)
         overwrites = {
             general_guild.default_role: discord.PermissionOverwrite(
                 read_messages=False
             ),
             interaction.user: discord.PermissionOverwrite(read_messages=True),
         }
-        new_text_channel = await guild.create_text_channel(
+        new_text_channel: discord.TextChannel = await guild.create_text_channel(
             channel_name, overwrites=overwrites
         )
-        new_voice_channel = await guild.create_voice_channel(
+        new_voice_channel: discord.VoiceChannel = await guild.create_voice_channel(
             channel_name, overwrites=overwrites
         )
-        new_alliance = NewAlliance()
-        new_alliance.text_id = new_text_channel.id
-        new_alliance.voice_id = new_voice_channel.id
-        new_alliance.name = channel_name
-        new_alliance.creator = player._id
+        new_alliance_data = {
+            'text_id': new_text_channel.id,
+            'voice_id': new_voice_channel.id,
+            'name': channel_name,
+            'members': [player.object._id],
+        }
+        new_alliance = Alliance(data=new_alliance_data)
         new_alliance.save()
         embed = discord.Embed(
             title=':robot: ✏️ Renomme ton alliance dès maintenant ! :moyai:',
@@ -76,7 +81,7 @@ async def new_alliance(interaction: discord.Interaction):
         await new_text_channel.send(embed=embed)
         embed = discord.Embed(
             title=':robot: Nouvelle alliance :moyai:',
-            description=":white_check_mark: L'alliance {channel_name} a bien été créée : rendez-vous ici <#{new_text_channel.id}> pour la renommer !",
+            description=f":white_check_mark: L'alliance {channel_name} a bien été créée : rendez-vous ici <#{new_text_channel.id}> pour la renommer !",
             color=COLOR_GREEN,
         )
         embed.set_footer(
@@ -91,27 +96,34 @@ async def new_alliance(interaction: discord.Interaction):
 async def close_alliance(
     txt_channel_id: discord.TextChannel.id, user: discord.User = None
 ):
+    """Close the alliance for the player."""
+
     logger.info(
         f'fn > Alliance Close > start | Requested by {user} (id:{user.id}) | Alliance text channel id: {txt_channel_id}'
     )
     alliance = Alliance(text_id=txt_channel_id)
-    text_channel = bot.get_channel(alliance.text_id)
-    voice_channel = bot.get_channel(alliance.voice_id)
+    text_channel = bot.get_channel(alliance.object.text_id)
+    voice_channel = bot.get_channel(alliance.object.voice_id)
     await text_channel.delete()
     await voice_channel.delete()
-    alliance.close(user)
+    alliance.close()
     logger.info(
-        f'fn > Alliance Close > OK | Requested by {user} (id:{user.id}) | Alliance text channel id: {txt_channel_id} | Alliance voice channel id: {alliance.voice_id}'
+        f'fn > Alliance Close > OK | Requested by {user} (id:{user.id}) | Alliance text channel id: {txt_channel_id} | Alliance voice channel id: {alliance.object.voice_id}'
     )
 
 
-async def purge_empty_alliances():
+async def purge_empty_alliances() -> int:
+    """Purge empty alliances."""
+
     logger.info('fn > Empty Alliances Purge > start')
-    Alliance().purge_empty_alliances()
+    deleted_count = Alliance(_id=0).purge_empty_alliances()
     logger.info('fn > Empty Alliances Purge > OK')
+    return deleted_count
 
 
 async def purge_alliances(interaction: discord.Interaction = None):
+    """Purge all alliances."""
+
     logger.info('fn > Alliances Purge > start')
     category = bot.get_channel(CATEGORIE_ID_ALLIANCES)
     for channel in category.channels:

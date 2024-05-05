@@ -16,6 +16,7 @@ def run_flake8(directory, exclude=[]):
     try:
         subprocess.run(command, check=True)
         print('Flake8 a été exécuté avec succès.')
+
     except subprocess.CalledProcessError:
         print("Au moins une erreur lors de l'exécution de Flake8.")
 

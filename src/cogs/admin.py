@@ -1,19 +1,18 @@
 import typing
-from os import system, name as os_name
+from os import name as os_name
+from os import system
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 
 from config.values import (  # OBLIGATOIRES (utilisation de la fonction eval)
-    CHANNEL_ID_BOT_LOGS,
-    COLOR_GREEN,
-    COLOR_ORANGE,  # used by a eval() function
-    COLOR_RED,  # used by a eval() function
-)
+    CHANNEL_ID_BOT_LOGS, COLOR_GREEN, COLOR_ORANGE, COLOR_RED)
+from utils.control import is_admin
 from utils.log import send_log, send_logs_file
 from utils.logging import get_logger
-from utils.control import is_admin
+
+from database.player import PlayerList
 
 logger = get_logger(__name__)
 
@@ -36,6 +35,7 @@ class AdminCog(commands.Cog):
         content: str,
         color: typing.Literal['green', 'orange', 'red'],
     ):
+        """Send a message from Denis Brogniart."""
 
         if not is_admin(interaction.user):
             raise commands.MissingPermissions(['Admin'])
@@ -49,7 +49,7 @@ class AdminCog(commands.Cog):
         self.embed.set_author(
             name=interaction.user.display_name,
             icon_url=interaction.user.avatar.url
-            )
+        )
         self.embed.set_footer(text='Ce message est envoyé par un administrateur.')
         await channel.send(embed=self.embed)
         await interaction.response.send_message(
@@ -62,6 +62,8 @@ class AdminCog(commands.Cog):
     @app_commands.guild_only()
     @app_commands.default_permissions(create_instant_invite=True)
     async def reboot(self, interaction: discord.Interaction):
+        """Reboot the server."""
+
         if not is_admin(interaction.user):
             raise commands.MissingPermissions(['Admin'])
         if os_name == 'posix':
@@ -86,6 +88,8 @@ class AdminCog(commands.Cog):
     @app_commands.guild_only()
     @app_commands.default_permissions(create_instant_invite=True)
     async def shutdown(self, interaction: discord.Interaction):
+        """Shutdown the server."""
+
         if not is_admin(interaction.user):
             raise commands.MissingPermissions(['Admin'])
         if os_name == 'posix':
@@ -108,6 +112,8 @@ class AdminCog(commands.Cog):
     @app_commands.guild_only()
     @app_commands.default_permissions(create_instant_invite=True)
     async def logs(self, interaction: discord.Interaction):
+        """Send the logs file."""
+
         logger.info(
             f'Send Logs File > start | requested by: {interaction.user} (id:{interaction.user.id})'
         )
@@ -132,6 +138,8 @@ class AdminCog(commands.Cog):
     @app_commands.guild_only()
     @app_commands.default_permissions(manage_messages=True)
     async def clear(self, interaction: discord.Interaction, amount: int):
+        """Clear a certain number of messages."""
+
         logger.info(
             f'Partial channel clearing | Requested by {interaction.user} (id:{interaction.user.id}) | Number: {amount} | Channel id: {interaction.channel.id}'
         )
@@ -140,6 +148,8 @@ class AdminCog(commands.Cog):
     @app_commands.command(name='ping', description='To verify bot connection')
     @app_commands.default_permissions(manage_messages=True)
     async def ping(self, interaction: discord.Interaction):
+        """Ping-Pong command."""
+
         logger.info(
             f'Ping-Pong | requested by: {interaction.user} (id:{interaction.user.id})'
         )
@@ -153,6 +163,8 @@ class AdminCog(commands.Cog):
     )
     @app_commands.default_permissions(manage_messages=True)
     async def tree_sync(self, interaction: discord.Interaction):
+        """Force the command tree synchronisation."""
+
         logger.info(
             f'Bot tree synchronisation > start | Requested by {interaction.user} (id:{interaction.user.id})'
         )
@@ -172,7 +184,44 @@ class AdminCog(commands.Cog):
             f'Bot tree synchronisation > OK | Requested by {interaction.user} (id:{interaction.user.id}) | Commands: {commands_list}'
         )
 
+    @app_commands.command(
+        name='player_infos',
+        description='Affiche les infos des joueurs'
+    )
+    @app_commands.default_permissions(manage_messages=True)
+    async def player_infos(self, interaction: discord.Interaction):
+        """Display players infos."""
+
+        logger.info(
+            f'Player infos | Requested by {interaction.user} (id:{interaction.user.id})'
+        )
+        players = PlayerList()
+        self.embed = discord.Embed(
+            title=':robot: Informations joueurs :moyai:',
+            description=f'Informations sans spoil sur les joueurs.\nNombre de joueurs: **{len(players.objects)}**',
+            color=COLOR_GREEN,
+        )
+        for player in players.objects:
+            self.embed.add_field(
+                name=f':bust_in_silhouette: {player.object.nickname}',
+                value=f"""
+                    - Discord: <@{player.object.id}>
+                    \n- Id: `{player.object.id}`
+                    \n- Vivant: {':white_check_mark:' if player.object.alive else ':cross_mark:'}
+                    \n- Lettre: `{player.object.letter if player.object.letter else 'N/A'}`
+                    \n- Conseil d'élimination: `{player.object.death_council_number}`
+                    \n- Dernier souhait exprimé: {':white_check_mark:' if player.object.last_wish_expressed else ':cross_mark:'}
+                """,
+                inline=False
+            )
+        self.embed.set_footer(
+            text='Cette liste est strictement confidentielle et son accès est réservé aux administrateurs du serveur.'
+        )
+        await interaction.response.send_message(embed=self.embed)
+
 
 async def setup(bot):
+    """Setup the cog."""
+
     await bot.add_cog(AdminCog(bot))
     logger.info('Loaded !')

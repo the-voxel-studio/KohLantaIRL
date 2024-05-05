@@ -2,22 +2,29 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from utils.logging import get_logger
-from utils.control import is_admin
-from utils.game.immuniteCollar import send_immunite_collar, reset_immunite_collar
 from config.values import COLOR_GREEN
+from utils.control import is_admin
+from utils.game.immuniteCollar import (reset_immunite_collar,
+                                       send_immunite_collar)
+from utils.logging import get_logger
 
 logger = get_logger(__name__)
 
 
 class ImmuniteCollarCog(commands.Cog):
+    """Immunite Collar commands cog."""
+
     def __init__(self, bot):
+        """Init the cog."""
+
         self.bot = bot
 
     @app_commands.command(name='send_immunite_collar', description="Envoi du collier d'immunité")
     @app_commands.guild_only()
     @app_commands.default_permissions(create_instant_invite=True)
     async def send_immunite_collar(self, interaction: discord.Interaction):
+        """Send the immunite collar to a player."""
+
         if not is_admin(interaction.user):
             raise commands.MissingPermissions(['Admin'])
         await interaction.response.defer()
@@ -34,6 +41,8 @@ class ImmuniteCollarCog(commands.Cog):
     @app_commands.guild_only()
     @app_commands.default_permissions(create_instant_invite=True)
     async def reset_immunite_collar(self, interaction: discord.Interaction):
+        """Reset the immunite collar."""
+
         if not is_admin(interaction.user):
             raise commands.MissingPermissions(['Admin'])
         await interaction.response.defer()
@@ -48,5 +57,7 @@ class ImmuniteCollarCog(commands.Cog):
 
 
 async def setup(bot):
+    """Setup the cog."""
+
     await bot.add_cog(ImmuniteCollarCog(bot))
     logger.info('Loaded !')

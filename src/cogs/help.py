@@ -9,12 +9,18 @@ logger = get_logger(__name__)
 
 
 class HelpCog(commands.Cog):
+    """Help commands cog."""
+
     def __init__(self, bot):
+        """Init the cog."""
+
         self.bot = bot
 
     @app_commands.command(name='help', description='Commands infos')
     @app_commands.guild_only()
     async def help(self, interaction: discord.Interaction, command: str = None):
+        """Get the commands infos."""
+
         if command is not None:
             for c in bot.tree.get_commands():
                 if c.name == command:
@@ -53,5 +59,7 @@ class HelpCog(commands.Cog):
 
 
 async def setup(bot):
+    """Setup the cog."""
+
     await bot.add_cog(HelpCog(bot))
     logger.info('Loaded !')

@@ -3,19 +3,26 @@ from discord import app_commands
 from discord.ext import commands
 
 from config.values import COLOR_GREEN, COLOR_ORANGE
+from database.alliance import Alliance
+from database.player import Player
 from utils.bot import bot
-from utils.logging import get_logger
-from utils.models import Alliance, Player
 from utils.game.alliances import close_alliance, purge_alliances
+from utils.logging import get_logger
 
 logger = get_logger(__name__)
 
 
 class AlliancesCog(commands.Cog):
+    """Alliances commands cog."""
+
     def __init__(self, bot):
+        """Init the cog."""
+
         self.bot = bot
 
     async def id_renamed(self, interaction: discord.Interaction):
+        """Check if the alliance has been renamed."""
+
         self.first_name = 'new_channel_' + '_'.join(
             interaction.user.nick.lower().split(' ')
         )
@@ -24,13 +31,16 @@ class AlliancesCog(commands.Cog):
     @app_commands.command(name='nom', description='Renommer une alliance')
     @app_commands.guild_only()
     async def rename(self, interaction: discord.Interaction, nouveau_nom: str):
+        """Rename an alliance."""
+
         logger.info(
             f'Alliance renaming > start | Requested by {interaction.user} (id:{interaction.user.id}) | New name: {nouveau_nom} | Alliance text channel id: {interaction.channel.id}'
         )
         await interaction.response.defer()
         alliance = Alliance(text_id=interaction.channel.id)
-        alliance.rename(nouveau_nom)
-        voice_channel = bot.get_channel(alliance.voice_id)
+        alliance.object.name = nouveau_nom
+        alliance.save()
+        voice_channel = bot.get_channel(alliance.object.voice_id)
         await interaction.channel.edit(name=nouveau_nom)
         await voice_channel.edit(name=nouveau_nom)
         logger.info(
@@ -46,6 +56,8 @@ class AlliancesCog(commands.Cog):
     )
     @app_commands.guild_only()
     async def ajouter(self, interaction: discord.Interaction, user: discord.Member):
+        """Add a member to an alliance."""
+
         logger.info(
             f'New alliance member addition started | Requested by {interaction.user} (id:{interaction.user.id}) | Alliance text channel id: {interaction.channel.id}'
         )
@@ -53,7 +65,7 @@ class AlliancesCog(commands.Cog):
         player = Player(id=user.id)
         if not await self.id_renamed(interaction):
             logger.warning(
-                f'NewAllianceNotRenamed | Requested by {interaction.user} (id:{interaction.user.id}) | New member: {player} (id:{user.id}) | Alliance text channel id: {interaction.channel.id}'
+                f'NewAllianceNotRenamed | Requested by {interaction.user} (id:{interaction.user.id}) | New member: {player.object.nickname} (id:{user.id}) | Alliance text channel id: {interaction.channel.id}'
             )
             embed = discord.Embed(
                 title=':robot: Action impossible :moyai:',
@@ -65,16 +77,16 @@ class AlliancesCog(commands.Cog):
                 value="Il suffit d'utiliser la commande `/nom` dans le champ de texte ci-desous. Tapez simplement / et la commande vous  sera proposée.",
             )
             await interaction.followup.send(embed=embed)
-        elif player.alive:
+        elif player.object.alive:
             alliance = Alliance(text_id=interaction.channel.id)
             perms = interaction.channel.overwrites_for(user)
             perms.read_messages = True
             await interaction.channel.set_permissions(user, overwrite=perms)
-            voice_channel = bot.get_channel(alliance.voice_id)
+            voice_channel = bot.get_channel(alliance.object.voice_id)
             perms = voice_channel.overwrites_for(user)
             perms.read_messages = True
             await voice_channel.set_permissions(user, overwrite=perms)
-            alliance.add_member(player._id)
+            alliance.add_member(player)
             embed = discord.Embed(
                 title=':robot: Nouvelle alliance :moyai:',
                 description=f":new: Vous avez été ajouté à l'alliance <#{interaction.channel.id}> par <@{interaction.user.id}> !",
@@ -88,12 +100,12 @@ class AlliancesCog(commands.Cog):
             )
             await interaction.followup.send(embed=embed)
             logger.info(
-                f'New alliance member added | Requested by {interaction.user} (id:{interaction.user.id}) | New member: {player} (id:{user.id}) | Alliance text channel id: {interaction.channel.id}'
+                f'New alliance member added | Requested by {interaction.user} (id:{interaction.user.id}) | New member: {player.object.nickname} (id:{user.id}) | Alliance text channel id: {interaction.channel.id}'
             )
 
         else:
             logger.warning(
-                f'NewAllianceMemberNotAlive | Requested by {interaction.user} (id:{interaction.user.id}) | New member: {player} (id:{user.id}) | Alliance text channel id: {interaction.channel.id}'
+                f'NewAllianceMemberNotAlive | Requested by {interaction.user} (id:{interaction.user.id}) | New member: {player.object.nickname} (id:{user.id}) | Alliance text channel id: {interaction.channel.id}'
             )
             embed = discord.Embed(
                 title=':robot: Action impossible :moyai:',
@@ -105,6 +117,8 @@ class AlliancesCog(commands.Cog):
     @app_commands.command(name='dissoudre', description='Dissoudre une alliance')
     @app_commands.guild_only()
     async def dissolve(self, interaction: discord.Interaction):
+        """Dissolve an alliance."""
+
         logger.info(
             f'Alliance dissolution > start | Requested by {interaction.user} (id:{interaction.user.id}) | Alliance text channel id: {interaction.channel.id}'
         )
@@ -115,6 +129,8 @@ class AlliancesCog(commands.Cog):
     @app_commands.guild_only()
     @app_commands.default_permissions(manage_messages=True)
     async def purge_alliances(self, interaction: discord.Interaction):
+        """Purge all alliances."""
+
         # TODO add alliance deletion in db
         logger.info(
             f'Alliances purge | Requested by {interaction.user} (id:{interaction.user.id})'
@@ -127,6 +143,8 @@ class AlliancesCog(commands.Cog):
     )
     @app_commands.guild_only()
     async def expulser(self, interaction: discord.Interaction, member: discord.Member):
+        """Remove a member from an alliance."""
+
         logger.info(
             f'Alliance member removing started | Requested by {interaction.user} (id:{interaction.user.id}) | Member: {member} (id:{member.id}) | Alliance text channel id: {interaction.channel.id}'
         )
@@ -134,8 +152,8 @@ class AlliancesCog(commands.Cog):
         player = Player(id=member.id)
         alliance = Alliance(text_id=interaction.channel.id)
         await interaction.channel.set_permissions(member, overwrite=None)
-        await bot.get_channel(alliance.voice_id).set_permissions(member, overwrite=None)
-        alliance.remove_member(player._id)
+        await bot.get_channel(alliance.object.voice_id).set_permissions(member, overwrite=None)
+        alliance.remove_member(player)
         embed = discord.Embed(
             title=":robot: Expulsion d'une alliance :moyai:",
             description=f":warning: Vous avez été supprimé de l'alliance *{interaction.channel.name}* par <@{interaction.user.id}> !",
@@ -154,5 +172,7 @@ class AlliancesCog(commands.Cog):
 
 
 async def setup(bot):
+    """Setup the cog."""
+
     await bot.add_cog(AlliancesCog(bot))
     logger.info('Loaded !')
