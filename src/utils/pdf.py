@@ -154,7 +154,7 @@ def render_vote(number: int, **kwargs):
 
     # TODO en cas de vote anonyme, créer tableau qui recense le nombre de votes reçu par chacun sans mentionner les votants
 
-    if not vote_log.hidden:
+    if not vote_log.object.hidden:
         text = '2. Votes exprimés'
         paragraph = Paragraph(text, styles['h2'])
         elements.append(paragraph)

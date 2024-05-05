@@ -1,15 +1,17 @@
 import asyncio
 import datetime
+import random
 from os import system
 from threading import Timer
-import random
+
 import utils.game.votes as vote
 from database.game import Game
 from database.votelog import get_council_number
 from utils.bot import bot
+from utils.game.immuniteCollar import send_immunite_collar
 from utils.log import send_log
 from utils.logging import get_logger
-from utils.game.immuniteCollar import send_immunite_collar
+
 logger = get_logger(__name__)
 timer_thread = None
 
