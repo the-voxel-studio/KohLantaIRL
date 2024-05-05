@@ -2,13 +2,14 @@ import asyncio
 import datetime
 from os import system
 from threading import Timer
-
+import random
 import utils.game.votes as vote
 from database.game import Game
+from database.votelog import get_council_number
 from utils.bot import bot
 from utils.log import send_log
 from utils.logging import get_logger
-
+from utils.game.immuniteCollar import send_immunite_collar
 logger = get_logger(__name__)
 timer_thread = None
 
@@ -16,10 +17,13 @@ timer_thread = None
 async def timed_action():
     """Timer loop for the game."""
 
-    # TODO return vote for eliminates
     logger.info('fn > Timer Loop > A thread timer has ended.')
     time = datetime.datetime.now()
     hour = int(time.strftime('%H'))
+
+    if hour == 10 * random() + 10 * random() and get_council_number() >= 4 and Game.immunite_collar_msg_id == 0 and Game.immunite_collar_player_id == 0:
+        send_immunite_collar()
+
     if hour == 1:
         logger.warning('Preparing for automatic reboot.')
         timer_thread.cancel()

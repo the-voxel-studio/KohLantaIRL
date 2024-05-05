@@ -19,6 +19,7 @@ logger.info('Setup running...')
 DIRNAME = Path(__file__).parent.parent.parent
 styles = getSampleStyleSheet()
 styles['Title'].textColor = colors.whitesmoke
+styles['h1'].textColor = colors.red
 styles['h2'].textColor = colors.whitesmoke
 styles['h3'].textColor = colors.whitesmoke
 styles['Normal'].textColor = colors.whitesmoke
@@ -108,13 +109,18 @@ def render_vote(number: int, **kwargs):
     title_paragraph = Paragraph(title, title_style)
     elements.append(title_paragraph)
 
+    if vote_log.hidden:
+        text = 'Ce vote était anonyme'
+        paragraph = Paragraph(text, styles['h1'])
+        elements.append(paragraph)
+
     text = '1. Vote'
     paragraph = Paragraph(text, styles['h2'])
     elements.append(paragraph)
 
     date = datetime.strptime(vote_log.object.date, '%d/%m/%Y %H:%M:%S')
 
-    data = [
+    data = [  # Tout ce qui est en lien avec le tableau du pdf.
         [
             'Date',
             'Ouverture',
@@ -146,102 +152,108 @@ def render_vote(number: int, **kwargs):
     table = Table(data, style=table_style, hAlign='LEFT')
     elements.append(table)
 
-    text = '2. Votes exprimés'
-    paragraph = Paragraph(text, styles['h2'])
-    elements.append(paragraph)
+    # TODO en cas de vote anonyme, créer tableau qui recense le nombre de votes reçu par chacun sans mentionner les votants
 
-    text = 'A lire comme suit:'
-    custom_style = getSampleStyleSheet()['Normal']
-    custom_style.textColor = colors.whitesmoke
-    custom_style.spaceBefore = 20
-    last_bullet_style = getSampleStyleSheet()['Normal']
-    last_bullet_style.textColor = colors.whitesmoke
-    last_bullet_style.spaceAfter = 10
-    last_bullet_style.bulletIndent = 25
-    last_bullet_style.leftIndent = 40
-    elements.append(Paragraph(text, custom_style))
-    text = html.escape('<ligne> à voté pour <colonne> à <horaire>')
-    elements.append(Paragraph(text, styles['Normal'], bulletText='-'))
-    if not final:
-        text = html.escape('<ligne> a reçu au total <total reçu> vote(s)')
-    else:
-        text = html.escape('<colonne> a reçu au total <total reçu> vote(s)')
-    elements.append(Paragraph(text, last_bullet_style, bulletText='-'))
+    if not vote_log.hidden:
+        text = '2. Votes exprimés'
+        paragraph = Paragraph(text, styles['h2'])
+        elements.append(paragraph)
 
-    data = [['Pseudo']]
+        text = 'A lire comme suit:'
+        custom_style = getSampleStyleSheet()['Normal']
+        custom_style.textColor = colors.whitesmoke
+        custom_style.spaceBefore = 20
+        last_bullet_style = getSampleStyleSheet()['Normal']
+        last_bullet_style.textColor = colors.whitesmoke
+        last_bullet_style.spaceAfter = 10
+        last_bullet_style.bulletIndent = 25
+        last_bullet_style.leftIndent = 40
+        elements.append(Paragraph(text, custom_style))
+        text = html.escape('<ligne> à voté pour <colonne> à <horaire>')
+        elements.append(Paragraph(text, styles['Normal'], bulletText='-'))
+        if not final:
+            text = html.escape('<ligne> a reçu au total <total reçu> vote(s)')
+        else:
+            text = html.escape('<colonne> a reçu au total <total reçu> vote(s)')
+        elements.append(Paragraph(text, last_bullet_style, bulletText='-'))
 
-    if len(players) > 8:
-        data[0].append('A voté pour')
-        for p in players:
-            voter__id = p.object._id
-            if voter__id in votes:
-                middle_content = players_username[players__id.index(votes[voter__id])]
-            else:
-                middle_content = ''
-            data.append([
-                p.object.nickname,
-                middle_content,
-                '',
-                ''
+        data = [['Pseudo']]
+
+        if len(players) > 8:
+            data[0].append('A voté pour')
+            for p in players:
+                voter__id = p['_id']
+                if voter__id in votes:
+                    middle_content = players_username[players__id.index(votes[voter__id])]
+                else:
+                    middle_content = ''
+                data.append([
+                    p.get('nickname', 'unknown'),
+                    middle_content,
+                    '',
+                    ''
+                ])
+        elif not final:
+            for p in players:
+                data[0].append(p.get('nickname', 'unknown'))
+                middle_content = ['' for i in range(players_number + 1)]
+                voter__id = p['_id']
+                if voter__id in votes:
+                    vote_column = players__id.index(votes[voter__id])
+                    middle_content[vote_column] = 'X'
+                data.append([p.get('nickname', 'unknown')] + middle_content + [0])
+        else:
+            for p in players:
+                data[0].append(p.get('nickname', 'unknown'))
+            for ep in eliminated_players:
+                middle_content = ['' for i in range(players_number + 1)]
+                voter__id = ep['_id']
+                if voter__id in votes:
+                    vote_column = players__id.index(votes[voter__id])
+                    middle_content[vote_column] = 'X'
+                data.append([ep.get('nickname', 'unknown')] + middle_content)
+        # [ ] vote hour
+        data[0].append('Horaire')
+
+        data[0].append('Total reçu')
+        if len(players) > 8:
+            for i in range(players_number):
+                data[i + 1][-1] = sum(1 for row in data[1:] if row[1] == data[i + 1][0])
+        elif not final:
+            for i in range(players_number):
+                data[i + 1][-1] = sum(1 for row in data[1:] if row[i + 1] != '')
+        else:
+            for i in range(players_number):
+                data[-1].append(sum(1 for row in data[1:-1] if row[i + 1] != ''))
+
+        table_style = [
+            ('BACKGROUND', (0, 0), (-1, 0), '#1e1f22'),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+            ('ALIGN', (1, 1), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('TOPPADDING', (0, 0), (-1, 0), 6),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+            ('BACKGROUND', (0, 1), (-1, -1), '#2ecc71'),
+            ('GRID', (0, 0), (-1, -1), 1, '#2b2d31'),
+        ]
+        if final:
+            table_style.extend([
+                ('BACKGROUND', (0, -1), (-2, -1), '#1e1f22'),
+                ('TEXTCOLOR', (0, -1), (-2, -1), colors.whitesmoke),
+                ('ALIGN', (0, -1), (-2, -1), 'CENTER'),
+                ('FONTNAME', (0, -1), (-2, -1), 'Helvetica-Bold'),
+                ('TOPPADDING', (0, -1), (-2, -1), 6),
+                ('BOTTOMPADDING', (0, -1), (-2, -1), 6),
+                ('BACKGROUND', (-1, -1), (-1, -1), '#2b2d31'),
             ])
-    elif not final:
-        for p in players:
-            data[0].append(p.object.nickname)
-            middle_content = ['' for i in range(players_number + 1)]
-            voter__id = p.object._id
-            if voter__id in votes:
-                vote_column = players__id.index(votes[voter__id])
-                middle_content[vote_column] = 'X'
-            data.append([p.object.nickname] + middle_content + [0])
+        table = Table(data, style=table_style, hAlign='LEFT')
+        elements.append(table)
+
+    if not vote_log.hidden:
+        text = f"3. Elimination{'s' if eliminated_at_this_vote_number>1 else ''}" if not final else '2. Victoire'  # Juste pour changer le chiffre
     else:
-        for p in players:
-            data[0].append(p.object.nickname)
-        for ep in eliminated_players:
-            middle_content = ['' for i in range(players_number + 1)]
-            voter__id = ep.object._id
-            if voter__id in votes:
-                vote_column = players__id.index(votes[voter__id])
-                middle_content[vote_column] = 'X'
-            data.append([ep.object.nickname] + middle_content)
-    # [ ] vote hour
-    data[0].append('Horaire')
-
-    data[0].append('Total reçu')
-    if len(players) > 8:
-        for i in range(players_number):
-            data[i + 1][-1] = sum(1 for row in data[1:] if row[1] == data[i + 1][0])
-    elif not final:
-        for i in range(players_number):
-            data[i + 1][-1] = sum(1 for row in data[1:] if row[i + 1] != '')
-    else:
-        for i in range(players_number):
-            data[-1].append(sum(1 for row in data[1:-1] if row[i + 1] != ''))
-
-    table_style = [
-        ('BACKGROUND', (0, 0), (-1, 0), '#1e1f22'),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-        ('ALIGN', (1, 1), (-1, -1), 'LEFT'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('TOPPADDING', (0, 0), (-1, 0), 6),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
-        ('BACKGROUND', (0, 1), (-1, -1), '#2ecc71'),
-        ('GRID', (0, 0), (-1, -1), 1, '#2b2d31'),
-    ]
-    if final:
-        table_style.extend([
-            ('BACKGROUND', (0, -1), (-2, -1), '#1e1f22'),
-            ('TEXTCOLOR', (0, -1), (-2, -1), colors.whitesmoke),
-            ('ALIGN', (0, -1), (-2, -1), 'CENTER'),
-            ('FONTNAME', (0, -1), (-2, -1), 'Helvetica-Bold'),
-            ('TOPPADDING', (0, -1), (-2, -1), 6),
-            ('BOTTOMPADDING', (0, -1), (-2, -1), 6),
-            ('BACKGROUND', (-1, -1), (-1, -1), '#2b2d31'),
-        ])
-    table = Table(data, style=table_style, hAlign='LEFT')
-    elements.append(table)
-
-    text = f"3. Elimination{'s' if eliminated_at_this_vote_number>1 else ''}" if not final else '3. Victoire'
+        text = f"2. Elimination{'s' if eliminated_at_this_vote_number>1 else ''}" if not final else '2. Victoire'  # Juste pour changer le chiffre
     paragraph = Paragraph(text, styles['h2'])
     elements.append(paragraph)
 
@@ -256,7 +268,10 @@ def render_vote(number: int, **kwargs):
     paragraph = Paragraph(text, styles['Normal'])
     elements.append(paragraph)
 
-    text = '4. Alliances'
+    if not vote_log.hidden:
+        text = '4. Alliances'
+    else:
+        text = '3. Alliances'
     paragraph = Paragraph(text, styles['h2'])
     elements.append(paragraph)
 
@@ -265,7 +280,10 @@ def render_vote(number: int, **kwargs):
     elements.append(paragraph)
 
     if last and number != 1:
-        text = '5. Joueurs éliminés'
+        if not vote_log.hidden:
+            text = '5. Joueurs éliminés'
+        else:
+            text = '4. Joueurs éliminés'
         paragraph = Paragraph(text, styles['h2'])
         elements.append(paragraph)
 
@@ -317,7 +335,7 @@ def render_rules():
     content = """
         Un vote est organisé tous les deux jours sur le présent serveur Discord , la personne recueillant le plus de voix est éliminée du jeu.<br />
         L'objectif est d'être le dernier joueur en jeu.<br />
-        Tout est autorisé : traîtrises, alliances etc, faites vous plaisir !'
+        Tout est autorisé: traîtrises, alliances etc, faites vous plaisir !'
     """
     elements.append(Paragraph(content, styles['Normal']))
 
@@ -333,10 +351,10 @@ def render_rules():
         "En cas d'égalité, le dernier joueur éliminé aura le dernier mot. Les modalités de vote",
         'Le dernier vote (lors de la finale) est ouvert à tous les éliminés et dure du 8h00 à 20h59. A partir de l’ouverture de ce vote, les finalistes se voient retirer leur droit de parole sur l’ensemble des salons.',
         'Une fois éliminé, les personnes ne peuvent plus participer aux votes, ne peuvent plus interagir sur le groupe de discussion général, peuvent interagir sur le groupe des éliminés.',
-        'Un système de collier d’immunité a été mis en place. En voici les règles :',
+        'Un système de collier d’immunité a été mis en place. En voici les règles:',
         [
-            'Un smiley :collierimmunite:  est dissimulé quelque part sur le serveur, dans une discussion accessible à tous les joueurs restants, à une date tenue secrète.',
-            'Toute personne qui trouve le smiley :collierimmunite:  est enjoint à cliquer dessus au plus vite. Ce dernier disparaitra de façon quasi instantanée. Dès à présent, vous êtes détenteur (de façon secrète) du collier d’immunité.',
+            'Un smiley :collierimmunite: est dissimulé quelque part sur le serveur, dans une discussion accessible à tous les joueurs restants, à une date tenue secrète.',
+            'Toute personne qui trouve le smiley:collierimmunite:  est enjoint à cliquer dessus au plus vite. Ce dernier disparaitra de façon quasi instantanée. Dès à présent, vous êtes détenteur (de façon secrète) du collier d’immunité.',
         ],
         "Le collier d'immunité est utilisé automatiquement après un vote dont vous êtes le perdant, les votes contre vous ne sont alors pas comptabilisés. Ce dispositif ne fonctionne qu’une seule fois. Vous conservez le collier tant qu’il n’a pas servi à vous protéger d’une expulsion par un vote.",
         'Le collier d’immunité n’a aucun effet en finale.',
