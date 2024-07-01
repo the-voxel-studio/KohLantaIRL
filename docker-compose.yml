@@ -1,0 +1,4 @@
+services:
+  koh_lanta_bot:
+    build: .
+    restart: on-failure
