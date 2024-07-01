@@ -1,4 +1,5 @@
 services:
   koh_lanta_bot:
+    name: kohlantabot
     build: .
     restart: on-failure
