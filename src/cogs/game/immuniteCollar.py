@@ -55,6 +55,28 @@ class ImmuniteCollarCog(commands.Cog):
         )
         await interaction.followup.send(embed=self.embed)
 
+    @app_commands.command(name='give_immunite_collar', description="Donner le collier d'immunité")
+    @app_commands.guild_only()
+    @app_commands.default_permissions(create_instant_invite=True)
+    @app_commands.describe(player="Joueur à qui donner le collier d'immunité")
+    async def give_immunite_collar(self, interaction: discord.Interaction, player: discord.Member):
+        """Give the immunite collar to a player."""
+
+        if not is_admin(interaction.user):
+            raise commands.MissingPermissions(['Admin'])
+        await interaction.response.defer()
+        logger.info(
+            f'Immunite Collar Given | To {player} (id:{player.id}) | Requested by {interaction.user} (id:{interaction.user.id}).'
+        )
+        self.embed = discord.Embed(
+            title=":robot: Collier d'immunité donné :moyai:", color=COLOR_GREEN
+        )
+        self.embed.add_field(
+            name='Il est valable une unique fois.',
+            value=f':bust_in_silhouette: : <@{player.id}>'
+        )
+        await interaction.followup.send(embed=self.embed)
+
 
 async def setup(bot):
     """Setup the cog."""

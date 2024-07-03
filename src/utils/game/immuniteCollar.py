@@ -53,7 +53,7 @@ async def reset_immunite_collar() -> None:
 async def give_immunite_collar(
     payload: discord.RawReactionActionEvent, player: Player
 ) -> None:
-    """Give the immunite collar to the player."""
+    """Give the immunite collar to the player. (if the player is the one who found it)"""
 
     logger.info('fn > Give Immunite Collar > start')
     Game.immunite_collar_player_id = player.object.id
@@ -80,6 +80,40 @@ async def give_immunite_collar(
     )
     await payload.member.send(embed=embed)
     logger.info('fn > Give Immunite Collar > OK')
+
+
+async def give_immunite_collar_by_command(
+    player: discord.Member
+) -> None:
+    """Give the immunite collar to the player. (if it is giving by an admin)"""
+    # TODO voir comment faire si deux immunisés
+
+    logger.info('fn > Give Immunite Collar By Command > start')
+    # TODO suppression de la réaction ou non
+    # Game.immunite_collar_msg_id = 0
+    Game.immunite_collar_player_id = player.id
+    embed = discord.Embed(
+        title="**On te l'a donné !**",
+        description='De tous les aventuriers, tu es sans aucun doute le plus malin !',
+        color=COLOR_GREEN,
+    )
+    embed.set_author(
+        name="Collier d'immunité",
+        icon_url='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp',
+    )
+    embed.set_thumbnail(
+        url='https://cdn.discordapp.com/emojis/1145354940705943652.webp?size=100&quality=high'
+    )
+    embed.add_field(
+        name='Tu es maintenant immunisé.',
+        value=f"Si tu es choisi lors d'un prochain vote, ce collier te protégera automatiquement.\nPlus d'infos ici: <#{CHANNEL_RULES}>",
+        inline=False,
+    )
+    embed.set_image(
+        url='https://gifsec.com/wp-content/uploads/2022/09/congrats-gif-1.gif'
+    )
+    await player.send(embed=embed)
+    logger.info('fn > Give Immunite Collar By Command > OK')
 
 
 async def remove_potential_immune_player(max_reactions) -> list:
