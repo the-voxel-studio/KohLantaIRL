@@ -23,7 +23,8 @@ async def timed_action():
     time = datetime.datetime.now()
     hour = int(time.strftime('%H'))
 
-    if hour == 10 * random() + 10 * random() and get_council_number() >= 4 and Game.immunite_collar_msg_id == 0 and Game.immunite_collar_player_id == 0:
+    # [ ] Question about chance of sending the immunite collar (1/24 chance every hour, 4.16%)
+    if hour == random.randint(0, 23) and get_council_number() >= 4 and Game.immunite_collar_msg_id == 0 and Game.immunite_collar_player_id == 0:
         send_immunite_collar()
 
     if hour == 1:
