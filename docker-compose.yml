@@ -1,5 +1,5 @@
 services:
-  koh_lanta_bot:
+  kohlantabot:
     container_name: kohlantabot
     build: .
     restart: on-failure
