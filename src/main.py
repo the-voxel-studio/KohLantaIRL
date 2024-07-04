@@ -1,6 +1,5 @@
 import datetime
 import signal
-from os import name as os_name
 from random import choice
 
 import discord
@@ -9,13 +8,13 @@ from discord.ext import commands
 from cogs.how_to import AllianceView
 from config.values import (BOT_ID, CHANNEL_ID_BOT, CHANNEL_ID_INSCRIPTION,
                            CHANNEL_ID_VOTE, COLOR_ORANGE, COLOR_RED,
-                           EMOJI_ID_COLLIER, EMOJIS_LIST, TOKEN)
+                           EMOJI_ID_COLLIER, EMOJIS_LIST, TOKEN, MODE)
 from database.game import Game
 from database.player import Player
 from utils.bot import bot
+from utils.control import is_admin
 from utils.game.alliances import purge_empty_alliances
-from utils.game.immuniteCollar import (give_immunite_collar,
-                                       move_immunite_collar_down)
+from utils.game.immunity import give_immunite_collar, move_immunite_collar_down
 from utils.game.players import join
 from utils.game.timer import cancel_timer, start_new_timer
 from utils.game.votes import EqualityView
@@ -31,7 +30,7 @@ COGS = [
     'cogs.game.alliances',
     'cogs.game.steps',
     'cogs.game.votes',
-    'cogs.game.immuniteCollar',
+    'cogs.game.immunity',
     'cogs.help',
     'cogs.punishments.muting',
 ]
@@ -51,14 +50,16 @@ async def on_ready() -> None:
     bot.add_view(AllianceView())
     await move_immunite_collar_down()
     synced = await bot.tree.sync()
+    bot_mode = MODE.upper() if MODE else 'PRODUCTION'
+    color = 'green' if bot_mode == 'PRODUCTION' else 'orange'
     await send_log(
         'BOT restarted and ready',
-        f":tools: mode : **{'DEV' if os_name == 'nt' else 'PRODUCTION'}**",
+        f':tools: mode : **{bot_mode}**',
         f':clock: time : {time}',
         f':handshake: empty alliances deleted : **{deleted_count}**',
         f':dividers: cogs loaded : **{len(COGS)}**',
         f':control_knobs: app commands : **{len(synced)}**',
-        color=('orange' if os_name == 'nt' else 'green'),
+        color=color,
     )
     logger.info('Bot started and ready.')
 
@@ -120,6 +121,9 @@ async def on_message(message) -> None:
 @bot.event
 async def on_command_error(ctx, error) -> None:
     """Gestion des erreurs de commandes"""
+
+    if MODE != 'PRODUCTION' and is_admin(ctx.author):
+        raise error
 
     if isinstance(error, commands.errors.CommandNotFound):
         if ctx.message.guild:
@@ -199,6 +203,9 @@ async def on_command_error(ctx, error) -> None:
 @bot.tree.error
 async def on_app_command_error(interaction: discord.Interaction, error) -> None:
     """Gestion des erreurs de commandes d'applications"""
+
+    if MODE != 'PRODUCTION' and is_admin(interaction.user):
+        raise error
 
     if isinstance(error, discord.app_commands.errors.CommandNotFound):
         logger.warning(

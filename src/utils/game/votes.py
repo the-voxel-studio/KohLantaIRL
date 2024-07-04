@@ -11,7 +11,7 @@ from database.player import Player, PlayerList
 from database.votelog import VoteLog, get_council_number
 from utils.bot import bot
 from utils.game.alliances import purge_alliances
-from utils.game.immuniteCollar import remove_potential_immune_player
+from utils.game.immunity import remove_collar_immunized_loosers, remove_ephemerally_immunized_loosers
 from utils.game.players import reset_roles
 from utils.log import get_logger
 from utils.pdf import generate as pdfGenerate
@@ -553,6 +553,7 @@ async def close(interaction: discord.Interaction = None) -> None:
     """Close the vote."""
 
     # [ ] ? save immune persons in VoteLog
+    # [ ] admin aprobation before announce ?
     logger.info('vote closing > start')
     channel = bot.get_channel(CHANNEL_ID_VOTE)
     msg = await channel.fetch_message(Game.vote_msg_id)
@@ -565,7 +566,8 @@ async def close(interaction: discord.Interaction = None) -> None:
         reactions
     )
     if not it_is_the_final:
-        max_reactions, immune = await remove_potential_immune_player(max_reactions)
+        max_reactions, immune1 = await remove_collar_immunized_loosers(max_reactions)
+        max_reactions, immune2 = await remove_ephemerally_immunized_loosers(max_reactions)
     if len(max_reactions) != 0:
         if there_is_no_equality:  # check if there is an equality
             if it_is_the_final:  # check if it's the last vote
@@ -595,7 +597,7 @@ async def close(interaction: discord.Interaction = None) -> None:
                 )
     else:
         await close_without_eliminated(
-            max_reactions, reactions_list, cheaters_number, immune, reactions
+            max_reactions, reactions_list, cheaters_number, immune1 + immune2, reactions
         )
     if interaction:
         embed = discord.Embed(

@@ -3,6 +3,8 @@ from dotenv import load_dotenv  # for python-dotenv method
 load_dotenv()
 import os
 
+MODE = 'dev'
+# MODE = 'production'
 EMOJIS_LIST = [
     '🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯', '🇰', '🇱', '🇲',
     '🇳', '🇴', '🇵', '🇶', '🇷', '🇸', '🇹', '🇺', '🇻', '🇼', '🇽', '🇾', '🇿'
