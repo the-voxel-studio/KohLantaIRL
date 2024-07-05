@@ -8,7 +8,7 @@ import utils.game.votes as vote
 from database.game import Game
 from database.votelog import get_council_number
 from utils.bot import bot
-from utils.game.immunity import send_immunite_collar
+from utils.game.immunity.collar import send_immunite_collar
 from utils.log import send_log
 from utils.logging import get_logger
 

@@ -8,16 +8,17 @@ from discord.ext import commands
 from cogs.how_to import AllianceView
 from config.values import (BOT_ID, CHANNEL_ID_BOT, CHANNEL_ID_INSCRIPTION,
                            CHANNEL_ID_VOTE, COLOR_ORANGE, COLOR_RED,
-                           EMOJI_ID_COLLIER, EMOJIS_LIST, TOKEN, MODE)
+                           EMOJI_ID_COLLIER, EMOJIS_LIST, MODE, TOKEN)
 from database.game import Game
 from database.player import Player
 from utils.bot import bot
 from utils.control import is_admin
 from utils.game.alliances import purge_empty_alliances
-from utils.game.immunity import give_immunite_collar, move_immunite_collar_down
+from utils.game.immunity.collar import (give_immunite_collar,
+                                        move_immunite_collar_down)
 from utils.game.players import join
 from utils.game.timer import cancel_timer, start_new_timer
-from utils.game.votes import EqualityView
+from utils.game.votes.close.normalEquality import EqualityView
 from utils.log import send_log, send_logs_file
 from utils.logging import get_logger
 from utils.punishments import timeout

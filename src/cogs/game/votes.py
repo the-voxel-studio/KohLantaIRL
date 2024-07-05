@@ -5,7 +5,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-import utils.game.votes as vote
+from utils.game import votes as vote
 from config.values import CHANNEL_ID_GENERAL, COLOR_GREEN, COLOR_ORANGE
 from database.votelog import VoteLog
 from utils.bot import bot

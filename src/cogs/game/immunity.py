@@ -4,14 +4,15 @@ from discord.ext import commands
 
 from config.values import COLOR_GREEN
 from utils.control import is_admin
-from utils.game.immunity import \
-    give_ephemeral_immunity as give_ephemeral_immunity_util
-from utils.game.immunity import give_immunite_collar_by_command
-from utils.game.immunity import \
+from utils.game.immunity.collar import give_immunite_collar_by_command
+from utils.game.immunity.collar import \
     remove_immunite_collar as remove_immunite_collar_util
-from utils.game.immunity import \
+from utils.game.immunity.collar import (reset_immunite_collar,
+                                        send_immunite_collar)
+from utils.game.immunity.ephemeral import \
+    give_ephemeral_immunity as give_ephemeral_immunity_util
+from utils.game.immunity.ephemeral import \
     remove_ephemeral_immunity as remove_ephemeral_immunity_util
-from utils.game.immunity import reset_immunite_collar, send_immunite_collar
 from utils.logging import get_logger
 
 logger = get_logger(__name__)

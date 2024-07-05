@@ -31,7 +31,8 @@ if __name__ == '__main__':
         'backup',
         '__pycache__',
         'flake8.py',
-        'lines_count.py'
+        'lines_count.py',
+        '__init__.py'
     ]
 
     run_flake8(directory_to_check, files_and_dirs_to_exclude)
