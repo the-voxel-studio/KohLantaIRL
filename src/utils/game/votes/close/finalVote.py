@@ -23,7 +23,7 @@ async def close_final_vote(
     winner = Player(letter=chr(EMOJIS_LIST.index(max_reactions[0]) + 65))
     data = {
         'votes': reactions_list,
-        'eliminated': [winner.object],
+        'eliminated': [winner.object._id],
         'cheaters_number': cheaters_number,
     }
     new_vote_log = VoteLog(data=data)

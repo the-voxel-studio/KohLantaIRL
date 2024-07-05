@@ -15,6 +15,7 @@ async def close_first_vote_equality(
     reactions_list, cheaters_number, tied_players
 ) -> None:
     """Close the first vote after an equality."""
+    # CHECK eliminated players data type
 
     logger.info('close_first_vote_equality > start ')
     new_vote_log = VoteLog(data={

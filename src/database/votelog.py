@@ -52,7 +52,6 @@ class VoteLogData:
         else:
             self.votes: list[dict[str, Player]] = []
         if eliminated:
-            print(eliminated)
             self.eliminated = PlayerList([{'_id': player} for player in eliminated])
         else:
             self.eliminated = PlayerList()
@@ -120,7 +119,6 @@ class VoteLog:
                     update={'$set': object}
                 )
             else:
-                print(f'self.object.__dict__: {self.object.__dict__}')
                 self.object._id = ObjectId()
                 self.object.date = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
                 self.object.number = get_council_number() + 1
