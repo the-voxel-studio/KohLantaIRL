@@ -22,7 +22,7 @@ async def close_normal(
     eliminated = Player(letter=chr(EMOJIS_LIST.index(max_reactions[0]) + 65))
     new_vote_log = VoteLog(data={
         'votes': reactions_list,
-        'eliminated': [eliminated.object],
+        'eliminated': [eliminated.object._id],
         'cheaters_number': cheaters_number
     })
     new_vote_log.save()

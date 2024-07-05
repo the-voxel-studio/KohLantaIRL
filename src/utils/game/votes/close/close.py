@@ -9,7 +9,7 @@ from utils.game.immunity.collar import remove_collar_immunized_loosers
 from utils.game.immunity.ephemeral import remove_ephemerally_immunized_loosers
 from utils.log import get_logger
 
-from .. import arrange_votes, count_votes, deal_with_cheaters
+from .. import arrange_votes_for_votelog, count_votes, deal_with_cheaters
 from . import (close_final_vote, close_first_vote_equality, close_normal,
                close_normal_equality, close_without_eliminated)
 
@@ -25,10 +25,10 @@ async def close(interaction: discord.Interaction = None) -> None:
     channel = bot.get_channel(CHANNEL_ID_VOTE)
     msg = await channel.fetch_message(Game.vote_msg_id)
     reactions = msg.reactions
-    reactions_list = await arrange_votes(reactions)
-    await msg.delete()
+    reactions_list = await arrange_votes_for_votelog(reactions)
     Game.vote_msg_id = 0
-    cheaters_number = await deal_with_cheaters(reactions_list, reactions)
+    cheaters_number = await deal_with_cheaters(reactions)
+    await msg.delete()
     max_reactions, max_count, it_is_the_final, there_is_no_equality = await count_votes(
         reactions
     )

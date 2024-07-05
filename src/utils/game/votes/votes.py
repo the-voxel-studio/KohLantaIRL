@@ -97,23 +97,42 @@ async def open(interaction: discord.Interaction = None):
     logger.info(f'vote opening > OK | interaction: {interaction}')
 
 
-async def arrange_votes(reactions: list) -> dict:
-    """Arrange the votes in a dict."""
+async def arrange_votes_for_deal_with_cheaters(reactions: list) -> dict:
+    """Arrange the votes in a dict for the deal_with_cheaters function."""
 
-    logger.info('arrange vote > start')
-    reactions_list = {}
+    logger.info('arrange vote for deal with cheaters > start')
+    reactions_dict = {}
     for r in reactions:
         async for u in r.users():
             if u.id != BOT_ID:
-                if u.id not in reactions_list:
-                    reactions_list[u.id] = [r.emoji]
-                elif r.emoji not in reactions_list[u.id]:
-                    reactions_list[u.id].append(r.emoji)
-    logger.info('arrange vote > OK')
+                if u.id not in reactions_dict:
+                    reactions_dict[u.id] = [r.emoji]
+                elif r.emoji not in reactions_dict[u.id]:
+                    reactions_dict[u.id].append(r.emoji)
+    logger.info('arrange vote for deal with cheaters > OK')
+    return reactions_dict
+
+
+async def arrange_votes_for_votelog(reactions: list) -> list:
+    """Arrange the votes in a list for the VoteLog."""
+
+    logger.info('arrange vote for votelog > start')
+    reactions_list = []
+    for r in reactions:
+        async for u in r.users():
+            if u.id != BOT_ID:
+                reactions_list.append(
+                    {
+                        'voter': Player(id=u.id).object._id,
+                        'for': Player(letter=chr(EMOJIS_LIST.index(r.emoji) + 65)).object._id
+                    }
+                )
+
+    logger.info('arrange vote for votelog > OK')
     return reactions_list
 
 
-async def deal_with_cheaters(reactions_list: dict, reactions: list) -> int:
+async def deal_with_cheaters(reactions: list) -> int:
     """Deal with the cheaters."""
 
     logger.info('deal with cheaters > start')
@@ -126,7 +145,8 @@ async def deal_with_cheaters(reactions_list: dict, reactions: list) -> int:
     embed.set_footer(
         text="Cette décision automatique n'est pas contestable. Vous pouvez néanmoins contacter un administrateur en MP pour signaler un éventuel problème."
     )
-    for uid, emojis in reactions_list.items():
+    reactions_dict = await arrange_votes_for_deal_with_cheaters(reactions)
+    for uid, emojis in reactions_dict.items():
         if len(emojis) > 1:
             for react in reactions:
                 if react.emoji in emojis:
@@ -136,7 +156,7 @@ async def deal_with_cheaters(reactions_list: dict, reactions: list) -> int:
             guild = bot.get_guild(GUILD_ID)
             member = guild.get_member(uid)
             await timeout(member, reason='Tentative de triche au vote.', minutes=30)
-            del reactions_list[uid]
+            del reactions_dict[uid]
             cheaters_number += 1
     logger.info(f'deal with cheaters > OK | cheaters number: {cheaters_number}')
     return cheaters_number

@@ -6,11 +6,11 @@ from bson.objectid import ObjectId
 try:
     from database.alliance import get_alliances_number
     from database.database import db
-    from database.player import Player
+    from database.player import Player, PlayerList, PlayerData
     from utils.logging import get_logger
 except ImportError:
     from ..database.alliance import get_alliances_number
-    from ..database.player import Player, PlayerList
+    from ..database.player import Player, PlayerList, PlayerData
     from ..utils.logging import get_logger
     from .database import db
 
@@ -28,7 +28,7 @@ class VoteLogData:
         self._id: int = data.get('_id', 0)
         self.number: int = data.get('number', 0)
         self.date: str = data.get('date', '')
-        eliminated: list[dict[str, ObjectId]] = data.get('eliminated', [])
+        eliminated: list[str, ObjectId] = data.get('eliminated', [])
         votes: list[dict[str, ObjectId]] = data.get('votes', [])
         self.voice_id: int = data.get('voice_id', 0)
         self.voters_number: int = data.get('voters_number', 0)
@@ -52,7 +52,8 @@ class VoteLogData:
         else:
             self.votes: list[dict[str, Player]] = []
         if eliminated:
-            self.eliminated = PlayerList([{'_id': player.get('_id')} for player in eliminated])
+            print(eliminated)
+            self.eliminated = PlayerList([{'_id': player} for player in eliminated])
         else:
             self.eliminated = PlayerList()
         if tied_players:
@@ -119,11 +120,18 @@ class VoteLog:
                     update={'$set': object}
                 )
             else:
+                print(f'self.object.__dict__: {self.object.__dict__}')
                 self.object._id = ObjectId()
                 self.object.date = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
                 self.object.number = get_council_number() + 1
                 self.object.voters_number = len(PlayerList(alive=True).objects)
                 self.object.alliance_number = get_alliances_number()
+                self.object.votes = [
+                    {'voter': vote['voter'].object._id, 'for': vote['for'].object._id}
+                    for vote in self.object.votes
+                ]
+                self.object.tied_players = [player.object._id for player in self.object.tied_players.objects]
+                self.object.eliminated = [player.object._id for player in self.object.eliminated.objects]
                 logger.info(f'save: {self.object.__dict__}')
                 db.VoteLog.insert_one(self.object.__dict__)
 
