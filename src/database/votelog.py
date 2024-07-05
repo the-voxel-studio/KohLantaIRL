@@ -6,11 +6,11 @@ from bson.objectid import ObjectId
 try:
     from database.alliance import get_alliances_number
     from database.database import db
-    from database.player import Player, PlayerList, PlayerData
+    from database.player import Player, PlayerList
     from utils.logging import get_logger
 except ImportError:
     from ..database.alliance import get_alliances_number
-    from ..database.player import Player, PlayerList, PlayerData
+    from ..database.player import Player, PlayerList
     from ..utils.logging import get_logger
     from .database import db
 

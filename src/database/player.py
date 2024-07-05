@@ -32,7 +32,7 @@ class Player:
         """Initialize the player class with the data and query."""
 
         self.query: dict = query
-        self.object: PlayerData = None
+        self.object: PlayerData = PlayerData()
         if isinstance(self.query.get('id', None), int):
             self.query['id'] = str(self.query['id'])
         if data:
