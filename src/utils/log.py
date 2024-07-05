@@ -6,7 +6,7 @@ import discord
 from config.values import (CHANNEL_ID_BOT, CHANNEL_ID_BOT_LOGS, COLOR_GREEN,
                            COLOR_ORANGE, COLOR_RED)
 from utils.bot import bot
-from utils.logging import get_logger
+from utils.logging import get_logger, FILE_LOG_NAME
 
 logger = get_logger(__name__)
 COLOR_GREEN, COLOR_ORANGE, COLOR_RED  # COULEURS OBLIGATOIRES (utilisation de la fonction eval)
@@ -34,9 +34,9 @@ async def send_logs_file():
     logger.info('fn > send_logs_file > start')
     bot_logs_channel = bot.get_channel(CHANNEL_ID_BOT_LOGS)
     if os.name == 'nt':
-        file = discord.File(f'{DIRNAME}\\logs\\bot.log')
+        file = discord.File(f'{DIRNAME}\\logs\\{FILE_LOG_NAME}')
     else:
-        file = discord.File(f'{DIRNAME}/logs/bot.log')
+        file = discord.File(f'{DIRNAME}/logs/{FILE_LOG_NAME}')
 
     await bot_logs_channel.send(file=file)
     logger.info('fn > send_logs_file > OK')
