@@ -189,23 +189,23 @@ class VotePage:
                 ])
         elif not self._final:
             for p in self._players:
-                data[0].append(p.get('nickname', 'unknown'))
+                data[0].append(p.object.nickname)
                 middle_content = ['' for i in range(self._players_number + 1)]
-                voter__id = p['_id']
+                voter__id = p.object._id
                 if voter__id in self._votes:
                     vote_column = self._players__id.index(self._votes[voter__id])
                     middle_content[vote_column] = 'X'
-                data.append([p.get('nickname', 'unknown')] + middle_content + [0])
+                data.append([p.object.nickname] + middle_content + [0])
         else:
             for p in self._players:
-                data[0].append(p.get('nickname', 'unknown'))
+                data[0].append(p.object.nickname)
             for ep in self._eliminated_players:
                 middle_content = ['' for i in range(self._players_number + 1)]
-                voter__id = ep['_id']
+                voter__id = ep.object._id
                 if voter__id in self._votes:
                     vote_column = self._players__id.index(self._votes[voter__id])
                     middle_content[vote_column] = 'X'
-                data.append([ep.get('nickname', 'unknown')] + middle_content)
+                data.append([ep.object.nickname] + middle_content)
         # [ ] vote hour
         data[0].append('Horaire')
 
@@ -260,9 +260,9 @@ class VotePage:
         elements.append(paragraph)
 
         if self._final:
-            text = f'{self._eliminated_at_this_vote[0].nickname} a remporté cette partie de KohLanta.'
+            text = f'{self._eliminated_at_this_vote.objects[0].object.nickname} a remporté cette partie de KohLanta.'
         elif self._eliminated_at_this_vote_number == 1:
-            text = f'{self._eliminated_at_this_vote[0].nickname} a été éliminé durant ce vote.'
+            text = f'{",".join([p.object.nickname for p in self._eliminated_at_this_vote.objects])} a été éliminé durant ce vote.'
         elif self._eliminated_at_this_vote_number > 1:
             text = f"{', '.join(el.nickname for el in self._eliminated_at_this_vote[:-1])} et {self._eliminated_at_this_vote[-1].nickname} ont été éliminés durant ce vote."
         else:
@@ -333,9 +333,9 @@ class VotePage:
     def _render(self) -> None:
         """Set each sections."""
 
-        self.elements.extend(self._header)
+        self.elements.append(self._header)
         if self._vote_log.object.hidden:
-            self.elements.extend(self._anonymous_section)
+            self.elements.append(self._anonymous_section)
         self.elements.extend(self._presentation_section)
         if self._vote_log.object.hidden:
             self.elements.extend(self._vote_section)
