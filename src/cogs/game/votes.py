@@ -121,7 +121,7 @@ class VotesCog(commands.Cog):
     async def last_volontee(self, interaction: discord.Interaction, contenu: str):
         """Last volontee."""
 
-        # TODO modify with multiple eliminated after a unique vote
+        # FIX modify with multiple eliminated after a unique vote
         await interaction.response.defer(ephemeral=True)
         if isinstance(interaction.channel, discord.DMChannel):
             vote_log = VoteLog(last=True)

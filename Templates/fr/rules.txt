@@ -60,4 +60,4 @@ Le maître du jeu peut à tout moment modifier les règles précédentes, et le 
 
 BONNE CHANCE
 
-TODO décision entre administrateurs
+TODO mise à jour globale
