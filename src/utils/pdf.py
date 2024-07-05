@@ -57,8 +57,8 @@ def create_pdf(file_path, vote_number, **kwargs):
     if vote_number > 1:
         pages.extend([VotePage(vote) for vote in range(vote_number - 1, 0, -1)])
     pages.append(RulesPage())
-
-    elements.extend([page.elements for page in pages])
+    for page in pages:
+        elements.extend(page.elements)
 
     doc.build(elements)
     logger.info(f'create_pdf > OK | file_path: {file_path} | vote_number: {vote_number}')
@@ -438,7 +438,7 @@ class RulesPage:
     def _render(self):
         """Set each sections."""
 
-        self.elements.extend(self._header)
+        self.elements.append(self._header)
         self.elements.extend(self._presentation_section)
         self.elements.extend(self._rules_section)
         self.elements.extend(self._previous_winners_section)
