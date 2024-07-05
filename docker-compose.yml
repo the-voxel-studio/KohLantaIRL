@@ -1,0 +1,5 @@
+services:
+  kohlantabot:
+    container_name: kohlantabot
+    build: .
+    restart: "no"
