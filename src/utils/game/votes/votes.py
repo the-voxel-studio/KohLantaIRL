@@ -23,6 +23,7 @@ async def open(interaction: discord.Interaction = None):
     """Open the vote."""
 
     logger.info(f'vote opening > start | interaction: {interaction}')
+    guild = bot.get_guild(GUILD_ID)
     players = PlayerList(alive=True)
     if len(players.objects) > 2:
         embed = discord.Embed(
@@ -44,7 +45,6 @@ async def open(interaction: discord.Interaction = None):
             name='La Finale',
             icon_url='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp',
         )
-        guild = bot.get_guild(GUILD_ID)
         v_role = discord.utils.get(
             guild.roles, name='Votant Final'
         )  # Récupération du role 'Votant final'
@@ -67,6 +67,7 @@ async def open(interaction: discord.Interaction = None):
                 perms = channel.overwrites_for(user)
                 perms.read_messages = False
                 await channel.set_permissions(user, overwrite=perms)
+        Game.start_last_vote()
     embed.set_thumbnail(
         url='https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp'
     )
@@ -84,9 +85,12 @@ async def open(interaction: discord.Interaction = None):
         pl.save()
         reactions.append(EMOJIS_LIST[i])
     channel = bot.get_channel(CHANNEL_ID_VOTE)
+    everyone_role = discord.utils.get(
+        guild.roles, name='@everyone'
+    )
+    await channel.set_permissions(everyone_role, read_messages=None)
     msg = await channel.send(embed=embed)
     Game.vote_msg_id = msg.id
-    Game.start_last_vote()
     for r in reactions:
         await msg.add_reaction(r)
     if interaction:

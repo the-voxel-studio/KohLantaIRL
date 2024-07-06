@@ -1,6 +1,6 @@
 import discord
 
-from config.values import CHANNEL_ID_VOTE, COLOR_GREEN, EMOJIS_LIST
+from config.values import CHANNEL_ID_VOTE, COLOR_GREEN, EMOJIS_LIST, GUILD_ID
 from database.game import Game
 from database.player import Player
 from database.votelog import get_council_number
@@ -22,7 +22,12 @@ async def close(interaction: discord.Interaction = None) -> None:
     # [ ] ? save immune persons in VoteLog
     # [ ] admin aprobation before announce ?
     logger.info('vote closing > start')
+    guild = bot.get_guild(GUILD_ID)
     channel = bot.get_channel(CHANNEL_ID_VOTE)
+    everyone_role = discord.utils.get(
+        guild.roles, name='@everyone'
+    )
+    await channel.set_permissions(everyone_role, read_messages=False)
     msg = await channel.fetch_message(Game.vote_msg_id)
     reactions = msg.reactions
     reactions_list = await arrange_votes_for_votelog(reactions)
