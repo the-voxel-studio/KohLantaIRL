@@ -72,17 +72,19 @@ class Alliance:
         """Save the alliance object to the database."""
 
         if self.object:
+            object = {k: v for k, v in self.object.__dict__.items() if k != '_id'}
+            object['members'] = [member.object._id for member in self.object.members.objects]
             if self.object._id:
-                object = {k: v for k, v in self.object.__dict__.items() if k != '_id'}
                 logger.info(f'update: {self.object.__dict__}')
-                db.Players.update_one(
+                db.Alliances.update_one(
                     filter={'_id': self.object._id},
                     update={'$set': object}
                 )
             else:
                 self.object._id = ObjectId()
-                logger.info(f'save: {self.object.__dict__}')
-                db.Players.insert_one(self.object.__dict__)
+                object['_id'] = self.object._id
+                logger.info(f'save: {object}')
+                db.Alliances.insert_one(object)
 
     def delete(self) -> None:
         """Delete the alliance object from the database."""

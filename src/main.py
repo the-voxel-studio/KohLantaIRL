@@ -300,7 +300,7 @@ async def on_raw_reaction_add(payload) -> None:
         player = Player(id=payload.user_id)
         channel = bot.get_channel(payload.channel_id)
         msg = await channel.fetch_message(payload.message_id)
-        if isinstance(payload.emoji, str) and payload.emoji.id == EMOJI_ID_COLLIER:
+        if isinstance(payload.emoji, discord.partial_emoji.PartialEmoji) and payload.emoji.id == EMOJI_ID_COLLIER:
             await msg.remove_reaction(payload.emoji, user)
             if msg.id == Game.immunite_collar_msg_id and Player(id=user.id).object.alive:
                 await msg.clear_reaction(
