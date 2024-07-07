@@ -1,1 +1,1 @@
-from .pdf import generate
+from .pdf import generate, remove_files

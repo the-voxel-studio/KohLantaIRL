@@ -142,3 +142,14 @@ class PlayerList:
             logger.info(f"{'PlayerList found' if not data else 'PlayersList created from data'}")
             for player in self.data:
                 self.objects.append(Player(**player))
+
+
+async def resurrect_all_players():
+    """Resurrect all the players in the database."""
+
+    logger.info('resurrect all players > start')
+
+    for p in PlayerList().objects:
+        p.resurrect()
+
+    logger.info('resurrect all players > OK')

@@ -66,4 +66,14 @@ def generate(vote_number, **kwargs) -> str:
         return f'{DIRNAME}\\pdf\\{name}'
 
 
+async def remove_files() -> None:
+    """Delete the PDF files."""
+
+    logger.info('fn > delete_files > start')
+    for pdf_file in DIRNAME.rglob('*.pdf'):
+        os.remove(pdf_file)
+        logger.info(f'delete_files > removed: {pdf_file}')
+    logger.info('fn > delete_files > OK')
+
+
 logger.info('Ready')

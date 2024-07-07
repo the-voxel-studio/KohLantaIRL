@@ -8,7 +8,7 @@ from config.values import (BOT_ID, CATEGORIE_ID_ALLIANCES,
                            COLOR_RED, EMOJIS_LIST, GUILD_ID)
 from database.game import Game
 from database.player import Player, PlayerList
-from database.votelog import VoteLog
+from database.votelog import VoteLog, VoteLogList
 from utils.bot import bot
 from utils.log import get_logger
 from utils.pdf import generate as pdfGenerate
@@ -421,3 +421,16 @@ async def check_if_last_eliminate_is_saved():
             await member.send(ember=dm_embed)
             el.eliminate()
     logger.info('check if last eliminate is saved > OK')
+
+
+async def reset_votes() -> None:
+    """Reset the votes."""
+
+    logger.info('reset votes > start')
+    for v in VoteLogList().objects:
+        v.delete()
+    vote_channel = bot.get_channel(CHANNEL_ID_VOTE)
+    await vote_channel.purge()
+    results_channel = bot.get_channel(CHANNEL_ID_RESULTATS)
+    await results_channel.purge()
+    logger.info('reset votes > OK')
