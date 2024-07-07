@@ -1,6 +1,6 @@
 import discord
 
-from config.values import (CHANNEL_ID_RESULTATS, COLOR_GREEN, EMOJIS_LIST,
+from config.values import (CHANNEL_ID_ANNONCES, COLOR_GREEN, EMOJIS_LIST,
                            GUILD_ID)
 from database.player import Player
 from database.votelog import VoteLog
@@ -48,7 +48,7 @@ async def close_final_vote(
     )
     file_path = pdfGenerate(new_vote_log.object.number, final=True)
     file = discord.File(file_path)
-    channel = bot.get_channel(CHANNEL_ID_RESULTATS)
+    channel = bot.get_channel(CHANNEL_ID_ANNONCES)
     await channel.send(embed=embed, file=file)
     embed = discord.Embed(
         title='**Tu remportes la saison ce soir !**',
@@ -64,7 +64,7 @@ async def close_final_vote(
     )
     embed.add_field(
         name=f'Tu as reçu {max_count-1} votes.',
-        value=f"Plus d'infos ici: <#{CHANNEL_ID_RESULTATS}>.",
+        value=f"Plus d'infos ici: <#{CHANNEL_ID_ANNONCES}>.",
         inline=False,
     )
     embed.set_image(url='https://media.tenor.com/b4GVF1aUlgIAAAAC/chirac-victoire.gif')
