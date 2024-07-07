@@ -23,6 +23,7 @@ async def close_first_vote_equality(
         'eliminated': tied_players,
         'cheaters_number': cheaters_number,
         'tied_players': tied_players,
+        'hidden': False
     })
     new_vote_log.save()
     embed = discord.Embed(

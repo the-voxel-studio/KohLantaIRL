@@ -133,8 +133,8 @@ class VotesCog(commands.Cog):
             not_timeout = actual_date <= max_date
             eliminated_list = [
                 i
-                for i, el in enumerate(vote_log.object.eliminated)
-                if el.id == interaction.user.id
+                for i, el in enumerate(vote_log.object.eliminated.objects)
+                if el.object.id == interaction.user.id
             ]
             try:
                 eliminated = vote_log.object.eliminated.objects[eliminated_list[0]]
@@ -142,18 +142,18 @@ class VotesCog(commands.Cog):
             except IndexError:
                 is_last_eliminate = False
             if is_last_eliminate and not_timeout:
-                type(eliminated)
                 eliminated.find()
-                if not eliminated.last_wish_expressed:
+                if not eliminated.object.last_wish_expressed:
                     logger.info(
                         f'Last wish > start | Requested by {interaction.user} (id:{interaction.user.id}) | Content: {contenu}'
                     )
-                    eliminated.express_last_wish()
+                    eliminated.object.last_wish_expressed = True
+                    eliminated.save()
                     embed = discord.Embed(
                         description=contenu,
                         color=COLOR_GREEN,
                     )
-                    self.embed.set_author(
+                    embed.set_author(
                         name=f'{interaction.user.display_name} : Dernière volontée',
                         icon_url=interaction.user.avatar.url
                     )

@@ -26,6 +26,7 @@ BOT_ID = int(os.environ.get('BOT_ID'))
 GUILD_ID = int(os.environ.get('GUILD_ID'))
 TOKEN = os.environ.get('TOKEN')
 APPLICATION_ID = os.environ.get('APPLICATION_ID')
+HIDDEN_VOTE_PROBABILITY = float(os.environ.get('HIDDEN_VOTE_PROBABILITY'))
 COLOR_GREEN = 0x008000
 COLOR_ORANGE = 0xff7f00
 COLOR_RED = 0xf00020

@@ -4,19 +4,19 @@ from random import random
 from bson.objectid import ObjectId
 
 try:
+    from config.values import HIDDEN_VOTE_PROBABILITY
     from database.alliance import get_alliances_number
     from database.database import db
     from database.player import Player, PlayerList
     from utils.logging import get_logger
 except ImportError:
+    from ..config.values import HIDDEN_VOTE_PROBABILITY
     from ..database.alliance import get_alliances_number
     from ..database.player import Player, PlayerList
     from ..utils.logging import get_logger
     from .database import db
 
 logger = get_logger(__name__)
-
-VOTE_LOG_HIDDEN_PROBABILITY = 0.5
 
 
 class VoteLogData:
@@ -35,7 +35,7 @@ class VoteLogData:
         self.cheaters_number: int = data.get('cheaters_number', 0)
         tied_players: list[dict[str, ObjectId]] = data.get('tied_players', [])
         self.alliance_number: int = data.get('alliance_number', 0)
-        self.hidden: bool = data.get('hidden', random() < VOTE_LOG_HIDDEN_PROBABILITY)
+        self.hidden: bool = data.get('hidden', random() < HIDDEN_VOTE_PROBABILITY)
         if votes:
             players: dict[ObjectId, Player] = {}
             for vote in votes:

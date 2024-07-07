@@ -101,7 +101,7 @@ class Player:
         if self.object:
             self.object.alive = False
             self.object.letter = ''
-            self.death_council_number = db.VoteLog.count_documents({})
+            self.object.death_council_number = db.VoteLog.count_documents({})
             logger.info(f'eliminate: {self.object.__dict__}')
             self.save()
 

@@ -25,6 +25,7 @@ async def close_final_vote(
         'votes': reactions_list,
         'eliminated': [winner.object._id],
         'cheaters_number': cheaters_number,
+        'hidden': False,
     }
     new_vote_log = VoteLog(data=data)
     new_vote_log.save()
@@ -45,7 +46,7 @@ async def close_final_vote(
         value='La partie prend donc fin maintenant',
         inline=True,
     )
-    file_path = pdfGenerate(new_vote_log.number, final=True)
+    file_path = pdfGenerate(new_vote_log.object.number, final=True)
     file = discord.File(file_path)
     channel = bot.get_channel(CHANNEL_ID_RESULTATS)
     await channel.send(embed=embed, file=file)
