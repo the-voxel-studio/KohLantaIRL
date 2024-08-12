@@ -261,7 +261,7 @@ class VotePage:
                     f'{nb_received_votes}/{nb_cast_votes}',
                     f'{percentage_received}%'
                 ]
-            )  # [ ] vote count (n/n + %)
+            )
 
         table_style = [
             ('BACKGROUND', (0, 0), (-1, 0), '#1e1f22'),
