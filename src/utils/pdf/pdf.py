@@ -5,6 +5,8 @@ from reportlab.platypus import BaseDocTemplate, Frame, PageTemplate
 
 from utils.logging import get_logger
 
+from database.votelog import VoteLogList
+
 from .common import DIRNAME
 from .rulesPage import RulesPage
 from .votePage import VotePage
@@ -40,10 +42,12 @@ def create_pdf(file_path, vote_number, **kwargs):
     )
     doc.addPageTemplates([background_template])
 
-    pages = [VotePage(vote_number, last=True, **kwargs)]
+    vote_logs = VoteLogList()
+
+    pages = [VotePage(vote_number, vote_logs, last=True, **kwargs)]
 
     if vote_number > 1:
-        pages.extend([VotePage(vote) for vote in range(vote_number - 1, 0, -1)])
+        pages.extend([VotePage(vote, vote_logs) for vote in range(vote_number - 1, 0, -1)])
     pages.append(RulesPage())
     for page in pages:
         elements.extend(page.elements)

@@ -6,7 +6,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import (PageBreak, Paragraph, Table)
 
 from database.player import PlayerList
-from database.votelog import VoteLog
+from database.votelog import VoteLogList
 from utils.logging import get_logger
 
 from .common import styles
@@ -17,12 +17,13 @@ logger = get_logger(__name__)
 class VotePage:
     """Classe for the vote page."""
 
-    def __init__(self, number: int, **kwargs) -> None:
+    def __init__(self, number: int, vote_logs: VoteLogList, **kwargs) -> None:
         """Init the class."""
 
         self.number = number
         self._final = kwargs.get('final', False)
-        self._vote_log = VoteLog(number=number)
+        self._vote_logs = vote_logs
+        self._vote_log = self._vote_logs.objects[number - 1]
         self._votes_number = len(self._vote_log.object.votes)
         self._players = PlayerList(alive=True).objects
         self._votes = {v['voter'].object._id: v['for'].object._id for v in self._vote_log.object.votes}
@@ -247,15 +248,20 @@ class VotePage:
         paragraph = Paragraph(text, styles['h2'])
         elements.append(paragraph)
 
-        data = [['Pseudo', 'Discord id', 'Eliminé au vote n°']]
+        data = [['Pseudo', 'Eliminé au vote n°', 'Votes reçus', 'Proportion']]
         for p in sorted(self._eliminated_players, key=lambda x: x.object.death_council_number):
+            death_vote_log = self._vote_logs.objects[p.object.death_council_number - 1]
+            nb_received_votes = sum([1 for vote in death_vote_log.object.votes if vote["for"].object.id == p.object.id])
+            nb_cast_votes = len(death_vote_log.object.votes)
+            percentage_received = round(nb_received_votes / nb_cast_votes * 100, 2)
             data.append(
                 [
                     p.object.nickname,
-                    p.object.id,
-                    p.object.death_council_number
+                    p.object.death_council_number,
+                    f'{nb_received_votes}/{nb_cast_votes}',
+                    f'{percentage_received}%'
                 ]
-            )  # [ ] vote count
+            )  # [ ] vote count (n/n + %)
 
         table_style = [
             ('BACKGROUND', (0, 0), (-1, 0), '#1e1f22'),
