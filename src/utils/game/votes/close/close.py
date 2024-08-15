@@ -7,7 +7,8 @@ from database.votelog import get_council_number
 from utils.bot import bot
 from utils.game.immunity.collar import remove_collar_immunized_loosers
 from utils.game.immunity.ephemeral import remove_ephemerally_immunized_loosers
-from utils.log import get_logger
+from utils.logging import get_logger
+from utils.log import send_vote_log_to_admin
 
 from .. import arrange_votes_for_votelog, count_votes, deal_with_cheaters
 from . import (close_final_vote, close_first_vote_equality, close_normal,
@@ -43,10 +44,24 @@ async def close(interaction: discord.Interaction = None) -> None:
     if len(max_reactions) != 0:
         if there_is_no_equality:  # check if there is an equality
             if it_is_the_final:  # check if it's the last vote
+                await send_vote_log_to_admin(
+                    len(max_reactions),
+                    cheaters_number,
+                    len(immune1),
+                    len(immune2),
+                    'final_vote'
+                )
                 await close_final_vote(
                     max_reactions, reactions_list, cheaters_number, max_count
                 )
             else:  # for other votes
+                await send_vote_log_to_admin(
+                    len(max_reactions),
+                    cheaters_number,
+                    len(immune1),
+                    len(immune2),
+                    'normal'
+                )
                 await close_normal(
                     max_reactions, reactions_list, cheaters_number, max_count, reactions
                 )
@@ -56,6 +71,14 @@ async def close(interaction: discord.Interaction = None) -> None:
                 Player(letter=chr(EMOJIS_LIST.index(r) + 65)).object for r in max_reactions
             ]
             if council_number != 1:  # if it's not the first vote
+                await send_vote_log_to_admin(
+                    len(max_reactions),
+                    cheaters_number,
+                    len(immune1),
+                    len(immune2),
+                    'normal_equality',
+                    len(tied_players)
+                )
                 await close_normal_equality(
                     reactions_list,
                     cheaters_number,
@@ -64,10 +87,25 @@ async def close(interaction: discord.Interaction = None) -> None:
                     tied_players,
                 )
             else:  # if it's the first vote
+                await send_vote_log_to_admin(
+                    len(max_reactions),
+                    cheaters_number,
+                    len(immune1),
+                    len(immune2),
+                    'first_vote_equality',
+                    len(tied_players)
+                )
                 await close_first_vote_equality(
                     reactions_list, cheaters_number, tied_players
                 )
     else:
+        await send_vote_log_to_admin(
+            len(max_reactions),
+            cheaters_number,
+            len(immune1),
+            len(immune2),
+            'whithout_eliminated'
+        )
         await close_without_eliminated(
             max_reactions, reactions_list, cheaters_number, immune1 + immune2, reactions
         )
