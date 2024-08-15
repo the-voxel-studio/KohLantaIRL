@@ -46,8 +46,11 @@ async def reset_immunite_collar() -> None:
     logger.info('fn > Reset Immunite Collar > start')
     ic_msg_id = Game.immunite_collar_msg_id
     if ic_msg_id != 0:
-        ic_msg = await bot.get_channel(CHANNEL_ID_GENERAL).fetch_message(ic_msg_id)
-        await ic_msg.remove_reaction(f'<:collierimmunite:{EMOJI_ID_COLLIER}>', bot.user)
+        try:
+            ic_msg = await bot.get_channel(CHANNEL_ID_GENERAL).fetch_message(ic_msg_id)
+            await ic_msg.remove_reaction(f'<:collierimmunite:{EMOJI_ID_COLLIER}>', bot.user)
+        except discord.errors.NotFound:
+            logger.warning('fn > Reset Immunite Collar > Immunite Collar Message Not found')
     Game.immunite_collar_msg_id = 0
     Game.collar_imunized_players_id = []
     logger.info('fn > Reset Immunite Collar > OK')
