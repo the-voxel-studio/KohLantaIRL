@@ -4,6 +4,7 @@ from random import choice
 
 import discord
 from discord.ext import commands
+import discord.ext.commands
 
 from cogs.how_to import AllianceView
 from config.values import (BOT_ID, CHANNEL_ID_BOT, CHANNEL_ID_INSCRIPTION,
@@ -11,6 +12,7 @@ from config.values import (BOT_ID, CHANNEL_ID_BOT, CHANNEL_ID_INSCRIPTION,
                            EMOJI_ID_COLLIER, EMOJIS_LIST, MODE, TOKEN)
 from database.game import Game
 from database.player import Player
+import discord.ext
 from utils.bot import bot
 from utils.control import is_admin
 from utils.game.alliances import purge_empty_alliances
@@ -42,7 +44,10 @@ async def on_ready() -> None:
     """Lancement du robot"""
 
     for cog in COGS:
-        await bot.load_extension(cog)
+        try:
+            await bot.load_extension(cog)
+        except discord.ext.commands.errors.ExtensionAlreadyLoaded:
+            logger.warning(f'Extension {cog} already loaded.')
     time = datetime.datetime.now().strftime('%d/%m/%Y **%H:%M**')
     deleted_count = await purge_empty_alliances()
     await start_new_timer()

@@ -18,10 +18,13 @@ async def move_immunite_collar_down() -> None:
     logger.info('fn > Move Immunite Collar Down > start')
     ic_msg_id = Game.immunite_collar_msg_id
     if ic_msg_id != 0:
-        ic_msg = await bot.get_channel(CHANNEL_ID_GENERAL).fetch_message(ic_msg_id)
-        await ic_msg.remove_reaction(f'<:collierimmunite:{EMOJI_ID_COLLIER}>', bot.user)
-        await send_immunite_collar()
-    logger.info('fn > Move Immunite Collar Down > ok')
+        try:
+            ic_msg = await bot.get_channel(CHANNEL_ID_GENERAL).fetch_message(ic_msg_id)
+            await ic_msg.remove_reaction(f'<:collierimmunite:{EMOJI_ID_COLLIER}>', bot.user)
+            await send_immunite_collar()
+            logger.info('fn > Move Immunite Collar Down > ok')
+        except discord.errors.NotFound:
+            logger.warning('fn > Move Immunite Collar Down > Immunite Collar Message Not found')
 
 
 async def send_immunite_collar() -> None:
