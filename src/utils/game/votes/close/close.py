@@ -21,7 +21,7 @@ async def close(interaction: discord.Interaction = None) -> None:
     """Close the vote."""
 
     # TODO save immune persons in VoteLog
-    # [ ] send recap msg to admins
+    # CHECK send recap msg to admins
     logger.info('vote closing > start')
     guild = bot.get_guild(GUILD_ID)
     channel = bot.get_channel(CHANNEL_ID_VOTE)
