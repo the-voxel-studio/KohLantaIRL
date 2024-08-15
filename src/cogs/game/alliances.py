@@ -131,7 +131,6 @@ class AlliancesCog(commands.Cog):
     async def purge_alliances(self, interaction: discord.Interaction):
         """Purge all alliances."""
 
-        # TODO add alliance deletion in db
         logger.info(
             f'Alliances purge | Requested by {interaction.user} (id:{interaction.user.id})'
         )

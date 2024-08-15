@@ -22,6 +22,7 @@ class AllianceData:
         self.text_id: int = data.get('text_id', 0)
         self.voice_id: int = data.get('voice_id', 0)
         self.name: str = data.get('name', '')
+        self.active: bool = data.get('active', False)
         members = data.get('members', [])
         if members:
             data: list[PlayerData] = [Player(_id=member).object.__dict__ for member in members]
@@ -96,9 +97,8 @@ class Alliance:
     def close(self) -> None:
         """Close the alliance."""
 
-        db.Alliances.update_one(filter=self.query, update={'$set': {'members': []}}, upsert=False)
+        db.Alliances.update_one(filter=self.query, update={'$set': {'active': False}}, upsert=False)
         logger.info(f'close: {self.object.__dict__}')
-        self.object.members = []
 
     def add_member(self, player: Player) -> None:
         """Add a member to the alliance."""
