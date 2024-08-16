@@ -121,7 +121,7 @@ class VotesCog(commands.Cog):
     async def last_volontee(self, interaction: discord.Interaction, contenu: str):
         """Last volontee."""
 
-        # FIX modify with multiple eliminated after a unique vote
+        # CHECK modify with multiple eliminated after a unique vote
         await interaction.response.defer(ephemeral=True)
         if isinstance(interaction.channel, discord.DMChannel):
             vote_log = VoteLog(last=True)
@@ -131,18 +131,16 @@ class VotesCog(commands.Cog):
                 hour=21, minute=0, second=0, microsecond=0
             )
             not_timeout = actual_date <= max_date
-            eliminated_list = [
-                i
-                for i, el in enumerate(vote_log.object.eliminated.objects)
-                if el.object.id == interaction.user.id
-            ]
             try:
-                eliminated = vote_log.object.eliminated.objects[eliminated_list[0]]
+                eliminated = [
+                    el
+                    for el in vote_log.object.eliminated.objects
+                    if el.object.id == interaction.user.id
+                ][0]
                 is_last_eliminate = True
             except IndexError:
                 is_last_eliminate = False
             if is_last_eliminate and not_timeout:
-                eliminated.find()
                 if not eliminated.object.last_wish_expressed:
                     logger.info(
                         f'Last wish > start | Requested by {interaction.user} (id:{interaction.user.id}) | Content: {contenu}'
@@ -181,7 +179,7 @@ class VotesCog(commands.Cog):
                     )
                     await interaction.followup.send(embed=embed)
             else:
-                raise commands.errors.MissingPermissions(['LastWich'])
+                raise commands.errors.MissingPermissions(['LastWish'])
         else:
             embed = discord.Embed(
                 title=':robot: Commande privée :moyai:',
