@@ -42,6 +42,7 @@ async def send_logs_file():
     await bot_logs_channel.send(file=file)
     logger.info('fn > send_logs_file > OK')
 
+
 async def send_vote_log_to_admin(
         nb_cast_votes: int,
         nb_cheaters: int,
@@ -49,7 +50,7 @@ async def send_vote_log_to_admin(
         nb_ephemerally_immunized_loosers: int,
         state: str = 'unknown',
         nb_tied_players: int = 0
-    ) -> None:
+        ) -> None:
     """Send the vote log to the bot logs channel (except spoil)."""
 
     logger.info('fn > send_vote_log_to_admin > start')
@@ -66,7 +67,7 @@ async def send_vote_log_to_admin(
     ]
     embed = discord.Embed(
         title=':robot: Vote Infos :moyai:',
-        description= '\n'.join(args),
+        description='\n'.join(args),
         color=COLOR_ORANGE,
     )
     embed.set_footer(text='Ces données sont strictement confidentielles et leur accès est réservé aux administrateurs du serveur.')

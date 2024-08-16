@@ -251,7 +251,7 @@ class VotePage:
         data = [['Pseudo', 'Eliminé au vote n°', 'Votes reçus', 'Proportion']]
         for p in sorted(self._eliminated_players, key=lambda x: x.object.death_council_number):
             death_vote_log = self._vote_logs.objects[p.object.death_council_number - 1]
-            nb_received_votes = sum([1 for vote in death_vote_log.object.votes if vote["for"].object.id == p.object.id])
+            nb_received_votes = sum([1 for vote in death_vote_log.object.votes if vote['for'].object.id == p.object.id])
             nb_cast_votes = len(death_vote_log.object.votes)
             percentage_received = round(nb_received_votes / nb_cast_votes * 100, 2)
             data.append(

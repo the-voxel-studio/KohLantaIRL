@@ -9,7 +9,7 @@ def is_admin(user: discord.Member) -> bool:
         if admin_role in user.roles:
             return True
         return False
-    except AttributeError: # Si le message n'est pas dans un serveur (user.guild n'existe pas)
+    except AttributeError:  # Si le message n'est pas dans un serveur (user.guild n'existe pas)
         return False
 
 
