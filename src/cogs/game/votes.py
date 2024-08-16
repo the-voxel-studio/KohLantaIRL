@@ -121,7 +121,7 @@ class VotesCog(commands.Cog):
     async def last_volontee(self, interaction: discord.Interaction, contenu: str):
         """Last volontee."""
 
-        # FIX modify with multiple eliminated after a unique vote
+        # CHECK modify with multiple eliminated after a unique vote
         await interaction.response.defer(ephemeral=True)
         if isinstance(interaction.channel, discord.DMChannel):
             vote_log = VoteLog(last=True)
@@ -145,7 +145,6 @@ class VotesCog(commands.Cog):
                     logger.info(
                         f'Last wish > start | Requested by {interaction.user} (id:{interaction.user.id}) | Content: {contenu}'
                     )
-                    # DEBUG uncomment - 2 lines
                     eliminated.object.last_wish_expressed = True
                     eliminated.save()
                     embed = discord.Embed(
