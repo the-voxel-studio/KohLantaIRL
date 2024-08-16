@@ -150,6 +150,7 @@ async def deal_with_cheaters(reactions: list) -> int:
         text="Cette décision automatique n'est pas contestable. Vous pouvez néanmoins contacter un administrateur en MP pour signaler un éventuel problème."
     )
     reactions_dict = await arrange_votes_for_deal_with_cheaters(reactions)
+    reactions_uid_to_delete = []
     for uid, emojis in reactions_dict.items():
         if len(emojis) > 1:
             for react in reactions:
@@ -160,8 +161,10 @@ async def deal_with_cheaters(reactions: list) -> int:
             guild = bot.get_guild(GUILD_ID)
             member = guild.get_member(uid)
             await timeout(member, reason='Tentative de triche au vote.', minutes=30)
-            del reactions_dict[uid]
+            reactions_uid_to_delete.append(uid)
             cheaters_number += 1
+    for uid in reactions_uid_to_delete:
+        del reactions_dict[uid]
     logger.info(f'deal with cheaters > OK | cheaters number: {cheaters_number}')
     return cheaters_number
 

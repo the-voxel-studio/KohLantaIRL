@@ -343,12 +343,14 @@ async def on_raw_reaction_add(payload) -> None:
                     color=COLOR_RED,
                 )
                 await user.send(embed=embed)
-        elif msg.channel.id == CHANNEL_ID_VOTE:
+        elif channel.id == CHANNEL_ID_VOTE:
             users = []
             for react in msg.reactions:
                 users += [user async for user in react.users()]
             if users.count(user) > 1:
-                await msg.remove_reaction(payload.emoji, user)
+                # DEBUG - 2 lines
+                logger.warning('IGNORED : Duplicate vote detected.')
+                # await msg.remove_reaction(payload.emoji, user)
 
 
 def signal_handler(sig, frame) -> None:

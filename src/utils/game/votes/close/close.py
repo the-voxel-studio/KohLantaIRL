@@ -2,7 +2,7 @@ import discord
 
 from config.values import CHANNEL_ID_VOTE, COLOR_GREEN, EMOJIS_LIST, GUILD_ID
 from database.game import Game
-from database.player import Player
+from database.player import Player, PlayerList
 from database.votelog import get_council_number
 from utils.bot import bot
 from utils.game.immunity.collar import remove_collar_immunized_loosers
@@ -67,9 +67,9 @@ async def close(interaction: discord.Interaction = None) -> None:
                 )
         else:
             council_number = get_council_number() + 1
-            tied_players = [
-                Player(letter=chr(EMOJIS_LIST.index(r) + 65)).object for r in max_reactions
-            ]
+            tied_players = PlayerList(data=[
+                Player(letter=chr(EMOJIS_LIST.index(r) + 65)).object.__dict__ for r in max_reactions
+            ])
             if council_number != 1:  # if it's not the first vote
                 await send_vote_log_to_admin(
                     len(max_reactions),
@@ -77,7 +77,7 @@ async def close(interaction: discord.Interaction = None) -> None:
                     len(immune1),
                     len(immune2),
                     'normal_equality',
-                    len(tied_players)
+                    len(tied_players.objects)
                 )
                 await close_normal_equality(
                     reactions_list,
@@ -93,7 +93,7 @@ async def close(interaction: discord.Interaction = None) -> None:
                     len(immune1),
                     len(immune2),
                     'first_vote_equality',
-                    len(tied_players)
+                    len(tied_players.objects)
                 )
                 await close_first_vote_equality(
                     reactions_list, cheaters_number, tied_players
