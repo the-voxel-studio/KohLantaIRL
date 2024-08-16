@@ -41,11 +41,11 @@ async def close(interaction: discord.Interaction = None) -> None:
     if not it_is_the_final:
         max_reactions, immune1 = await remove_collar_immunized_loosers(max_reactions)
         max_reactions, immune2 = await remove_ephemerally_immunized_loosers(max_reactions)
-    if len(max_reactions) != 0:
+    if len(reactions_list) != 1:  # check if there is at minimum 1 cast vote
         if there_is_no_equality:  # check if there is an equality
             if it_is_the_final:  # check if it's the last vote
                 await send_vote_log_to_admin(
-                    len(max_reactions),
+                    len(reactions_list),
                     cheaters_number,
                     len(immune1),
                     len(immune2),
@@ -56,7 +56,7 @@ async def close(interaction: discord.Interaction = None) -> None:
                 )
             else:  # for other votes
                 await send_vote_log_to_admin(
-                    len(max_reactions),
+                    len(reactions_list),
                     cheaters_number,
                     len(immune1),
                     len(immune2),
@@ -67,12 +67,15 @@ async def close(interaction: discord.Interaction = None) -> None:
                 )
         else:
             council_number = get_council_number() + 1
-            tied_players = PlayerList(data=[
-                Player(letter=chr(EMOJIS_LIST.index(r) + 65)).object.__dict__ for r in max_reactions
-            ])
+            tied_players = PlayerList(data=
+                [
+                    Player(letter=chr(EMOJIS_LIST.index(r) + 65)).object.__dict__
+                    for r in max_reactions
+                ]
+            )
             if council_number != 1:  # if it's not the first vote
                 await send_vote_log_to_admin(
-                    len(max_reactions),
+                    len(reactions_list),
                     cheaters_number,
                     len(immune1),
                     len(immune2),
@@ -88,7 +91,7 @@ async def close(interaction: discord.Interaction = None) -> None:
                 )
             else:  # if it's the first vote
                 await send_vote_log_to_admin(
-                    len(max_reactions),
+                    len(reactions_list),
                     cheaters_number,
                     len(immune1),
                     len(immune2),
@@ -100,7 +103,7 @@ async def close(interaction: discord.Interaction = None) -> None:
                 )
     else:
         await send_vote_log_to_admin(
-            len(max_reactions),
+            len(reactions_list),
             cheaters_number,
             len(immune1),
             len(immune2),

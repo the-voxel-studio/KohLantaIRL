@@ -40,7 +40,7 @@ async def close_without_eliminated(
         else ''
     )
     embed.add_field(
-        name="Un collier d'immunité a été utilisé.",
+        name="Un collier d'immunité a été utilisé, ou bien personne n'a voté",
         value=value,
         inline=True,
     )
