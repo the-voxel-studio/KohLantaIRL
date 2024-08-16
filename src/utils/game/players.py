@@ -43,7 +43,7 @@ async def join(message):
         await player.send(embed=embed)
     elif Player(
         id=player.id
-    ).object:  # Recherche de l'identifiant unique Discord du joueur pour vérifier qu'il n'est pas déjà inscrit
+    ).object._id:  # Recherche de l'identifiant unique Discord du joueur pour vérifier qu'il n'est pas déjà inscrit
         logger.warning(
             f'fn > join > PlayerAlreadyJoined | Requested by: {message.author} (id:{message.author.id}) | Message: {message.content}'
         )

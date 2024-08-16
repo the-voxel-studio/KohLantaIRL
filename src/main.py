@@ -1,24 +1,26 @@
 import datetime
 import signal
-from os import name as os_name
 from random import choice
 
 import discord
 from discord.ext import commands
+import discord.ext.commands
 
 from cogs.how_to import AllianceView
 from config.values import (BOT_ID, CHANNEL_ID_BOT, CHANNEL_ID_INSCRIPTION,
                            CHANNEL_ID_VOTE, COLOR_ORANGE, COLOR_RED,
-                           EMOJI_ID_COLLIER, EMOJIS_LIST, TOKEN)
+                           EMOJI_ID_COLLIER, EMOJIS_LIST, MODE, TOKEN)
 from database.game import Game
 from database.player import Player
+import discord.ext
 from utils.bot import bot
+from utils.control import is_admin
 from utils.game.alliances import purge_empty_alliances
-from utils.game.immuniteCollar import (give_immunite_collar,
-                                       move_immunite_collar_down)
+from utils.game.immunity.collar import (give_immunite_collar,
+                                        move_immunite_collar_down)
 from utils.game.players import join
 from utils.game.timer import cancel_timer, start_new_timer
-from utils.game.votes import EqualityView
+from utils.game.votes.close.normalEquality import EqualityView
 from utils.log import send_log, send_logs_file
 from utils.logging import get_logger
 from utils.punishments import timeout
@@ -31,7 +33,7 @@ COGS = [
     'cogs.game.alliances',
     'cogs.game.steps',
     'cogs.game.votes',
-    'cogs.game.immuniteCollar',
+    'cogs.game.immunity',
     'cogs.help',
     'cogs.punishments.muting',
 ]
@@ -42,7 +44,10 @@ async def on_ready() -> None:
     """Lancement du robot"""
 
     for cog in COGS:
-        await bot.load_extension(cog)
+        try:
+            await bot.load_extension(cog)
+        except discord.ext.commands.errors.ExtensionAlreadyLoaded:
+            logger.warning(f'Extension {cog} already loaded.')
     time = datetime.datetime.now().strftime('%d/%m/%Y **%H:%M**')
     deleted_count = await purge_empty_alliances()
     await start_new_timer()
@@ -51,14 +56,16 @@ async def on_ready() -> None:
     bot.add_view(AllianceView())
     await move_immunite_collar_down()
     synced = await bot.tree.sync()
+    bot_mode = MODE.upper() if MODE else 'PRODUCTION'
+    color = 'green' if bot_mode == 'PRODUCTION' else 'orange'
     await send_log(
         'BOT restarted and ready',
-        f":tools: mode : **{'DEV' if os_name == 'nt' else 'PRODUCTION'}**",
+        f':tools: mode : **{bot_mode}**',
         f':clock: time : {time}',
         f':handshake: empty alliances deleted : **{deleted_count}**',
         f':dividers: cogs loaded : **{len(COGS)}**',
         f':control_knobs: app commands : **{len(synced)}**',
-        color=('orange' if os_name == 'nt' else 'green'),
+        color=color,
     )
     logger.info('Bot started and ready.')
 
@@ -120,6 +127,9 @@ async def on_message(message) -> None:
 @bot.event
 async def on_command_error(ctx, error) -> None:
     """Gestion des erreurs de commandes"""
+
+    if MODE != 'PRODUCTION' and is_admin(ctx.author):
+        raise error
 
     if isinstance(error, commands.errors.CommandNotFound):
         if ctx.message.guild:
@@ -199,6 +209,9 @@ async def on_command_error(ctx, error) -> None:
 @bot.tree.error
 async def on_app_command_error(interaction: discord.Interaction, error) -> None:
     """Gestion des erreurs de commandes d'applications"""
+
+    if MODE != 'PRODUCTION' and is_admin(interaction.user):
+        raise error
 
     if isinstance(error, discord.app_commands.errors.CommandNotFound):
         logger.warning(
@@ -292,7 +305,7 @@ async def on_raw_reaction_add(payload) -> None:
         player = Player(id=payload.user_id)
         channel = bot.get_channel(payload.channel_id)
         msg = await channel.fetch_message(payload.message_id)
-        if isinstance(payload.emoji, str) and payload.emoji.id == EMOJI_ID_COLLIER:
+        if isinstance(payload.emoji, discord.partial_emoji.PartialEmoji) and payload.emoji.id == EMOJI_ID_COLLIER:
             await msg.remove_reaction(payload.emoji, user)
             if msg.id == Game.immunite_collar_msg_id and Player(id=user.id).object.alive:
                 await msg.clear_reaction(

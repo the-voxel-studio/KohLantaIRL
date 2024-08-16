@@ -32,7 +32,7 @@ class Player:
         """Initialize the player class with the data and query."""
 
         self.query: dict = query
-        self.object: PlayerData = None
+        self.object: PlayerData = PlayerData()
         if isinstance(self.query.get('id', None), int):
             self.query['id'] = str(self.query['id'])
         if data:
@@ -101,7 +101,7 @@ class Player:
         if self.object:
             self.object.alive = False
             self.object.letter = ''
-            self.death_council_number = db.VoteLog.count_documents({})
+            self.object.death_council_number = db.VoteLog.count_documents({})
             logger.info(f'eliminate: {self.object.__dict__}')
             self.save()
 
@@ -142,3 +142,14 @@ class PlayerList:
             logger.info(f"{'PlayerList found' if not data else 'PlayersList created from data'}")
             for player in self.data:
                 self.objects.append(Player(**player))
+
+
+async def resurrect_all_players():
+    """Resurrect all the players in the database."""
+
+    logger.info('resurrect all players > start')
+
+    for p in PlayerList().objects:
+        p.resurrect()
+
+    logger.info('resurrect all players > OK')

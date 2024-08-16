@@ -8,11 +8,12 @@ from discord.ext import commands
 
 from config.values import (  # OBLIGATOIRES (utilisation de la fonction eval)
     CHANNEL_ID_BOT_LOGS, COLOR_GREEN, COLOR_ORANGE, COLOR_RED)
+from database.player import PlayerList, resurrect_all_players
 from utils.control import is_admin
+from utils.game.votes import reset_votes as reset_votes_util
 from utils.log import send_log, send_logs_file
 from utils.logging import get_logger
-
-from database.player import PlayerList
+from utils.pdf import remove_files
 
 logger = get_logger(__name__)
 
@@ -218,6 +219,30 @@ class AdminCog(commands.Cog):
             text='Cette liste est strictement confidentielle et son accès est réservé aux administrateurs du serveur.'
         )
         await interaction.response.send_message(embed=self.embed)
+
+    @app_commands.command(
+        name='reset_votes', description='Remet à zéro les votes'
+    )
+    @app_commands.guild_only()
+    @app_commands.default_permissions(moderate_members=True)
+    async def reset_votes(self, interaction: discord.Interaction):
+        """Reset the votes."""
+
+        logger.warning(
+            f'Votes reset | Requested by {interaction.user} (id:{interaction.user.id})'
+        )
+        await interaction.response.defer()
+        if not is_admin(interaction.user):
+            raise commands.MissingPermissions(['Admin'])
+
+        await reset_votes_util()
+        await resurrect_all_players()
+        await remove_files()
+        self.embed = discord.Embed(
+            title=':robot: Votes réinitialisés :moyai:',
+            color=COLOR_ORANGE,
+        )
+        await interaction.followup.send(embed=self.embed)
 
 
 async def setup(bot):

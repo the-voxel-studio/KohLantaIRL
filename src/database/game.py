@@ -110,21 +110,39 @@ class GameModel:
         )
 
     @property
-    def immunite_collar_player_id(self) -> int:
-        """Get the immunite collar player id."""
+    def collar_imunized_players_id(self) -> list:
+        """Get the immunite collar players id."""
 
-        immunite_collar_player_id = db.Game.find_one({}).get('immunite_collar_player_id', 0)
-        logger.info(f'get immunite_collar_player_id: {immunite_collar_player_id}')
-        return immunite_collar_player_id
+        collar_imunized_players_id = db.Game.find_one({}).get('collar_imunized_players_id', [])
+        logger.info(f'get collar_imunized_players_id: {collar_imunized_players_id}')
+        return collar_imunized_players_id
 
-    @immunite_collar_player_id.setter
-    def immunite_collar_player_id(self, value: int) -> None:
-        """Set the immunite collar player id."""
+    @collar_imunized_players_id.setter
+    def collar_imunized_players_id(self, value: list) -> None:
+        """Set the immunite collar players ids."""
 
-        logger.info(f'set immunite_collar_player_id: {value}')
+        logger.info(f'set collar_imunized_players_id: {value}')
         db.Game.update_one(
             filter={'_id': self.__id},
-            update={'$set': {'immunite_collar_player_id': value}}
+            update={'$set': {'collar_imunized_players_id': value}}
+        )
+
+    @property
+    def ephemerally_imunized_players_id(self) -> list:
+        """Get the epphemerally imunised players id."""
+
+        ephemerally_imunized_players_id = db.Game.find_one({}).get('ephemerally_imunized_players_id', [])
+        logger.info(f'get ephemerally_imunized_players_id: {ephemerally_imunized_players_id}')
+        return ephemerally_imunized_players_id
+
+    @ephemerally_imunized_players_id.setter
+    def ephemerally_imunized_players_id(self, value: list) -> None:
+        """Set the ephemerally imunised player ids."""
+
+        logger.info(f'set ephemerally_imunized_players_id: {value}')
+        db.Game.update_one(
+            filter={'_id': self.__id},
+            update={'$set': {'ephemerally_imunized_players_id': value}}
         )
 
     def open_joining(self) -> None:
@@ -151,6 +169,40 @@ class GameModel:
         """End the game."""
 
         self.state = 4
+
+    def add_collar_imunized_player_id(self, player_id: int) -> None:
+        """Add a player to the collar imunized players."""
+
+        old_value = self.collar_imunized_players_id
+        if player_id not in old_value:
+            self.collar_imunized_players_id = old_value + [player_id]
+
+    def add_ephemerally_imunized_player_id(self, player_id: int) -> None:
+        """Add a player to the ephemerally imunized players."""
+
+        old_value = self.ephemerally_imunized_players_id
+        if player_id not in old_value:
+            self.ephemerally_imunized_players_id = old_value + [player_id]
+
+    def remove_collar_imunized_player_id(self, player_id: int) -> bool:
+        """ Remove a player to the collar imunized players."""
+
+        old_value = self.collar_imunized_players_id
+        if player_id in old_value:
+            self.collar_imunized_players_id = [id for id in old_value if id != player_id]
+            return True
+        else:
+            return False
+
+    def remove_ephemerally_imunized_player_id(self, player_id: int) -> bool:
+        """ Remove a player to the ephemerally imunized players."""
+
+        old_value = self.ephemerally_imunized_players_id
+        if player_id in old_value:
+            self.ephemerally_imunized_players_id = [id for id in old_value if id != player_id]
+            return True
+        else:
+            return False
 
 
 Game = GameModel()

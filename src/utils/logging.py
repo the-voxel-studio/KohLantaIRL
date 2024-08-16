@@ -1,11 +1,12 @@
 import logging
+from datetime import datetime
 
 from colorama import Fore, Style
 
-# LOG_FORMAT = '%(asctime)s %(levelname)s %(name)s %(message)s'
 CONSOLE_LOG_FORMAT = '%(asctime)s %(levelname)s %(name)s %(message)s'
 FILE_LOG_FORMAT = '[%(asctime)s] [%(levelname)s] [%(name)s]: %(message)s'
 LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+FILE_LOG_NAME = f'{datetime.now().strftime("%Y-%m-%d")}.log'
 
 
 class ColoredFormatter(logging.Formatter):
@@ -79,7 +80,7 @@ def get_logger(name: str) -> logging.Logger:
     )
     logger.addHandler(console_handler)
 
-    file_handler = logging.FileHandler('logs/bot.log')
+    file_handler = logging.FileHandler(f'logs/{FILE_LOG_NAME}')
     file_handler.setFormatter(FileFormatter(FILE_LOG_FORMAT, datefmt=LOG_DATE_FORMAT))
     logger.addHandler(file_handler)
 

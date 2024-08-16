@@ -3,6 +3,8 @@ from dotenv import load_dotenv  # for python-dotenv method
 load_dotenv()
 import os
 
+MODE = 'dev'
+# MODE = 'production'
 EMOJIS_LIST = [
     '🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯', '🇰', '🇱', '🇲',
     '🇳', '🇴', '🇵', '🇶', '🇷', '🇸', '🇹', '🇺', '🇻', '🇼', '🇽', '🇾', '🇿'
@@ -16,6 +18,7 @@ CHANNEL_ID_INSCRIPTION = int(os.environ.get('CHANNEL_INSCRIPTION'))
 CHANNEL_ID_VOTE = int(os.environ.get('CHANNEL_VOTE'))
 CHANNEL_ID_RESULTATS = int(os.environ.get('CHANNEL_RESULTATS'))
 CHANNEL_ID_HELP_ALLIANCE = int(os.environ.get('CHANNEL_ID_HELP_ALLIANCE'))
+CHANNEL_ID_ANNONCES = int(os.environ.get('CHANNEL_ID_ANNONCES'))
 CHANNEL_RULES = int(os.environ.get('CHANNEL_RULES'))
 CATEGORIE_ID_ALLIANCES = int(os.environ.get('CATEGORIE_ALLIANCES'))
 EMOJI_ID_COLLIER = int(os.environ.get('EMOJI_ID_COLLIER'))
@@ -24,6 +27,7 @@ BOT_ID = int(os.environ.get('BOT_ID'))
 GUILD_ID = int(os.environ.get('GUILD_ID'))
 TOKEN = os.environ.get('TOKEN')
 APPLICATION_ID = os.environ.get('APPLICATION_ID')
+HIDDEN_VOTE_PROBABILITY = float(os.environ.get('HIDDEN_VOTE_PROBABILITY'))
 COLOR_GREEN = 0x008000
 COLOR_ORANGE = 0xff7f00
 COLOR_RED = 0xf00020

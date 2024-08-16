@@ -12,17 +12,18 @@ Project is created with:
 * [Discord Dev Portal](https://discord.com/developers/)
 * [MongoDb](https://mongodb.com)
 * [Amazon Web Services](https://aws.amazon.com)
+* [Docker](https://www.docker.com/)
 
 ## Setup
 To run this project:
 1. Download it
-2. Setup a Python Virtual Environnement with the [requirements.txt file](/requirements.txt).
-3. Create the Server [Discord architecture](#discord-server-architecture) as defined below.
-4. Create the [roles](#discord-roles-architecture) as defined below.
-5. Configure a discord bot on the [Discord Dev Portal](https://discord.com/developers/).
-6. Create an empty database en [MongoDb](https://mongodb.com) and copy/create the connection url.
-7. Complete the [.example.env](/Example/.example.env) file with the unique ids and tokens specific to your server. Then move it to the root of the project and rename it ".env" (without ".example").
-8. Complete the discussion channels with templates from the [Templates](/Templates/) folder
+2. Create the Server [Discord architecture](#discord-server-architecture) as defined below.
+3. Create the [roles](#discord-roles-architecture) as defined below.
+4. Configure a discord bot on the [Discord Dev Portal](https://discord.com/developers/).
+5. Create an empty database en [MongoDb](https://mongodb.com) and copy/create the connection url.
+6. Complete the [.example.env](/Example/.example.env) file with the unique ids and tokens specific to your server. Then move it to the root of the project and rename it ".env" (without ".example").
+7. Complete the discussion channels with templates from the [Templates](/Templates/) folder
+8. Build and run the Docker container.
 
 > [!NOTE]  
 > Some functions, names and variables are written in French. You are free to change them to their English equivalent or any other language. Just be careful that the operation of the robot is not affected, especially in the channel names and roles.

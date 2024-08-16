@@ -2,7 +2,7 @@ import discord
 
 from config.values import (CATEGORIE_ID_ALLIANCES, COLOR_GREEN, COLOR_ORANGE,
                            GUILD_ID)
-from database.alliance import Alliance
+from database.alliance import Alliance, AllianceList
 from database.player import Player
 from utils.bot import bot
 from utils.logging import get_logger
@@ -67,6 +67,7 @@ async def new_alliance(interaction: discord.Interaction):
             'voice_id': new_voice_channel.id,
             'name': channel_name,
             'members': [player.object._id],
+            'active': True
         }
         new_alliance = Alliance(data=new_alliance_data)
         new_alliance.save()
@@ -94,21 +95,21 @@ async def new_alliance(interaction: discord.Interaction):
 
 
 async def close_alliance(
-    txt_channel_id: discord.TextChannel.id, user: discord.User = None
+    txt_channel_id: int = 0, user: discord.User = None, **kwargs
 ):
     """Close the alliance for the player."""
 
     logger.info(
         f'fn > Alliance Close > start | Requested by {user} (id:{user.id}) | Alliance text channel id: {txt_channel_id}'
     )
-    alliance = Alliance(text_id=txt_channel_id)
+    alliance: Alliance = kwargs.get('alliance', Alliance(text_id=txt_channel_id))
     text_channel = bot.get_channel(alliance.object.text_id)
     voice_channel = bot.get_channel(alliance.object.voice_id)
     await text_channel.delete()
     await voice_channel.delete()
     alliance.close()
     logger.info(
-        f'fn > Alliance Close > OK | Requested by {user} (id:{user.id}) | Alliance text channel id: {txt_channel_id} | Alliance voice channel id: {alliance.object.voice_id}'
+        f'fn > Alliance Close > OK | Requested by {user} (id:{user.id}) | Alliance text channel id: {alliance.object.voice_id} | Alliance voice channel id: {alliance.object.voice_id}'
     )
 
 
@@ -124,11 +125,13 @@ async def purge_empty_alliances() -> int:
 async def purge_alliances(interaction: discord.Interaction = None):
     """Purge all alliances."""
 
+    # CHECK add alliance deletion in db
+
     logger.info('fn > Alliances Purge > start')
-    category = bot.get_channel(CATEGORIE_ID_ALLIANCES)
-    for channel in category.channels:
-        logger.info(f'fn > Alliances Purge > delete {channel.name} alliance')
-        await channel.delete()
+    active_alliances = AllianceList(active=True)
+    for alliance in active_alliances.objects:
+        logger.info(f'fn > Alliances Purge > delete {alliance.object.name} alliance')
+        await close_alliance(0, interaction.user, alliance=alliance)
     embed = discord.Embed(
         title=':robot: Suppression des alliances :moyai:',
         description='Toutes les alliances ont été supprimées.',

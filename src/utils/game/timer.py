@@ -8,7 +8,7 @@ import utils.game.votes as vote
 from database.game import Game
 from database.votelog import get_council_number
 from utils.bot import bot
-from utils.game.immuniteCollar import send_immunite_collar
+from utils.game.immunity.collar import send_immunite_collar
 from utils.log import send_log
 from utils.logging import get_logger
 
@@ -23,7 +23,8 @@ async def timed_action():
     time = datetime.datetime.now()
     hour = int(time.strftime('%H'))
 
-    if hour == 10 * random() + 10 * random() and get_council_number() >= 4 and Game.immunite_collar_msg_id == 0 and Game.immunite_collar_player_id == 0:
+    # CHECK Question about chance of sending the immunite collar (1/24 chance every hour, 4.16%)
+    if hour == random.randint(0, 23) and get_council_number() >= 4 and Game.immunite_collar_msg_id == 0 and Game.immunite_collar_player_id == 0:
         send_immunite_collar()
 
     if hour == 1:
