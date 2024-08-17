@@ -10,7 +10,7 @@ def run_flake8(directory, exclude=[]):
     command = ['flake8']
     command.extend([f"--exclude={','.join(exclude)}"])
     command.extend(['--show-source'])
-    command.extend([f"--extend-ignore={','.join(['E402', 'E501'])}"])
+    command.extend([f"--extend-ignore=E402,E501"])
     command.append(directory)
 
     try:
