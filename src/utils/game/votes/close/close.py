@@ -67,12 +67,10 @@ async def close(interaction: discord.Interaction = None) -> None:
                 )
         else:
             council_number = get_council_number() + 1
-            tied_players = PlayerList(data=
-                [
-                    Player(letter=chr(EMOJIS_LIST.index(r) + 65)).object.__dict__
-                    for r in max_reactions
-                ]
-            )
+            tied_players = PlayerList(data=[
+                Player(letter=chr(EMOJIS_LIST.index(r) + 65)).object.__dict__
+                for r in max_reactions
+            ])
             if council_number != 1:  # if it's not the first vote
                 await send_vote_log_to_admin(
                     len(reactions_list),
