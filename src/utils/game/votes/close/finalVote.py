@@ -14,7 +14,10 @@ logger = get_logger(__name__)
 
 
 async def close_final_vote(
-    max_reactions, reactions_list, cheaters_number, max_count
+    max_reactions: list,
+    reactions_list: list,
+    cheaters_number: int,
+    max_count: int
 ) -> None:
     """Close the final vote."""
 

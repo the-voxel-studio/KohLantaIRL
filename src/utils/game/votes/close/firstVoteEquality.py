@@ -13,7 +13,9 @@ logger = get_logger(__name__)
 
 
 async def close_first_vote_equality(
-    reactions_list, cheaters_number, tied_players: PlayerList
+    reactions_list: list,
+    cheaters_number: int,
+    tied_players: PlayerList
 ) -> None:
     """Close the first vote after an equality."""
     # CHECK eliminated players data type

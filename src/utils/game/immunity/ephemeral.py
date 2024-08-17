@@ -76,7 +76,7 @@ async def remove_ephemeral_immunity(
     logger.info('fn > Remove Ephemeral Immunity > OK')
 
 
-async def remove_ephemerally_immunized_loosers(max_reactions) -> list:
+async def remove_ephemerally_immunized_loosers(max_reactions) -> tuple[list,list]:
     """Remove the potential ephemerally immunised player from the max reactions."""
 
     logger.info('fn > Remove Potential Ephemerally Imunised Player > start')

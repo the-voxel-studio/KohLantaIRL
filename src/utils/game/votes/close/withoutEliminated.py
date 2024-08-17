@@ -10,7 +10,11 @@ logger = get_logger(__name__)
 
 
 async def close_without_eliminated(
-    max_reactions, reactions_list, cheaters_number, immune, reactions
+    max_reactions: list,
+    reactions_list: list,
+    cheaters_number: int,
+    immune: list,
+    reactions: list
 ) -> None:
     """Close the vote without eliminated players."""
 

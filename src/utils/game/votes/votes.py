@@ -169,7 +169,7 @@ async def deal_with_cheaters(reactions: list) -> int:
     return cheaters_number
 
 
-async def count_votes(reactions: list) -> typing.Union[list, int, bool, bool]:
+async def count_votes(reactions: list) -> tuple[list, int, bool, bool]:
     """Count the votes."""
 
     logger.info('count votes > start')

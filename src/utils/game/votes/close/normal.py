@@ -14,7 +14,11 @@ logger = get_logger(__name__)
 
 
 async def close_normal(
-    max_reactions, reactions_list, cheaters_number, max_count, reactions
+    max_reactions: list,
+    reactions_list: list,
+    cheaters_number: int,
+    max_count: int,
+    reactions: list
 ) -> None:
     """Close the normal vote."""
 

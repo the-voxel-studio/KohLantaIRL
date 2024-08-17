@@ -30,14 +30,12 @@ async def close(interaction: discord.Interaction = None) -> None:
     )
     await channel.set_permissions(everyone_role, read_messages=False)
     msg = await channel.fetch_message(Game.vote_msg_id)
-    reactions = msg.reactions
+    reactions: list = msg.reactions
     reactions_list = await arrange_votes_for_votelog(reactions)
     Game.vote_msg_id = 0
     cheaters_number = await deal_with_cheaters(reactions)
     await msg.delete()
-    max_reactions, max_count, it_is_the_final, there_is_no_equality = await count_votes(
-        reactions
-    )
+    max_reactions, max_count, it_is_the_final, there_is_no_equality = await count_votes(reactions)
     if not it_is_the_final:
         max_reactions, immune1 = await remove_collar_immunized_loosers(max_reactions)
         max_reactions, immune2 = await remove_ephemerally_immunized_loosers(max_reactions)

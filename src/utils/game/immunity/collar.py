@@ -156,7 +156,7 @@ async def remove_immunite_collar(
     logger.info('fn > Remove Immunite Collar > OK')
 
 
-async def remove_collar_immunized_loosers(max_reactions) -> list:
+async def remove_collar_immunized_loosers(max_reactions) -> tuple[list,list]:
     """Remove the potential immune by collar player from the max reactions."""
     # [ ] optimize database requests for immunities removal
 
