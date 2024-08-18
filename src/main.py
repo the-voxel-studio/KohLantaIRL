@@ -343,7 +343,7 @@ async def on_raw_reaction_add(payload) -> None:
                     color=COLOR_RED,
                 )
                 await user.send(embed=embed)
-        elif msg.channel.id == CHANNEL_ID_VOTE:
+        elif channel.id == CHANNEL_ID_VOTE:
             users = []
             for react in msg.reactions:
                 users += [user async for user in react.users()]

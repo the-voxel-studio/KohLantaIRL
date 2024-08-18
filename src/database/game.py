@@ -41,7 +41,7 @@ class GameModel:
     def vote_msg_id(self) -> int:
         """Get the vote message id."""
 
-        vote_msg_id = db.Game.find_one({}).get('vote_msg_id', 0)
+        vote_msg_id = int(db.Game.find_one({}).get('vote_msg_id', 0))
         logger.info(f'get vote_msg_id: {vote_msg_id}')
         return vote_msg_id
 
@@ -52,14 +52,14 @@ class GameModel:
         logger.info(f'set vote_msg_id: {value}')
         db.Game.update_one(
             filter={'_id': self.__id},
-            update={'$set': {'vote_msg_id': value}}
+            update={'$set': {'vote_msg_id': str(value)}}
         )
 
     @property
     def btn_how_to_alliance_msg_id(self) -> int:
         """Get the btn_how_to_alliance message id."""
 
-        btn_how_to_alliance_msg_id = db.Game.find_one({}).get('btn_how_to_alliance_msg_id', 0)
+        btn_how_to_alliance_msg_id = int(db.Game.find_one({}).get('btn_how_to_alliance_msg_id', 0))
         logger.info(f'get btn_how_to_alliance_msg_id: {btn_how_to_alliance_msg_id}')
         return btn_how_to_alliance_msg_id
 
@@ -70,14 +70,14 @@ class GameModel:
         logger.info(f'set btn_how_to_alliance_msg_id: {value}')
         db.Game.update_one(
             filter={'_id': self.__id},
-            update={'$set': {'btn_how_to_alliance_msg_id': value}}
+            update={'$set': {'btn_how_to_alliance_msg_id': str(value)}}
         )
 
     @property
     def last_winner_id(self) -> int:
         """Get the last winner id."""
 
-        last_winner_id = db.Game.find_one({}).get('last_winner_id', 0)
+        last_winner_id = int(db.Game.find_one({}).get('last_winner_id', 0))
         logger.info(f'get last_winner_id: {last_winner_id}')
         return last_winner_id
 
@@ -88,14 +88,14 @@ class GameModel:
         logger.info(f'set last_winner_id: {value}')
         db.Game.update_one(
             filter={'_id': self.__id},
-            update={'$set': {'last_winner_id': value}}
+            update={'$set': {'last_winner_id': str(value)}}
         )
 
     @property
     def immunite_collar_msg_id(self) -> int:
         """Get the immunite collar message id."""
 
-        immunite_collar_msg_id = db.Game.find_one({}).get('immunite_collar_msg_id', 0)
+        immunite_collar_msg_id = int(db.Game.find_one({}).get('immunite_collar_msg_id', 0))
         logger.info(f'get immunite_collar_msg_id: {immunite_collar_msg_id}')
         return immunite_collar_msg_id
 
@@ -106,14 +106,14 @@ class GameModel:
         logger.info(f'set immunite_collar_msg_id: {value}')
         db.Game.update_one(
             filter={'_id': self.__id},
-            update={'$set': {'immunite_collar_msg_id': value}}
+            update={'$set': {'immunite_collar_msg_id': str(value)}}
         )
 
     @property
     def collar_imunized_players_id(self) -> list:
         """Get the immunite collar players id."""
 
-        collar_imunized_players_id = db.Game.find_one({}).get('collar_imunized_players_id', [])
+        collar_imunized_players_id = [int(id) for id in db.Game.find_one({}).get('collar_imunized_players_id', [])]
         logger.info(f'get collar_imunized_players_id: {collar_imunized_players_id}')
         return collar_imunized_players_id
 
@@ -124,14 +124,14 @@ class GameModel:
         logger.info(f'set collar_imunized_players_id: {value}')
         db.Game.update_one(
             filter={'_id': self.__id},
-            update={'$set': {'collar_imunized_players_id': value}}
+            update={'$set': {'collar_imunized_players_id': [str(id) for id in value]}}
         )
 
     @property
     def ephemerally_imunized_players_id(self) -> list:
         """Get the epphemerally imunised players id."""
 
-        ephemerally_imunized_players_id = db.Game.find_one({}).get('ephemerally_imunized_players_id', [])
+        ephemerally_imunized_players_id = [int(id) for id in db.Game.find_one({}).get('ephemerally_imunized_players_id', [])]
         logger.info(f'get ephemerally_imunized_players_id: {ephemerally_imunized_players_id}')
         return ephemerally_imunized_players_id
 
@@ -142,7 +142,7 @@ class GameModel:
         logger.info(f'set ephemerally_imunized_players_id: {value}')
         db.Game.update_one(
             filter={'_id': self.__id},
-            update={'$set': {'ephemerally_imunized_players_id': value}}
+            update={'$set': {'ephemerally_imunized_players_id': [str(id) for id in value]}}
         )
 
     def open_joining(self) -> None:

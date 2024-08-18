@@ -5,7 +5,7 @@ import discord
 from config.values import (CHANNEL_ID_GENERAL, CHANNEL_RULES, COLOR_GREEN,
                            EMOJI_ID_COLLIER, EMOJIS_LIST, GUILD_ID)
 from database.game import Game
-from database.player import Player
+from database.player import Player, PlayerList
 from utils.bot import bot
 from utils.logging import get_logger
 
@@ -156,28 +156,34 @@ async def remove_immunite_collar(
     logger.info('fn > Remove Immunite Collar > OK')
 
 
-async def remove_collar_immunized_loosers(max_reactions) -> list:
+async def remove_collar_immunized_loosers(max_reactions) -> tuple[list, PlayerList]:
     """Remove the potential immune by collar player from the max reactions."""
     # [ ] optimize database requests for immunities removal
 
     logger.info('fn > Remove Potential Immune Player > start')
 
-    immune_players__id = Game.collar_imunized_players_id
-    eliminated = [r for r in max_reactions if Player(letter=chr(EMOJIS_LIST.index(r) + 65)).object._id not in immune_players__id]
-    immune = [r for r in max_reactions if r not in eliminated]
+    immune_players_id = Game.collar_imunized_players_id
+    eliminated = [
+        r
+        for r in max_reactions
+        if Player(letter=chr(EMOJIS_LIST.index(r) + 65)).object.id not in immune_players_id
+    ]
+    immune = PlayerList([
+        {'letter': chr(EMOJIS_LIST.index(r) + 65)}
+        for r in max_reactions
+        if r not in eliminated
+    ])
 
     if len(immune) > 0:
         await reset_immunite_collar()
         await send_immunite_collar_used(immune)
-    else:
-        immune = []
 
     logger.info('fn > Remove Potential Immune Player > ok')
 
     return eliminated, immune
 
 
-async def send_immunite_collar_used(immune: list) -> None:
+async def send_immunite_collar_used(immune: PlayerList) -> None:
     """Send the immunite collar used to the player."""
 
     logger.info('fn > Send Immunite Collar Used > start')
@@ -203,9 +209,8 @@ async def send_immunite_collar_used(immune: list) -> None:
     )
     guild = bot.get_guild(GUILD_ID)
 
-    for i in immune:
-        i_p = Player(letter=chr(EMOJIS_LIST.index(i) + 65))
-        member = guild.get_member(i_p.object.id)
+    for p in immune.objects:
+        member = guild.get_member(p.object.id)
         await member.send(embed=private_embed)
 
     logger.info('fn > Send Immunite Collar Used > ok')

@@ -5,6 +5,7 @@ import discord
 from config.values import CHANNEL_ID_RESULTATS, COLOR_ORANGE, GUILD_ID
 from database.game import Game
 from database.votelog import VoteLog, get_council_number
+from database.player import PlayerList
 from utils.bot import bot
 from utils.log import get_logger
 
@@ -50,7 +51,7 @@ class EqualityView(discord.ui.View):
         if in_time:
             eliminated_nickname = interaction.data['values'][0]
             embed = discord.Embed(
-                title=f'**Tu as éliminé {eliminated_nickname} !**', color=9807270
+                title=f'**Tu as choisi {eliminated_nickname} !**', color=9807270
             )
             embed.set_author(
                 name=f'Egalité au conseil n°{self.council_number} !',
@@ -78,7 +79,12 @@ class EqualityView(discord.ui.View):
 
 
 async def close_normal_equality(
-    reactions_list, cheaters_number, council_number, it_is_the_final, tied_players
+    reactions_list: list,
+    cheaters_number: int,
+    council_number: int,
+    it_is_the_final: bool,
+    tied_players: PlayerList,
+    immune_players: PlayerList
 ) -> None:
     """Close the normal vote after an equality."""
 
@@ -87,7 +93,8 @@ async def close_normal_equality(
     VoteLog(data={
         'votes': reactions_list,
         'cheaters_number': cheaters_number,
-        'tied_players': tied_players,
+        'tied_players': [tp.object._id for tp in tied_players.objects],
+        'immune_players': [ip.object._id for ip in immune_players.objects],
     }).save()
     embed = discord.Embed(
         title='**Egalité**',
@@ -107,9 +114,9 @@ async def close_normal_equality(
         vote_chooser1 = 'La dernière personne éliminée'
         vote_chooser2 = 'dernière personne éliminée'
         try:
-            vote_chooser_id = VoteLog(last=-1).object.eliminated[0].id
+            vote_chooser_id = VoteLog(last=-1).object.eliminated.objects[0].object.id
         except IndexError:
-            vote_chooser_id = VoteLog(last=-2).object.eliminated[0].id
+            vote_chooser_id = VoteLog(last=-2).object.eliminated.objects[0].object.id
 
     embed.set_author(
         name=f'Résultat du conseil {vote_denomination}',
@@ -139,8 +146,8 @@ async def close_normal_equality(
     )
     chooser = discord.utils.get(bot.get_all_members(), id=vote_chooser_id)
     select_options = [
-        discord.SelectOption(label=p.nickname, description=f'Eliminer {p.nickname}')
-        for p in tied_players
+        discord.SelectOption(label=p.object.nickname, description=f'Eliminer {p.object.nickname}')
+        for p in tied_players.objects
     ]
     await chooser.send(embed=embed, view=EqualityView())
     logger.info('close_normal_equality > OK ')

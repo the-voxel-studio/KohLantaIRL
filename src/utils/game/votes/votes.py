@@ -150,6 +150,7 @@ async def deal_with_cheaters(reactions: list) -> int:
         text="Cette décision automatique n'est pas contestable. Vous pouvez néanmoins contacter un administrateur en MP pour signaler un éventuel problème."
     )
     reactions_dict = await arrange_votes_for_deal_with_cheaters(reactions)
+    reactions_uid_to_delete = []
     for uid, emojis in reactions_dict.items():
         if len(emojis) > 1:
             for react in reactions:
@@ -160,13 +161,15 @@ async def deal_with_cheaters(reactions: list) -> int:
             guild = bot.get_guild(GUILD_ID)
             member = guild.get_member(uid)
             await timeout(member, reason='Tentative de triche au vote.', minutes=30)
-            del reactions_dict[uid]
+            reactions_uid_to_delete.append(uid)
             cheaters_number += 1
+    for uid in reactions_uid_to_delete:
+        del reactions_dict[uid]
     logger.info(f'deal with cheaters > OK | cheaters number: {cheaters_number}')
     return cheaters_number
 
 
-async def count_votes(reactions: list) -> typing.Union[list, int, bool, bool]:
+async def count_votes(reactions: list) -> tuple[list, int, bool, bool]:
     """Count the votes."""
 
     logger.info('count votes > start')
@@ -200,7 +203,7 @@ async def eliminate(
     channel = bot.get_channel(CHANNEL_ID_RESULTATS)
     if reason == 'After equality':
         public_embed = discord.Embed(
-            title='**{eliminated.object.nickname}**',
+            title=f'**{eliminated.object.nickname}**',
             description="Le dernier éliminé a décidé de l'éliminer et sa sentence est irrévocable !",
             color=15548997,
         )
@@ -241,13 +244,14 @@ async def eliminate(
             value=f"Exemple : `/dv \'Vous n'auriez pas dû m'éliminer...\'`\nEnvoi moi simplement un message sous cette forme.\nTu peux utiliser cette commande jusqu'à la date suivante : {max_date.strftime('%d/%m/%Y %H:%M:%S')}",
         )
         last_vote_log = VoteLog(last=True)
-        last_vote_log.update_eliminated(Player(id=member.id).object)
-        file_path = pdfGenerate(last_vote_log.number)
+        last_vote_log.object.eliminated = PlayerList([{'_id': Player(id=member.id).object._id}])
+        last_vote_log.save()
+        file_path = pdfGenerate(last_vote_log.object.number)
         file = discord.File(file_path)
         await channel.send(embed=public_embed, file=file)
     else:
         public_embed = discord.Embed(
-            title=f'**{eliminated.nickname}**',
+            title=f'**{eliminated.object.nickname}**',
             description=f"<@{interaction.user.id}> a décidé de l'éliminer et sa sentence est irrévocable !",
             color=15548997,
         )

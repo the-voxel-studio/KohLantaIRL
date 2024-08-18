@@ -196,7 +196,7 @@ class AdminCog(commands.Cog):
         logger.info(
             f'Player infos | Requested by {interaction.user} (id:{interaction.user.id})'
         )
-        players = PlayerList()
+        players = PlayerList('all')
         self.embed = discord.Embed(
             title=':robot: Informations joueurs :moyai:',
             description=f'Informations sans spoil sur les joueurs.\nNombre de joueurs: **{len(players.objects)}**',

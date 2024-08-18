@@ -14,12 +14,14 @@ logger = get_logger(__name__)
 
 
 async def close_final_vote(
-    max_reactions, reactions_list, cheaters_number, max_count
+    max_reactions: list,
+    reactions_list: list,
+    cheaters_number: int,
+    max_count: int
 ) -> None:
     """Close the final vote."""
 
     logger.info('close_final_vote > start ')
-    logger.info('EqualityView select_callback > start | max_rea')
     winner = Player(letter=chr(EMOJIS_LIST.index(max_reactions[0]) + 65))
     data = {
         'votes': reactions_list,

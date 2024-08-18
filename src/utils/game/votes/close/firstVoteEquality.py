@@ -4,6 +4,7 @@ import discord
 
 from config.values import CHANNEL_ID_RESULTATS, GUILD_ID
 from database.votelog import VoteLog
+from database.player import PlayerList
 from utils.bot import bot
 from utils.log import get_logger
 from utils.pdf import generate as pdfGenerate
@@ -12,7 +13,10 @@ logger = get_logger(__name__)
 
 
 async def close_first_vote_equality(
-    reactions_list, cheaters_number, tied_players
+    reactions_list: list,
+    cheaters_number: int,
+    tied_players: PlayerList,
+    immune_players: PlayerList
 ) -> None:
     """Close the first vote after an equality."""
     # CHECK eliminated players data type
@@ -20,9 +24,10 @@ async def close_first_vote_equality(
     logger.info('close_first_vote_equality > start ')
     new_vote_log = VoteLog(data={
         'votes': reactions_list,
-        'eliminated': tied_players,
+        'eliminated': [tp.object._id for tp in tied_players.objects],
         'cheaters_number': cheaters_number,
-        'tied_players': tied_players,
+        'tied_players': [tp.object._id for tp in tied_players.objects],
+        'immune_players': [tp.object._id for tp in immune_players.objects],
         'hidden': False
     })
     new_vote_log.save()
@@ -73,10 +78,10 @@ async def close_first_vote_equality(
     guild = bot.get_guild(GUILD_ID)
     role = discord.utils.get(guild.roles, name='Joueur')
     new_role = discord.utils.get(guild.roles, name='Eliminé')
-    for el in tied_players:
-        member = guild.get_member(el.id)
+    for player in tied_players.objects:
+        member = guild.get_member(player.object.id)
         await member.remove_roles(role)
         await member.add_roles(new_role)
         await member.send(embed=dm_embed)
-        el.eliminate()
+        player.eliminate()
     logger.info('close_first_vote_equality > OK ')
