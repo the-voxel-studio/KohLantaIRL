@@ -203,7 +203,7 @@ async def eliminate(
     channel = bot.get_channel(CHANNEL_ID_RESULTATS)
     if reason == 'After equality':
         public_embed = discord.Embed(
-            title='**{eliminated.object.nickname}**',
+            title=f'**{eliminated.object.nickname}**',
             description="Le dernier éliminé a décidé de l'éliminer et sa sentence est irrévocable !",
             color=15548997,
         )
@@ -244,8 +244,9 @@ async def eliminate(
             value=f"Exemple : `/dv \'Vous n'auriez pas dû m'éliminer...\'`\nEnvoi moi simplement un message sous cette forme.\nTu peux utiliser cette commande jusqu'à la date suivante : {max_date.strftime('%d/%m/%Y %H:%M:%S')}",
         )
         last_vote_log = VoteLog(last=True)
-        last_vote_log.update_eliminated(Player(id=member.id).object)
-        file_path = pdfGenerate(last_vote_log.number)
+        last_vote_log.object.eliminated = PlayerList([{'_id': Player(id=member.id).object._id}])
+        last_vote_log.save()
+        file_path = pdfGenerate(last_vote_log.object.number)
         file = discord.File(file_path)
         await channel.send(embed=public_embed, file=file)
     else:

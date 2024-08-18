@@ -22,7 +22,6 @@ async def close_final_vote(
     """Close the final vote."""
 
     logger.info('close_final_vote > start ')
-    logger.info('EqualityView select_callback > start | max_rea')
     winner = Player(letter=chr(EMOJIS_LIST.index(max_reactions[0]) + 65))
     data = {
         'votes': reactions_list,

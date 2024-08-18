@@ -348,9 +348,7 @@ async def on_raw_reaction_add(payload) -> None:
             for react in msg.reactions:
                 users += [user async for user in react.users()]
             if users.count(user) > 1:
-                # DEBUG - 2 lines
-                logger.warning('IGNORED : Duplicate vote detected.')
-                # await msg.remove_reaction(payload.emoji, user)
+                await msg.remove_reaction(payload.emoji, user)
 
 
 def signal_handler(sig, frame) -> None:
