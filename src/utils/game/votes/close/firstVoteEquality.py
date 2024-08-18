@@ -15,7 +15,8 @@ logger = get_logger(__name__)
 async def close_first_vote_equality(
     reactions_list: list,
     cheaters_number: int,
-    tied_players: PlayerList
+    tied_players: PlayerList,
+    immune_players: PlayerList
 ) -> None:
     """Close the first vote after an equality."""
     # CHECK eliminated players data type
@@ -26,6 +27,7 @@ async def close_first_vote_equality(
         'eliminated': [tp.object._id for tp in tied_players.objects],
         'cheaters_number': cheaters_number,
         'tied_players': [tp.object._id for tp in tied_players.objects],
+        'immune_players': [tp.object._id for tp in immune_players.objects],
         'hidden': False
     })
     new_vote_log.save()

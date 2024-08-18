@@ -40,9 +40,11 @@ async def close(interaction: discord.Interaction = None) -> None:
         max_reactions, immune1 = await remove_collar_immunized_loosers(max_reactions)
         max_reactions, immune2 = await remove_ephemerally_immunized_loosers(max_reactions)
     else:
-        immune1 = []
-        immune2 = []
-    if len(reactions_list) > 0:  # check if there is at minimum 1 cast vote
+        immune1 = PlayerList()
+        immune2 = PlayerList()
+    immune_players = immune1 + immune2
+
+    if len(reactions_list) > 0 and max_reactions != []:  # check if there is at minimum 1 cast vote
         if there_is_no_equality:  # check if there is an equality
             if it_is_the_final:  # check if it's the last vote
                 await send_vote_log_to_admin(
@@ -64,7 +66,7 @@ async def close(interaction: discord.Interaction = None) -> None:
                     'normal'
                 )
                 await close_normal(
-                    max_reactions, reactions_list, cheaters_number, max_count, reactions
+                    max_reactions, reactions_list, cheaters_number, max_count, reactions, immune_players
                 )
         else:
             council_number = get_council_number() + 1
@@ -87,6 +89,7 @@ async def close(interaction: discord.Interaction = None) -> None:
                     council_number,
                     it_is_the_final,
                     tied_players,
+                    immune_players
                 )
             else:  # if it's the first vote
                 await send_vote_log_to_admin(
@@ -98,7 +101,7 @@ async def close(interaction: discord.Interaction = None) -> None:
                     len(tied_players.objects)
                 )
                 await close_first_vote_equality(
-                    reactions_list, cheaters_number, tied_players
+                    reactions_list, cheaters_number, tied_players, immune_players
                 )
     else:
         await send_vote_log_to_admin(
@@ -109,7 +112,7 @@ async def close(interaction: discord.Interaction = None) -> None:
             'whithout_eliminated'
         )
         await close_without_eliminated(
-            max_reactions, reactions_list, cheaters_number, immune1 + immune2, reactions
+            max_reactions, reactions_list, cheaters_number, reactions, immune_players,
         )
     if interaction:
         embed = discord.Embed(

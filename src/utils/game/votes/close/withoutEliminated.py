@@ -2,6 +2,7 @@ import discord
 
 from config.values import CHANNEL_ID_RESULTATS
 from database.votelog import VoteLog, get_council_number
+from database.player import PlayerList
 from utils.bot import bot
 from utils.log import get_logger
 from utils.pdf import generate as pdfGenerate
@@ -13,8 +14,8 @@ async def close_without_eliminated(
     max_reactions: list,
     reactions_list: list,
     cheaters_number: int,
-    immune: list,
-    reactions: list
+    reactions: list,
+    immune_players: PlayerList
 ) -> None:
     """Close the vote without eliminated players."""
 
@@ -23,9 +24,10 @@ async def close_without_eliminated(
         'votes': reactions_list,
         'eliminated': [],
         'cheaters_number': cheaters_number,
+        'immune_players': [p.object._id for p in immune_players.objects],
     })
     new_vote_log.save()
-    nb_remaining_players = len(reactions) - 1
+    nb_remaining_players = len(reactions)
     embed = discord.Embed(
         title='**Aucun joueur éliminé**',
         description="Suite aux résultat du vote, personne n'a été éliminé !",

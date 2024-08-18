@@ -4,7 +4,7 @@ import discord
 
 from config.values import CHANNEL_ID_RESULTATS, EMOJIS_LIST, GUILD_ID
 from database.game import Game
-from database.player import Player
+from database.player import Player, PlayerList
 from database.votelog import VoteLog, get_council_number
 from utils.bot import bot
 from utils.log import get_logger
@@ -18,7 +18,8 @@ async def close_normal(
     reactions_list: list,
     cheaters_number: int,
     max_count: int,
-    reactions: list
+    reactions: list,
+    immune_players: PlayerList
 ) -> None:
     """Close the normal vote."""
 
@@ -27,7 +28,8 @@ async def close_normal(
     new_vote_log = VoteLog(data={
         'votes': reactions_list,
         'eliminated': [eliminated.object._id],
-        'cheaters_number': cheaters_number
+        'cheaters_number': cheaters_number,
+        'immune_players': [p.object._id for p in immune_players.objects],
     })
     new_vote_log.save()
     nb_remaining_players = len(reactions) - 1

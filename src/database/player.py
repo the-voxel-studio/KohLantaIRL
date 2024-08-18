@@ -109,7 +109,7 @@ class Player:
 class PlayerList:
     """Player list class to store player objects."""
 
-    def __init__(self, data: list[dict] = [], **query) -> None:
+    def __init__(self, data: list[dict] | str = [], **query) -> None:
         """Initialize the player list class with the data and query."""
 
         self.query: dict = query
@@ -131,11 +131,23 @@ class PlayerList:
 
         return len(self.objects)
 
+    def __add__(self, other: 'PlayerList') -> 'PlayerList':
+        """Return the addition of the player list objects."""
+
+        el1__id_list = [player.object.__dict__ for player in self.objects]
+        el2__id_list = [player.object.__dict__ for player in other.objects if player.object.__dict__ not in el1__id_list]
+
+        return PlayerList(data=el1__id_list + el2__id_list)
+
     def find(self, data) -> None:
         """Find the player objects from the database."""
 
-        if data:
+        if data == 'all':
+            self.data = db.Players.find(filter={})
+        elif data:
             self.data = data
+        elif not self.query:
+            self.data = []
         else:
             self.data = db.Players.find(filter=self.query)
         if self.data:
@@ -149,7 +161,7 @@ async def resurrect_all_players():
 
     logger.info('resurrect all players > start')
 
-    for p in PlayerList().objects:
+    for p in PlayerList('all').objects:
         p.resurrect()
 
     logger.info('resurrect all players > OK')

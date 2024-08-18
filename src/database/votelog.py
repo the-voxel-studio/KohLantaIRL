@@ -36,6 +36,7 @@ class VoteLogData:
         tied_players: list[dict[str, ObjectId]] = data.get('tied_players', [])
         self.alliance_number: int = data.get('alliance_number', 0)
         self.hidden: bool = data.get('hidden', random() < HIDDEN_VOTE_PROBABILITY)
+        immune_players: list[str, ObjectId] = data.get('immune_players', [])
         if votes:
             players: dict[ObjectId, Player] = {}
             for vote in votes:
@@ -54,11 +55,15 @@ class VoteLogData:
         if eliminated:
             self.eliminated = PlayerList([{'_id': player} for player in eliminated])
         else:
-            self.eliminated = PlayerList(_id=0)  # To avoid an empty PlayerList
+            self.eliminated = PlayerList()  # To avoid an empty PlayerList
         if tied_players:
             self.tied_players = PlayerList([{'_id': player} for player in tied_players])
         else:
-            self.tied_players = PlayerList(_id=0)  # To avoid an empty PlayerList
+            self.tied_players = PlayerList()  # To avoid an empty PlayerList
+        if immune_players:
+            self.immune_players = PlayerList([{'_id': player} for player in immune_players])
+        else:
+            self.immune_players = PlayerList()  # To avoid an empty PlayerList
 
 
 class VoteLog:
@@ -128,6 +133,10 @@ class VoteLog:
                     player.object._id
                     for player in self.object.tied_players.objects
                 ]
+                object['immune_players'] = [
+                    player.object._id
+                    for player in self.object.immune_players.objects
+                ]
                 logger.info(f'update: {self.object.__dict__}')
                 db.VoteLog.update_one(
                     filter={'_id': self.object._id},
@@ -145,6 +154,7 @@ class VoteLog:
                 ]
                 self.object.tied_players = [player.object._id for player in self.object.tied_players.objects]
                 self.object.eliminated = [player.object._id for player in self.object.eliminated.objects]
+                self.object.immune_players = [player.object._id for player in self.object.immune_players.objects]
                 logger.info(f'save: {self.object.__dict__}')
                 db.VoteLog.insert_one(self.object.__dict__)
 

@@ -83,7 +83,8 @@ async def close_normal_equality(
     cheaters_number: int,
     council_number: int,
     it_is_the_final: bool,
-    tied_players: PlayerList
+    tied_players: PlayerList,
+    immune_players: PlayerList
 ) -> None:
     """Close the normal vote after an equality."""
 
@@ -92,7 +93,8 @@ async def close_normal_equality(
     VoteLog(data={
         'votes': reactions_list,
         'cheaters_number': cheaters_number,
-        'tied_players': [tp.object.id for tp in tied_players.objects],
+        'tied_players': [tp.object._id for tp in tied_players.objects],
+        'immune_players': [ip.object._id for ip in immune_players.objects],
     }).save()
     embed = discord.Embed(
         title='**Egalité**',

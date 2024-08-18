@@ -2,7 +2,7 @@ import discord
 
 from config.values import CHANNEL_RULES, COLOR_GREEN, EMOJIS_LIST, GUILD_ID
 from database.game import Game
-from database.player import Player
+from database.player import Player, PlayerList
 from utils.bot import bot
 from utils.logging import get_logger
 
@@ -76,27 +76,33 @@ async def remove_ephemeral_immunity(
     logger.info('fn > Remove Ephemeral Immunity > OK')
 
 
-async def remove_ephemerally_immunized_loosers(max_reactions) -> tuple[list, list]:
+async def remove_ephemerally_immunized_loosers(max_reactions) -> tuple[list, PlayerList]:
     """Remove the potential ephemerally immunised player from the max reactions."""
 
     logger.info('fn > Remove Potential Ephemerally Imunised Player > start')
 
-    immune_players__id = Game.ephemerally_imunized_players_id
-    eliminated = [r for r in max_reactions if Player(letter=chr(EMOJIS_LIST.index(r) + 65)).object._id not in immune_players__id]
-    immune = [r for r in max_reactions if r not in eliminated]
+    immune_players_id = Game.ephemerally_imunized_players_id
+    eliminated = [
+        r
+        for r in max_reactions
+        if Player(letter=chr(EMOJIS_LIST.index(r) + 65)).object.id not in immune_players_id
+    ]
+    immune = PlayerList([
+        {'letter': chr(EMOJIS_LIST.index(r) + 65)}
+        for r in max_reactions
+        if r not in eliminated
+    ])
 
     if len(immune) > 0:
         Game.ephemerally_imunized_players_id = []
         await send_ephemeral_immunity_used(immune)
-    else:
-        immune = []
 
     logger.info('fn > Remove Potential Ephemerally Imunised Player > ok')
 
     return eliminated, immune
 
 
-async def send_ephemeral_immunity_used(immune: list) -> None:
+async def send_ephemeral_immunity_used(immune: PlayerList) -> None:
     """Send the ephemeral immune used to the player."""
 
     logger.info('fn > Send Ephemeral Immune Used > start')
@@ -122,9 +128,8 @@ async def send_ephemeral_immunity_used(immune: list) -> None:
     )
     guild = bot.get_guild(GUILD_ID)
 
-    for i in immune:
-        i_p = Player(letter=chr(EMOJIS_LIST.index(i) + 65))
-        member = guild.get_member(i_p.object.id)
+    for p in immune.objects:
+        member = guild.get_member(p.object.id)
         await member.send(embed=private_embed)
 
     logger.info('fn > Send Ephemeral Immune Used > ok')
