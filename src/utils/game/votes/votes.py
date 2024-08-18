@@ -251,7 +251,7 @@ async def eliminate(
         await channel.send(embed=public_embed, file=file)
     else:
         public_embed = discord.Embed(
-            title=f'**{eliminated.nickname}**',
+            title=f'**{eliminated.object.nickname}**',
             description=f"<@{interaction.user.id}> a décidé de l'éliminer et sa sentence est irrévocable !",
             color=15548997,
         )

@@ -39,6 +39,9 @@ async def close(interaction: discord.Interaction = None) -> None:
     if not it_is_the_final:
         max_reactions, immune1 = await remove_collar_immunized_loosers(max_reactions)
         max_reactions, immune2 = await remove_ephemerally_immunized_loosers(max_reactions)
+    else:
+        immune1 = []
+        immune2 = []
     if len(reactions_list) > 0:  # check if there is at minimum 1 cast vote
         if there_is_no_equality:  # check if there is an equality
             if it_is_the_final:  # check if it's the last vote
