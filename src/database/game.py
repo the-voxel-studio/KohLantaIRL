@@ -59,7 +59,7 @@ class GameModel:
     def btn_how_to_alliance_msg_id(self) -> int:
         """Get the btn_how_to_alliance message id."""
 
-        btn_how_to_alliance_msg_id = db.Game.find_one({}).get('btn_how_to_alliance_msg_id', 0)
+        btn_how_to_alliance_msg_id = int(db.Game.find_one({}).get('btn_how_to_alliance_msg_id', 0))
         logger.info(f'get btn_how_to_alliance_msg_id: {btn_how_to_alliance_msg_id}')
         return btn_how_to_alliance_msg_id
 
@@ -70,14 +70,14 @@ class GameModel:
         logger.info(f'set btn_how_to_alliance_msg_id: {value}')
         db.Game.update_one(
             filter={'_id': self.__id},
-            update={'$set': {'btn_how_to_alliance_msg_id': value}}
+            update={'$set': {'btn_how_to_alliance_msg_id': str(value)}}
         )
 
     @property
     def last_winner_id(self) -> int:
         """Get the last winner id."""
 
-        last_winner_id = db.Game.find_one({}).get('last_winner_id', 0)
+        last_winner_id = int(db.Game.find_one({}).get('last_winner_id', 0))
         logger.info(f'get last_winner_id: {last_winner_id}')
         return last_winner_id
 
@@ -88,14 +88,14 @@ class GameModel:
         logger.info(f'set last_winner_id: {value}')
         db.Game.update_one(
             filter={'_id': self.__id},
-            update={'$set': {'last_winner_id': value}}
+            update={'$set': {'last_winner_id': str(value)}}
         )
 
     @property
     def immunite_collar_msg_id(self) -> int:
         """Get the immunite collar message id."""
 
-        immunite_collar_msg_id = db.Game.find_one({}).get('immunite_collar_msg_id', 0)
+        immunite_collar_msg_id = int(db.Game.find_one({}).get('immunite_collar_msg_id', 0))
         logger.info(f'get immunite_collar_msg_id: {immunite_collar_msg_id}')
         return immunite_collar_msg_id
 
@@ -106,7 +106,7 @@ class GameModel:
         logger.info(f'set immunite_collar_msg_id: {value}')
         db.Game.update_one(
             filter={'_id': self.__id},
-            update={'$set': {'immunite_collar_msg_id': value}}
+            update={'$set': {'immunite_collar_msg_id': str(value)}}
         )
 
     @property

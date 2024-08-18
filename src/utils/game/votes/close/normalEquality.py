@@ -51,7 +51,7 @@ class EqualityView(discord.ui.View):
         if in_time:
             eliminated_nickname = interaction.data['values'][0]
             embed = discord.Embed(
-                title=f'**Tu as éliminé {eliminated_nickname} !**', color=9807270
+                title=f'**Tu as choisi {eliminated_nickname} !**', color=9807270
             )
             embed.set_author(
                 name=f'Egalité au conseil n°{self.council_number} !',
