@@ -3,12 +3,11 @@ from dotenv import load_dotenv  # for python-dotenv method
 load_dotenv()
 import os
 
-MODE = 'dev'
-# MODE = 'production'
 EMOJIS_LIST = [
     '🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯', '🇰', '🇱', '🇲',
     '🇳', '🇴', '🇵', '🇶', '🇷', '🇸', '🇹', '🇺', '🇻', '🇼', '🇽', '🇾', '🇿'
 ]  # Définition de la liste des émojis de réaction pour les votes
+MODE = os.environ.get('MODE')
 MONGODB_URI = os.environ.get('MongoDB_URI')
 CHANNEL_ID_BOT_PRIVATE = int(os.environ.get('CHANNEL_BOT_PRIVATE'))
 CHANNEL_ID_BOT = int(os.environ.get('CHANNEL_BOT'))
