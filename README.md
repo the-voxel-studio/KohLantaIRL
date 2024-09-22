@@ -21,7 +21,7 @@ To run this project:
 3. Create the [roles](#discord-roles-architecture) as defined below.
 4. Configure a discord bot on the [Discord Dev Portal](https://discord.com/developers/).
 5. Create an empty database en [MongoDb](https://mongodb.com) and copy/create the connection url.
-6. Complete the [.example.env](/Example/.example.env) file with the unique ids and tokens specific to your server. Then move it to the root of the project and rename it ".env" (without ".example").
+6. Complete the [.example.env](/src/config/.env.example) file with the unique ids and tokens specific to your server. Then move it to the root of the project and rename it ".env" (without ".example").
 7. Complete the discussion channels with templates from the [Templates](/Templates/) folder
 8. Build and run the Docker container.
 
