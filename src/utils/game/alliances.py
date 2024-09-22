@@ -99,6 +99,12 @@ async def close_alliance(
 ):
     """Close the alliance for the player."""
 
+    class NoneUser:
+        id = 0
+
+    if not user:
+        user: NoneUser = NoneUser()
+
     logger.info(
         f'fn > Alliance Close > start | Requested by {user} (id:{user.id}) | Alliance text channel id: {txt_channel_id}'
     )
@@ -131,7 +137,7 @@ async def purge_alliances(interaction: discord.Interaction = None):
     active_alliances = AllianceList(active=True)
     for alliance in active_alliances.objects:
         logger.info(f'fn > Alliances Purge > delete {alliance.object.name} alliance')
-        await close_alliance(0, interaction.user, alliance=alliance)
+        await close_alliance(0, interaction.user if interaction else None, alliance=alliance)
     embed = discord.Embed(
         title=':robot: Suppression des alliances :moyai:',
         description='Toutes les alliances ont été supprimées.',

@@ -1,6 +1,6 @@
 import discord
 
-from config.values import CHANNEL_RULES, COLOR_GREEN, EMOJIS_LIST, GUILD_ID
+from config.values import CHANNEL_ID_RULES, COLOR_GREEN, EMOJIS_LIST, GUILD_ID
 from database.game import Game
 from database.player import Player, PlayerList
 from utils.bot import bot
@@ -30,7 +30,7 @@ async def give_ephemeral_immunity(
     )
     embed.add_field(
         name='Tu es maintenant immunisé.',
-        value=f"Si tu es choisi lors du prochain vote, ce bonus te protégera automatiquement.\nPlus d'infos ici: <#{CHANNEL_RULES}>",
+        value=f"Si tu es choisi lors du prochain vote, ce bonus te protégera automatiquement.\nPlus d'infos ici: <#{CHANNEL_ID_RULES}>",
         inline=False,
     )
     embed.set_image(
@@ -61,7 +61,7 @@ async def remove_ephemeral_immunity(
         )
         embed.add_field(
             name="Tu __n'__ es maintenant __plus__ immunisé.",
-            value=f"Si tu es choisi lors du prochain vote, ce bonus ne te protégera plus.\nPlus d'infos ici: <#{CHANNEL_RULES}>",
+            value=f"Si tu es choisi lors du prochain vote, ce bonus ne te protégera plus.\nPlus d'infos ici: <#{CHANNEL_ID_RULES}>",
             inline=False,
         )
         embed.add_field(
@@ -120,7 +120,7 @@ async def send_ephemeral_immunity_used(immune: PlayerList) -> None:
     )
     private_embed.add_field(
         name="Tu n'es maintenant plus immunisé.",
-        value=f"Si tu es choisi lors d'un prochain vote, ce bonus ne te protégera plus.\nPlus d'infos ici: <#{CHANNEL_RULES}>",
+        value=f"Si tu es choisi lors d'un prochain vote, ce bonus ne te protégera plus.\nPlus d'infos ici: <#{CHANNEL_ID_RULES}>",
         inline=False,
     )
     private_embed.set_image(
