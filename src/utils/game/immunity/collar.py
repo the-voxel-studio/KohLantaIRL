@@ -16,7 +16,9 @@ async def move_immunite_collar_down() -> None:
     """Move the immunite collar down in the general channel."""
 
     logger.info('fn > Move Immunite Collar Down > start')
+
     ic_msg_id = Game.immunite_collar_msg_id
+
     if ic_msg_id != 0:
         try:
             ic_msg = await bot.get_channel(CHANNEL_ID_GENERAL).fetch_message(ic_msg_id)
@@ -32,11 +34,13 @@ async def send_immunite_collar() -> None:
 
     # CHECK automatic sending
     logger.info('fn > Send Immunite Collar > start')
+
     channel = bot.get_channel(CHANNEL_ID_GENERAL)
     msgs = [msg async for msg in channel.history(limit=20)][5:]
     msg = random.choice(msgs)
     await msg.add_reaction(f'<:collierimmunite:{EMOJI_ID_COLLIER}>')
     Game.immunite_collar_msg_id = msg.id
+
     logger.info('fn > Send Immunite Collar > OK')
 
 
@@ -44,6 +48,7 @@ async def reset_immunite_collar() -> None:
     """Reset the immunite collar."""
 
     logger.info('fn > Reset Immunite Collar > start')
+
     ic_msg_id = Game.immunite_collar_msg_id
     if ic_msg_id != 0:
         try:
@@ -51,8 +56,11 @@ async def reset_immunite_collar() -> None:
             await ic_msg.remove_reaction(f'<:collierimmunite:{EMOJI_ID_COLLIER}>', bot.user)
         except discord.errors.NotFound:
             logger.warning('fn > Reset Immunite Collar > Immunite Collar Message Not found')
+
     Game.immunite_collar_msg_id = 0
     Game.collar_imunized_players_id = []
+    Game.immunite_collar_gived = False
+
     logger.info('fn > Reset Immunite Collar > OK')
 
 
@@ -62,8 +70,11 @@ async def give_immunite_collar(
     """Give the immunite collar to the player. (if the player is the one who found it)"""
 
     logger.info('fn > Give Immunite Collar > start')
+
     Game.add_collar_imunized_player_id(player.object.id)
     Game.immunite_collar_msg_id = 0
+    Game.immunite_collar_gived = True
+
     embed = discord.Embed(
         title="**Tu l'as trouvé !**",
         description='De tous les aventuriers, tu es sans aucun doute le plus malin !',
@@ -85,6 +96,7 @@ async def give_immunite_collar(
         url='https://gifsec.com/wp-content/uploads/2022/09/congrats-gif-1.gif'
     )
     await payload.member.send(embed=embed)
+
     logger.info('fn > Give Immunite Collar > OK')
 
 
@@ -95,7 +107,10 @@ async def give_immunite_collar_by_command(
     # CHECK voir comment faire si deux immunisés
 
     logger.info('fn > Give Immunite Collar By Command > start')
+
     Game.add_collar_imunized_player_id(player.id)
+    Game.immunite_collar_gived = True
+
     embed = discord.Embed(
         title="**On te l'a donné !**",
         description='De tous les aventuriers, tu es sans aucun doute le plus malin !',
@@ -117,6 +132,7 @@ async def give_immunite_collar_by_command(
         url='https://gifsec.com/wp-content/uploads/2022/09/congrats-gif-1.gif'
     )
     await player.send(embed=embed)
+
     logger.info('fn > Give Immunite Collar By Command > OK')
 
 
@@ -126,6 +142,7 @@ async def remove_immunite_collar(
     """Remove the immunite collar to the player."""
 
     logger.info('fn > Remove Immunite Collar > start')
+
     if Game.remove_collar_imunized_player_id(player.id):
         embed = discord.Embed(
             title="**On te l'a retiré !**",
@@ -153,6 +170,7 @@ async def remove_immunite_collar(
             url='https://i.gifer.com/jQ.gif'
         )
         await player.send(embed=embed)
+
     logger.info('fn > Remove Immunite Collar > OK')
 
 
@@ -187,6 +205,7 @@ async def send_immunite_collar_used(immune: PlayerList) -> None:
     """Send the immunite collar used to the player."""
 
     logger.info('fn > Send Immunite Collar Used > start')
+
     private_embed = discord.Embed(
         title=':robot: **Tu as été sauvé !** :moyai:',
         description="Ton collier t'a servi ce soir !",
