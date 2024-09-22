@@ -2,10 +2,10 @@
 !/Example/.example.env
 
 test/*
-pdf/*
-logs/*
 vscode
 .venv
 
 __pycache__/
 *.py[cod]
+*.log
+*.pdf
