@@ -70,6 +70,7 @@ async def message_succes_to_target(
         user: discord.Member,
         target: discord.Member
 ) -> None:
+    """Inform the target that he has been muted."""
     # CHECK message
     embed = discord.Embed(
         title=':robot: Vous avez été mute par un joueur ! :moyai:',
@@ -83,6 +84,7 @@ async def message_succes_to_user(
         interaction: discord.Interaction,
         target: discord.Member
 ) -> None:
+    """Inform the user that the power has been used."""
     # CHECK message
     embed = discord.Embed(
         title=':robot: Mute effectué :moyai:',
@@ -96,6 +98,7 @@ async def message_target_already_attacked(
         interaction: discord.Interaction,
         target: discord.Member
 ) -> None:
+    """Inform the user that the target has already been attacked."""
     # CHECK message
     embed = discord.Embed(
         title=":robot: Cible déjà sous l'effet d'un pouvoir :moyai:",
@@ -109,6 +112,7 @@ async def message_target_not_alive(
         interaction: discord.Interaction,
         target: discord.Member
 ) -> None:
+    """Inform the user that the target is not alive."""
     # CHECK message
     embed = discord.Embed(
         title=':robot: Cible déjà éliminée :moyai:',
