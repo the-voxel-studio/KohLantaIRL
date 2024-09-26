@@ -1,0 +1,150 @@
+import discord
+from discord import app_commands
+from discord.ext import commands
+from config.values import COLOR_GREEN, COLOR_ORANGE, COLOR_RED
+from database.player import Player
+from database.game import Game, RewardCategories, Reward
+from utils.logging import get_logger
+from utils.game.rewards.mute import muting_reward
+from utils.control import is_admin
+
+
+logger = get_logger(__name__)
+
+
+class RewardsCog(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    @app_commands.command(
+        name='pouvoir', description="Execution d'un pouvoir suite à une activité"
+    )
+    async def power(
+        self,
+        interaction: discord.Interaction,
+        power: RewardCategories,
+        target: discord.Member,
+    ):
+        """Execute the power won after an activity"""
+
+        logger.info(
+            f'Power execution | Requested by {interaction.user} (id:{interaction.user.id}) | power: {power} | target : {target.name} (id:{target.id})'
+        )
+
+        await interaction.response.defer()
+
+        player = Player(id=interaction.user.id)
+        if not player.object.alive:
+            # CHECK response
+            logger.info(
+                f'Power execution : not alive | Requested by {interaction.user} (id:{interaction.user.id}) | power: {power} | target : {target.name} (id:{target.id})'
+            )
+            await message_user_not_alive(interaction)
+            return
+
+        player_powers = [
+            reward.category
+            for reward in Game.rewards
+            if reward.player_id == player.object.id
+        ]
+        if power in player_powers:
+            match power:
+                case 'mute':
+                    # CHECK mute the target
+                    await muting_reward(interaction, interaction.user, player, target)
+                case 'block':
+                    # TODO reward : block
+                    pass
+                case 'resurrect':
+                    # TODO reward : resurrect
+                    pass
+                case _:
+                    await message_not_an_executable_power(interaction, power)
+        else:
+            await message_you_dont_have_this_power(interaction, power)
+
+    @app_commands.command(
+        name='give_power', description="Ajout d'un pouvoir suite à une activité"
+    )
+    @app_commands.guild_only()
+    @app_commands.default_permissions(create_instant_invite=True)
+    async def give_reward(
+        self,
+        interaction: discord.Interaction,
+        user: discord.Member,
+        reward: RewardCategories
+    ):
+        """Give the power won after an activity"""
+
+        logger.info(
+            f'Power Giving | Requested by {interaction.user} (id:{interaction.user.id}) | reward: {reward}'
+        )
+
+        await interaction.response.defer()
+        if not is_admin(interaction.user):
+            raise commands.MissingPermissions(['Admin'])
+
+        Game.add_reward(Reward(user.id, reward))
+
+        await message_give_reward_success(interaction, user, reward)
+
+
+async def message_give_reward_success(
+        interaction: discord.Interaction,
+        user: discord.Member,
+        reward: Reward
+) -> None:
+    """Send a message to confirm the reward has been given"""
+    # CHECK response
+    embed = discord.Embed(
+        title=':robot: Pouvoir enregistré :moyai:',
+        description=f'player : <@{user.id}>\nreward : {reward}',
+        color=COLOR_GREEN,
+    )
+    await interaction.followup.send(embed=embed)
+
+
+async def message_you_dont_have_this_power(
+        interaction: discord.Interaction,
+        power: str
+) -> None:
+    """Send a message to inform the user that he doesn't have this power"""
+    # CHECK response
+    embed = discord.Embed(
+        title=":robot: Vous n'avez pas ce pouvoir ! :moyai:",
+        description=f'pouvoir : {power}',
+        color=COLOR_RED,
+    )
+    await interaction.followup.send(embed=embed)
+
+
+async def message_not_an_executable_power(
+        interaction: discord.Interaction,
+        power: str
+) -> None:
+    """Send a message to inform the user that the power is not executable"""
+    # CHECK response
+    embed = discord.Embed(
+        title=":robot: Ce pouvoir n'est pas executable ! :moyai:",
+        description=f'pouvoir : {power}',
+        color=COLOR_ORANGE,
+    )
+    await interaction.followup.send(embed=embed)
+
+
+async def message_user_not_alive(interaction: discord.Interaction) -> None:
+    """Send a message to inform the user that he is not alive"""
+    # CHECK response
+    embed = discord.Embed(
+        title=':robot: Tu as été éliminé ! :moyai:',
+        description='En tant que joueur éliminé, tu ne peux pas utiliser de pouvoir.',
+        color=COLOR_RED,
+    )
+    await interaction.followup.send(embed=embed)
+
+
+async def setup(bot):
+    """Setup the cog."""
+
+    await bot.add_cog(RewardsCog(bot))
+    logger.debug('Loaded !')

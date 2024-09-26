@@ -2,7 +2,7 @@ import random
 
 import discord
 
-from config.values import (CHANNEL_ID_GENERAL, CHANNEL_RULES, COLOR_GREEN,
+from config.values import (CHANNEL_ID_GENERAL, CHANNEL_ID_RULES, COLOR_GREEN,
                            EMOJI_ID_COLLIER, EMOJIS_LIST, GUILD_ID)
 from database.game import Game
 from database.player import Player, PlayerList
@@ -78,7 +78,7 @@ async def give_immunite_collar(
     )
     embed.add_field(
         name='Tu es maintenant immunisé.',
-        value=f"Si tu es choisi lors d'un prochain vote, ce collier te protégera automatiquement.\nPlus d'infos ici: <#{CHANNEL_RULES}>",
+        value=f"Si tu es choisi lors d'un prochain vote, ce collier te protégera automatiquement.\nPlus d'infos ici: <#{CHANNEL_ID_RULES}>",
         inline=False,
     )
     embed.set_image(
@@ -110,7 +110,7 @@ async def give_immunite_collar_by_command(
     )
     embed.add_field(
         name='Tu es maintenant immunisé.',
-        value=f"Si tu es choisi lors d'un prochain vote, ce collier te protégera automatiquement.\nPlus d'infos ici: <#{CHANNEL_RULES}>",
+        value=f"Si tu es choisi lors d'un prochain vote, ce collier te protégera automatiquement.\nPlus d'infos ici: <#{CHANNEL_ID_RULES}>",
         inline=False,
     )
     embed.set_image(
@@ -141,7 +141,7 @@ async def remove_immunite_collar(
         )
         embed.add_field(
             name="Tu __n'__ es maintenant __plus__ immunisé.",
-            value=f"Si tu es choisi lors d'un prochain vote, le collier ne te protégera plus.\nPlus d'infos ici: <#{CHANNEL_RULES}>",
+            value=f"Si tu es choisi lors d'un prochain vote, le collier ne te protégera plus.\nPlus d'infos ici: <#{CHANNEL_ID_RULES}>",
             inline=False,
         )
         embed.add_field(
@@ -201,7 +201,7 @@ async def send_immunite_collar_used(immune: PlayerList) -> None:
     )
     private_embed.add_field(
         name="Tu n'es maintenant plus immunisé.",
-        value=f"Si tu es choisi lors d'un prochain vote, ce collier ne te protégera plus.\nPlus d'infos ici: <#{CHANNEL_RULES}>",
+        value=f"Si tu es choisi lors d'un prochain vote, ce collier ne te protégera plus.\nPlus d'infos ici: <#{CHANNEL_ID_RULES}>",
         inline=False,
     )
     private_embed.set_image(
