@@ -76,7 +76,7 @@ async def message_succes_to_target(
         description=f"<@{user.id}> a choisi d'utiliser son pouvoir sur vous !\ndurée : 24h",
         color=COLOR_ORANGE,
     )
-    await user.send(embed=embed)
+    await target.send(embed=embed)
 
 
 async def message_succes_to_user(
