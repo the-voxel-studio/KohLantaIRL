@@ -69,9 +69,9 @@ async def on_raw_reaction_add(payload) -> None:
 def signal_handler(sig, frame) -> None:
     """Gestion de l'interruption du programme"""
 
-    logger.warning('Start of shutdown procedure.')
+    logger.critical('Start of shutdown procedure.')
     cancel_timer()
-    logger.warning('Complete shutdown procedure.')
+    logger.critical('Complete shutdown procedure.')
     exit()
 
 
