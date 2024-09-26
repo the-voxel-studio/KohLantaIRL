@@ -174,6 +174,24 @@ class GameModel:
         )
 
     @property
+    def immunite_collar_gived(self) -> bool:
+        """Get the immunite collar gived state."""
+
+        immunite_collar_gived = bool(db.Game.find_one({}).get('immunite_collar_gived', False))
+        logger.info(f'get immunite_collar_gived: {immunite_collar_gived}')
+        return immunite_collar_gived
+
+    @immunite_collar_gived.setter
+    def immunite_collar_gived(self, value: bool) -> None:
+        """Set the immunite collar gived state."""
+
+        logger.info(f'set immunite_collar_gived: {value}')
+        db.Game.update_one(
+            filter={'_id': self.__id},
+            update={'$set': {'immunite_collar_gived': value}}
+        )
+
+    @property
     def immunite_collar_msg_id(self) -> int:
         """Get the immunite collar message id."""
 

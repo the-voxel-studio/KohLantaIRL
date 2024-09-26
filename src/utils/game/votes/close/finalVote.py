@@ -4,6 +4,7 @@ from config.values import (CHANNEL_ID_ANNONCES, COLOR_GREEN, EMOJIS_LIST,
                            GUILD_ID)
 from database.player import Player
 from database.votelog import VoteLog
+from database.game import Game
 from utils.bot import bot
 from utils.game.alliances import purge_alliances
 from utils.game.players import reset_roles
@@ -75,4 +76,5 @@ async def close_final_vote(
     await member.send(embed=embed)
     await reset_roles('Joueur', 'Eliminé', 'Finaliste', 'Votant Final')
     await purge_alliances()
+    Game.immunite_collar_gived = False
     logger.info('close_final_vote > OK ')
