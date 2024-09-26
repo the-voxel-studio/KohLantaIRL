@@ -13,7 +13,7 @@ from .votePage import VotePage
 
 logger = get_logger(__name__)
 
-logger.info('Setup running...')
+logger.debug('Setup running...')
 
 
 # [ ] add tied_players section
@@ -80,4 +80,4 @@ async def remove_files() -> None:
     logger.info('fn > delete_files > OK')
 
 
-logger.info('Ready')
+logger.debug('Ready')

@@ -130,4 +130,4 @@ async def setup(bot):
 
     logger = get_logger(__name__)
     await bot.add_cog(HowToCog(bot))
-    logger.info('Loaded !')
+    logger.debug('Loaded !')

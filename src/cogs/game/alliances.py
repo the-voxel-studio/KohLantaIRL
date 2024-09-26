@@ -174,4 +174,4 @@ async def setup(bot):
     """Setup the cog."""
 
     await bot.add_cog(AlliancesCog(bot))
-    logger.info('Loaded !')
+    logger.debug('Loaded !')
