@@ -62,7 +62,7 @@ async def muting_reward(
     # CHECK inform the target
     await message_succes_to_target(target)
 
-    # CHECK repsonse : to the user
+    # CHECK inform the user
     await message_succes_to_user(interaction, target)
 
 
