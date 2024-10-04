@@ -3,9 +3,10 @@ from discord import app_commands
 from discord.ext import commands
 from config.values import COLOR_GREEN, COLOR_ORANGE, COLOR_RED
 from database.player import Player
-from database.game import Game, RewardCategories, Reward
+from database.game import Game, RewardCategories, RewardCategoriesList, Reward
 from utils.logging import get_logger
 from utils.game.rewards.mute import muting_reward
+from utils.game.rewards.resurrect import resurecting_reward
 from utils.control import is_admin
 
 
@@ -56,8 +57,8 @@ class RewardsCog(commands.Cog):
                     # TODO reward : block
                     pass
                 case 'resurrect':
-                    # TODO reward : resurrect
-                    pass
+                    # CHECK resurect the target
+                    await resurecting_reward(interaction, interaction.user, player, target)
                 case _:
                     await message_not_an_executable_power(interaction, power)
         else:
@@ -84,6 +85,8 @@ class RewardsCog(commands.Cog):
         if not is_admin(interaction.user):
             raise commands.MissingPermissions(['Admin'])
 
+        if reward not in RewardCategoriesList:
+            raise ValueError(f'Invalid reward category: {reward}')
         Game.add_reward(Reward(user.id, reward))
 
         await message_give_reward_success(interaction, user, reward)
