@@ -5,6 +5,7 @@ from config.values import COLOR_GREEN, COLOR_ORANGE, COLOR_RED
 from database.player import Player
 from database.game import Game, RewardCategories, RewardCategoriesList, Reward
 from utils.logging import get_logger
+from utils.game.rewards.block import blocking_reward
 from utils.game.rewards.mute import muting_reward
 from utils.game.rewards.resurrect import resurecting_reward
 from utils.control import is_admin
@@ -54,8 +55,8 @@ class RewardsCog(commands.Cog):
                     # CHECK mute the target
                     await muting_reward(interaction, interaction.user, player, target)
                 case 'block':
-                    # TODO reward : block
-                    pass
+                    # CHECK reward : block
+                    await blocking_reward(interaction, interaction.user, player, target)
                 case 'resurrect':
                     # CHECK resurect the target
                     await resurecting_reward(interaction, interaction.user, player, target)
