@@ -1,5 +1,4 @@
 import datetime
-import typing
 
 import discord
 
@@ -13,6 +12,14 @@ from utils.bot import bot
 from utils.log import get_logger
 from utils.pdf import generate as pdfGenerate
 from utils.punishments import timeout
+
+from typing import Literal, Optional, TypedDict
+
+
+class ResurectKwArgs(TypedDict):
+    dm_message: bool
+    interaction_response: bool
+
 
 logger = get_logger(__name__)
 
@@ -193,7 +200,7 @@ async def count_votes(reactions: list) -> tuple[list, int, bool, bool]:
 async def eliminate(
     interaction: discord.Interaction,
     member: discord.Member,
-    reason: typing.Literal['After equality', 'Other reason'],
+    reason: Literal['After equality', 'Other reason'],
 ) -> None:
     """Eliminate a player."""
 
@@ -300,36 +307,43 @@ async def eliminate(
     logger.info(f'eliminate > OK | member: {member} | reason: {reason}')
 
 
-async def resurrect(interaction: discord.Interaction, member: discord.Member) -> None:
+async def resurrect(
+    interaction: discord.Interaction,
+    member: discord.Member,
+    player: Optional[Player] = None,
+    **kwargs: ResurectKwArgs
+) -> None:
     """Resurrect a player."""
 
     logger.info(f'resurrect > start | member: {member}')
     resurrected = Player(id=member.id)
-    dm_embed = discord.Embed(
-        title='**Tu réintègres la tribu **',
-        description=f'<@{interaction.user.id}> a décidé de te réintégrer et tu lui dois beaucoup !',
-        color=COLOR_GREEN,
-    )
-    dm_embed.set_author(
-        name="Décision d'un administrateur",
-        icon_url='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp',
-    )
-    dm_embed.set_thumbnail(
-        url='https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp'
-    )
-    await member.send(embed=dm_embed)
+    if kwargs.get('dm_message', True):
+        dm_embed = discord.Embed(
+            title='**Tu réintègres la tribu **',
+            description=f'<@{interaction.user.id}> a décidé de te réintégrer et tu lui dois beaucoup !',
+            color=COLOR_GREEN,
+        )
+        dm_embed.set_author(
+            name="Décision d'un administrateur",
+            icon_url='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSCJB81hLY3rg1pIqRNsLkbeQ8VXe_-kSOjPk5PDz5SRmBCrCDqMxiRSmciGu3z3IuQdZY&usqp=CAUp',
+        )
+        dm_embed.set_thumbnail(
+            url='https://cache.cosmopolitan.fr/data/photo/w2000_ci/52/koh-elimnation.webp'
+        )
+        await member.send(embed=dm_embed)
     guild = bot.get_guild(GUILD_ID)
     role = discord.utils.get(guild.roles, name='Eliminé')
     new_role = discord.utils.get(guild.roles, name='Joueur')
     await member.remove_roles(role)
     await member.add_roles(new_role)
     resurrected.resurrect()
-    embed = discord.Embed(
-        title=':robot: Joueur réssuscité :moyai:',
-        description=f'player : <@{member.id}>',
-        color=COLOR_GREEN,
-    )
-    await interaction.followup.send(embed=embed)
+    if kwargs.get('interaction_response', True):
+        embed = discord.Embed(
+            title=':robot: Joueur réssuscité :moyai:',
+            description=f'player : <@{member.id}>',
+            color=COLOR_GREEN,
+        )
+        await interaction.followup.send(embed=embed)
     logger.info(f'resurrect > OK | member: {member}')
 
 
