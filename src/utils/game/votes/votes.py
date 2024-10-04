@@ -138,6 +138,7 @@ async def arrange_votes_for_votelog(reactions: list) -> list:
 
 async def deal_with_cheaters(reactions: list) -> int:
     """Deal with the cheaters."""
+    # FIX: should return votes whitout cheaters
 
     logger.info('deal with cheaters > start')
     cheaters_number = 0
