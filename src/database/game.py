@@ -4,10 +4,12 @@ from datetime import datetime
 
 try:
     from database.database import db
+    from database.player import Player, PlayerList
     from utils.logging import get_logger
 except ImportError:
     from ..utils.logging import get_logger
     from .database import db
+    from .player import Player, PlayerList
 
 logger = get_logger(__name__)
 
@@ -414,6 +416,16 @@ class GameModel:
             logger.debug(old_value)
             return True
         return False
+
+    # CHECK get method
+    def get_blocked_players(self) -> PlayerList:
+        """Get the currently blocked players."""
+
+        return PlayerList(data=[
+            Player(id=reward.target_id).object.__dict__
+            for reward in self.rewards_used
+            if reward.category == 'block' and reward.less_than_a_day_ago
+        ])
 
 
 Game = GameModel()
