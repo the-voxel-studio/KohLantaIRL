@@ -20,11 +20,13 @@ async def timed_action():
     """Timer loop for the game."""
 
     logger.info('fn > Timer Loop > A thread timer has ended.')
+
     time = datetime.datetime.now()
     hour = int(time.strftime('%H'))
 
     # CHECK Question about chance of sending the immunite collar (1/24 chance every hour, 4.16%)
-    if hour == random.randint(0, 23) and get_council_number() >= 4 and Game.immunite_collar_msg_id == 0 and Game.immunite_collar_player_id == 0:
+    # CHECK Add already send value
+    if hour == random.randint(0, 23) and get_council_number() >= 4 and Game.immunite_collar_msg_id == 0 and not Game.immunite_collar_gived:
         send_immunite_collar()
 
     if hour == 1:
@@ -33,15 +35,20 @@ async def timed_action():
         await send_log('Redémarrage automatique en cours', color='orange')
         logger.info('Ready to reboot.')
         system('sudo reboot')
+
     elif hour == 14 and Game.state == 1:
         await vote.check_if_last_eliminate_is_saved()
+
     elif hour == 17 and Game.state in [1, 2]:
         await vote.open()
+
     elif hour == 21 and Game.vote_msg_id != 0 and Game.state == 1:
         await vote.close()
+
     elif hour == 0 and Game.vote_msg_id != 0 and Game.state == 3:
         Game.game_end()
         await vote.close()
+
     await start_new_timer()
 
 
@@ -56,11 +63,13 @@ async def start_new_timer():
     """Start a new timer thread."""
 
     global timer_thread
+
     time = datetime.datetime.today()
     next_time = time.replace(
         day=time.day, hour=time.hour, minute=0, second=0, microsecond=0
     ) + datetime.timedelta(hours=1)
     delta = (next_time - time).total_seconds()
+
     if delta == 0:
         logger.info(
             f'fn > Timer Loop > Waiting for {time.hour+1}:00:00 to start a new thread timer'
@@ -70,8 +79,10 @@ async def start_new_timer():
                 day=time.day, hour=time.hour, minute=0, second=0, microsecond=0
             ) + datetime.timedelta(hours=1)
             delta = (next_time - time).total_seconds()
+
     timer_thread = Timer(delta, timed_action_sync)
     timer_thread.start()
+
     logger.info(f'fn > Timer Loop > New thread timer triggered | delta: {delta}')
 
 
@@ -81,5 +92,6 @@ def cancel_timer():
     try:
         timer_thread.cancel()
         logger.info('One timer canceled.')
+
     except AttributeError:
         logger.info('Any timer to cancel.')
