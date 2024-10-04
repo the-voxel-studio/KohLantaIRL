@@ -23,7 +23,7 @@ async def resurecting_reward(
     logger.info(f'Power execution | Requested by {interaction.user} (id:{interaction.user.id}) | power: resurect | target : {target.name} (id:{target.id})')
 
     # CHECK verify if the target is alive
-    # Checking if the target is not alive
+    # Checking if the target is alive
     # If it's not the case, the power can't be used
     if Player(id=target.id).object.alive:
         logger.warning(f'Power execution : abort : alive | Requested by {interaction.user} (id:{interaction.user.id}) | power: resurect | target : {target.name} (id:{target.id})')
