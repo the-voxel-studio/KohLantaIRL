@@ -12,6 +12,7 @@ except ImportError:
 logger = get_logger(__name__)
 
 RewardCategories = typing.Literal['mute', 'block', 'resurrect', 'doubleVote']
+RewardCategoriesList = list(RewardCategories.__args__)
 
 
 class Reward:
@@ -348,7 +349,7 @@ class GameModel:
         """Add a reward."""
 
         old_value = self.rewards
-        if reward.category not in list(RewardCategories.__args__):
+        if reward.category not in RewardCategoriesList:
             raise ValueError(f'Invalid reward category: {reward.category}')
         self.rewards = old_value + [reward]
 
@@ -356,7 +357,7 @@ class GameModel:
         """Add a reward already used."""
 
         old_value = self.rewards_used
-        if reward.category not in list(RewardCategories.__args__):
+        if reward.category not in RewardCategoriesList:
             raise ValueError(f'Invalid reward category: {reward.category}')
         self.rewards_used = old_value + [reward]
 
