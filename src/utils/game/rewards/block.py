@@ -40,8 +40,6 @@ async def resurecting_reward(
         logger.warning(f'Power execution : abort : target already attacked less thant a day ago | Requested by {interaction.user} (id:{interaction.user.id}) | power: resurect | target : {target.name} (id:{target.id})')
         await message_target_already_attacked(interaction, target)
         return
-    
-    # FIX verify not vote in progress
 
     # CHECK register the power as used
     # Register the power as used

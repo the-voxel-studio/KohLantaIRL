@@ -44,6 +44,13 @@ class RewardsCog(commands.Cog):
             await message_user_not_alive(interaction)
             return
 
+        # CHECK verify not vote in progress
+        # Verify that there is no vote in progress
+        # If it's the case, the power can't be used
+        if Game.vote_msg_id != 0:
+            logger.warning(f'Power execution : abort : vote in progress | Requested by {interaction.user} (id:{interaction.user.id}) | power: {power} | target : {target.name} (id:{target.id})')
+            return
+
         player_powers = [
             reward.category
             for reward in Game.rewards
