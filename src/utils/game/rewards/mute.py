@@ -60,7 +60,7 @@ async def muting_reward(
     Game.remove_reward(Reward(player.object.id, 'mute'))
 
     # CHECK inform the target
-    await message_succes_to_target(target)
+    await message_succes_to_target(target, user)
 
     # CHECK inform the user
     await message_succes_to_user(interaction, target)
