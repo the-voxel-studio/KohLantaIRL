@@ -1,6 +1,6 @@
 import discord
 
-from config.values import COLOR_GREEN, COLOR_ORANGE
+from config.values import COLOR_GREEN, COLOR_ORANGE, CHANNEL_ID_RESULTATS
 
 from database.game import Game, Reward, RewardUsed
 from database.player import Player
@@ -66,6 +66,9 @@ async def resurrecting_reward(
     # CHECK inform the user
     await message_succes_to_user(interaction, target)
 
+    # CHECK inform the server
+    await message_succes_to_server(interaction, target)
+
 
 async def message_succes_to_target(
         user: discord.Member,
@@ -95,18 +98,23 @@ async def message_succes_to_user(
     await interaction.followup.send(embed=embed)
 
 
-async def message_target_already_attacked(
+async def message_succes_to_server(
         interaction: discord.Interaction,
         target: discord.Member
 ) -> None:
-    """Inform the user that the target has already been attacked."""
+    """Inform the sever members that the power has been used."""
     # CHECK message
     embed = discord.Embed(
-        title=":robot: Cible déjà sous l'effet d'un pouvoir :moyai:",
-        description=f'Le joueur sélectionné a été ciblée par un pouvoir il y a moins de 24h, il est donc impossible de le cibler à nouveau.\n\ncible : <@{target.id}>\ndurée : 24h',
-        color=COLOR_ORANGE,
+        title=f"J'ai décidé de réintégrer {target.display_name} !",
+        description=f"Suite à l'usage de son pouvoir, <@{interaction.user.id}> a décidé de réintégrer <@{target.id}> dans le jeu.",
+        color=COLOR_GREEN,
     )
-    await interaction.followup.send(embed=embed)
+    embed.set_author(
+        name=interaction.user.display_name,
+        icon_url=interaction.user.avatar.url,
+    )
+    results_channel = interaction.guild.get_channel(CHANNEL_ID_RESULTATS)
+    await results_channel.send(embed=embed)
 
 
 async def message_target_alive(
