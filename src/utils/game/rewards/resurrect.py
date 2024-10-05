@@ -30,20 +30,8 @@ async def resurrecting_reward(
         await message_target_alive(interaction, target)
         return
 
-    # CHECK check that the target is not already under the effect of a power
-    # Checking if the target have already been on the effect of a power in the last 24 hours
-    # If it's the case, the power can't be used
-    already_used_rewards = Game.rewards_used
-    if any(
-            reward.target_id == target.id and reward.less_than_a_day_ago
-            for reward in already_used_rewards
-    ):
-        logger.warning(f'Power execution : abort : target already attacked less thant a day ago | Requested by {interaction.user} (id:{interaction.user.id}) | power: resurect | target : {target.name} (id:{target.id})')
-        await message_target_already_attacked(interaction, target)
-        return
-
-    # CHECK resurect the target
-    # Resurect the target
+    # CHECK resurrect the target
+    # resurrect the target
     await resurrect(
         interaction,
         target,
