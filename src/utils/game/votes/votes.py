@@ -13,12 +13,25 @@ from utils.log import get_logger
 from utils.pdf import generate as pdfGenerate
 from utils.punishments import timeout
 
-from typing import Literal, Optional, TypedDict
+from typing import Literal, Optional, TypedDict, Union
 
 
 class ResurrectKwArgs(TypedDict):
     dm_message: bool
     interaction_response: bool
+
+
+class Reaction:
+    def __init__(self, reaction: discord.Reaction):
+        self.reaction: discord.reaction = reaction
+        self.count: int = reaction.count
+        self.users: list[discord.Member] = reaction.users()
+        self.emoji: Union[discord.PartialEmoji, discord.Emoji, str] = reaction.emoji
+
+    async def extract_users(self) -> 'Reaction':
+        self.users = [u async for u in self.users]
+
+        return self
 
 
 logger = get_logger(__name__)
@@ -108,13 +121,13 @@ async def open(interaction: discord.Interaction = None):
     logger.info(f'vote opening > OK | interaction: {interaction}')
 
 
-async def arrange_votes_for_deal_with_cheaters(reactions: list) -> dict:
+async def arrange_votes_for_deal_with_cheaters(reactions: list[Reaction]) -> dict:
     """Arrange the votes in a dict for the deal_with_cheaters function."""
 
     logger.info('arrange vote for deal with cheaters > start')
     reactions_dict = {}
     for r in reactions:
-        async for u in r.users():
+        for u in r.users:
             if u.id != BOT_ID:
                 if u.id not in reactions_dict:
                     reactions_dict[u.id] = [r.emoji]
@@ -124,13 +137,13 @@ async def arrange_votes_for_deal_with_cheaters(reactions: list) -> dict:
     return reactions_dict
 
 
-async def arrange_votes_for_votelog(reactions: list) -> list:
+async def arrange_votes_for_votelog(reactions: list[Reaction]) -> list:
     """Arrange the votes in a list for the VoteLog."""
 
     logger.info('arrange vote for votelog > start')
     reactions_list = []
     for r in reactions:
-        async for u in r.users():
+        for u in r.users:
             if u.id != BOT_ID:
                 reactions_list.append(
                     {
@@ -143,7 +156,7 @@ async def arrange_votes_for_votelog(reactions: list) -> list:
     return reactions_list
 
 
-async def deal_with_cheaters(reactions: list) -> int:
+async def deal_with_cheaters(reactions: list[Reaction]) -> tuple[int, list[Reaction]]:
     """Deal with the cheaters."""
 
     logger.info('deal with cheaters > start')
@@ -173,7 +186,7 @@ async def deal_with_cheaters(reactions: list) -> int:
     for uid in reactions_uid_to_delete:
         del reactions_dict[uid]
     logger.info(f'deal with cheaters > OK | cheaters number: {cheaters_number}')
-    return cheaters_number
+    return reactions, cheaters_number
 
 
 async def count_votes(reactions: list) -> tuple[list, int, bool, bool]:

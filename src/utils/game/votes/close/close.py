@@ -7,6 +7,8 @@ from database.votelog import get_council_number
 from utils.bot import bot
 from utils.game.immunity.collar import remove_collar_immunized_loosers
 from utils.game.immunity.ephemeral import remove_ephemerally_immunized_loosers
+from utils.game.rewards.block import remove_blocked_voters
+from utils.game.votes.votes import Reaction
 from utils.logging import get_logger
 from utils.log import send_vote_log_to_admin
 
@@ -30,10 +32,14 @@ async def close(interaction: discord.Interaction = None) -> None:
     )
     await channel.set_permissions(everyone_role, read_messages=False)
     msg = await channel.fetch_message(Game.vote_msg_id)
-    reactions: list = msg.reactions
-    reactions_list = await arrange_votes_for_votelog(reactions)
+    reactions: list[Reaction] = [
+        await Reaction(reaction).extract_users()
+        for reaction in msg.reactions
+    ]
     Game.vote_msg_id = 0
-    cheaters_number = await deal_with_cheaters(reactions)
+    reactions = await remove_blocked_voters(reactions)
+    reactions, cheaters_number = await deal_with_cheaters(reactions)
+    reactions_list = await arrange_votes_for_votelog(reactions)
     await msg.delete()
     max_reactions, max_count, it_is_the_final, there_is_no_equality = await count_votes(reactions)
     if not it_is_the_final:

@@ -3,8 +3,9 @@ import discord
 from config.values import COLOR_GREEN, COLOR_ORANGE
 
 from database.game import Game, Reward, RewardUsed
-from database.player import Player
+from database.player import Player, PlayerList
 
+from utils.game.votes.votes import Reaction
 from utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -56,6 +57,31 @@ async def blocking_reward(
 
     # CHECK inform the user
     await message_succes_to_user(interaction, target)
+
+
+async def remove_blocked_voters(reactions: list[Reaction]) -> tuple[list, PlayerList]:
+    """Remove the blocked voters from the list of voters."""
+    # CHECK blocked voters removing
+
+    logger.info('fn > Remove Blocked Voters > start')
+
+    # Get the list of blocked voters
+    blocked_voters_ids = [
+        r.target_id
+        for r in Game.rewards_used
+        if r.category == 'block' and r.less_than_a_day_ago
+    ]
+
+    # Remove the blocked voters from the list of voters
+    for react in reactions:
+        react.users = [
+            user
+            for user in react.users
+            if user.id not in blocked_voters_ids
+        ]
+
+    logger.info('fn > Remove Blocked Voters > ok')
+    return reactions
 
 
 async def message_succes_to_target(

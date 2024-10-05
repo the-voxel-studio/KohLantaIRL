@@ -69,7 +69,22 @@ async def on_raw_reaction_add_event(payload) -> None:
                 await user.send(embed=embed)
         elif channel.id == CHANNEL_ID_VOTE:
             users = []
+
             for react in msg.reactions:
                 users += [user async for user in react.users()]
             if users.count(user) > 1:
                 await msg.remove_reaction(payload.emoji, user)
+
+            blocked_voters_ids = [
+                r.target_id
+                for r in Game.rewards_used
+                if r.category == 'block' and r.less_than_a_day_ago
+            ]
+            if user.id in blocked_voters_ids:
+                await msg.remove_reaction(payload.emoji, user)
+                embed = discord.Embed(
+                    title=':robot: Action interdite :moyai:',
+                    description=':no_entry: Vous avez été bloqué par un joueur et ne pouvez donc pas voter.',
+                    color=COLOR_RED,
+                )
+                await user.send(embed=embed)
