@@ -35,6 +35,9 @@ class RewardsCog(commands.Cog):
 
         await interaction.response.defer()
 
+        # CHECK verify if the user is alive
+        # Checking if the user is alive
+        # If it's not the case, the power can't be used
         player = Player(id=interaction.user.id)
         if not player.object.alive:
             # CHECK response

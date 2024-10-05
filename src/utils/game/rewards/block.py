@@ -19,13 +19,13 @@ async def resurecting_reward(
 
     """Reusrect the target."""
 
-    logger.info(f'Power execution | Requested by {interaction.user} (id:{interaction.user.id}) | power: resurect | target : {target.name} (id:{target.id})')
+    logger.info(f'Power execution | Requested by {interaction.user} (id:{interaction.user.id}) | power: block | target : {target.name} (id:{target.id})')
 
     # CHECK verify if the target is not alive
     # Checking if the target is not alive
     # If it's not the case, the power can't be used
     if not Player(id=target.id).object.alive:
-        logger.warning(f'Power execution : abort : not alive | Requested by {interaction.user} (id:{interaction.user.id}) | power: resurect | target : {target.name} (id:{target.id})')
+        logger.warning(f'Power execution : abort : not alive | Requested by {interaction.user} (id:{interaction.user.id}) | power: block | target : {target.name} (id:{target.id})')
         await message_target_not_alive(interaction, target)
         return
 
@@ -37,7 +37,7 @@ async def resurecting_reward(
             reward.target_id == target.id and reward.less_than_a_day_ago
             for reward in already_used_rewards
     ):
-        logger.warning(f'Power execution : abort : target already attacked less thant a day ago | Requested by {interaction.user} (id:{interaction.user.id}) | power: resurect | target : {target.name} (id:{target.id})')
+        logger.warning(f'Power execution : abort : target already attacked less thant a day ago | Requested by {interaction.user} (id:{interaction.user.id}) | power: block | target : {target.name} (id:{target.id})')
         await message_target_already_attacked(interaction, target)
         return
 
