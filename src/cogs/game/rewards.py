@@ -52,6 +52,7 @@ class RewardsCog(commands.Cog):
         # If it's the case, the power can't be used
         if Game.vote_msg_id != 0:
             logger.warning(f'Power execution : abort : vote in progress | Requested by {interaction.user} (id:{interaction.user.id}) | power: {power} | target : {target.name} (id:{target.id})')
+            await message_vote_in_progress(interaction, power)
             return
 
         player_powers = [
@@ -152,6 +153,20 @@ async def message_user_not_alive(interaction: discord.Interaction) -> None:
     embed = discord.Embed(
         title=':robot: Tu as été éliminé ! :moyai:',
         description='En tant que joueur éliminé, tu ne peux pas utiliser de pouvoir.',
+        color=COLOR_RED,
+    )
+    await interaction.followup.send(embed=embed)
+
+
+async def message_vote_in_progress(
+        interaction: discord.Interaction,
+        power: str
+) -> None:
+    """Send a message to inform the user that a vote is in progress"""
+    # CHECK response
+    embed = discord.Embed(
+        title=":robot: Impossible d'utiliser un pouvoir quand un vote est en cours ! :moyai:",
+        description=f'pouvoir : {power}',
         color=COLOR_RED,
     )
     await interaction.followup.send(embed=embed)
