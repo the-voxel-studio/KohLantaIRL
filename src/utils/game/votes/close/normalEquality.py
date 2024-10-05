@@ -33,7 +33,7 @@ class EqualityView(discord.ui.View):
         )
         self.select.callback = self.select_callback
         self.add_item(self.select)
-        logger.info(f'EqualityView __init__ > OK | select_options: {select_options}')
+        logger.debug(f'EqualityView __init__ > OK | select_options: {select_options}')
 
     async def select_callback(self, interaction):
         """Callback for the select."""

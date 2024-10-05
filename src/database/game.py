@@ -1,13 +1,98 @@
 from bson import ObjectId
+import typing
+from datetime import datetime
 
 try:
     from database.database import db
+    from database.player import Player, PlayerList
     from utils.logging import get_logger
 except ImportError:
     from ..utils.logging import get_logger
     from .database import db
+    from .player import Player, PlayerList
 
 logger = get_logger(__name__)
+
+RewardCategories = typing.Literal['mute', 'block', 'resurrect', 'doubleVote']
+RewardCategoriesList = list(RewardCategories.__args__)
+
+
+class Reward:
+    """Reward class to store reward data."""
+
+    def __init__(
+            self,
+            player_id: int,
+            category: RewardCategories
+    ) -> None:
+        """Initialize the reward class."""
+
+        self.player_id: int = player_id
+        self.category: RewardCategories = category
+
+    def __str__(self) -> str:
+        """Get the reward as a string."""
+
+        return f'{self.player_id}, {self.category}'
+
+    def __repr__(self) -> str:
+        """Get the reward as a string."""
+
+        return f'{type(self).__name__}(player_id={self.player_id}, category={self.category})'
+
+    def __eq__(self, other):
+        """Check if two rewards are equals."""
+
+        if isinstance(other, Reward):
+            return self.player_id == other.player_id and self.category == other.category
+        return False
+
+
+class RewardUsed:
+    """RewardUsed class to store reward data when used."""
+
+    def __init__(
+            self,
+            player_id: int,
+            category: RewardCategories,
+            target_id: int = 0,
+            date: datetime | None = None
+    ) -> None:
+        """Initialize the reward class."""
+
+        self.player_id: int = player_id
+        self.target_id: int = target_id
+        self.category: RewardCategories = category
+        self.date: datetime = date if date else datetime.now()
+
+    def __str__(self) -> str:
+        """Get the reward used as a string."""
+
+        return f'{self.player_id}, {self.category}, {self.target_id}, {self.date}'
+
+    def __repr__(self) -> str:
+        """Get the reward used as a string."""
+
+        return f'{type(self).__name__}(player_id={self.player_id}, category={self.category}, target_id={self.target_id}, date={self.date})'
+
+    def __eq__(self, other) -> bool:
+        """Check if two rewards used are equals."""
+
+        if isinstance(other, RewardUsed):
+            return self.player_id == other.player_id and self.category == other.category and self.target_id == other.target_id and self.date == other.date
+        return False
+
+    @property
+    def seconds_from_date_to_now(self) -> int:
+        """Get the seconds from the reward use to now."""
+
+        return (datetime.now() - self.date).total_seconds()
+
+    @property
+    def less_than_a_day_ago(self) -> bool:
+        """Check if the reward was used less than a day ago."""
+
+        return self.seconds_from_date_to_now < 86400
 
 
 class GameModel:
@@ -163,6 +248,84 @@ class GameModel:
             update={'$set': {'ephemerally_imunized_players_id': [str(id) for id in value]}}
         )
 
+    @property
+    def rewards(self) -> list[Reward]:
+        """Get the rewards."""
+
+        rewards = [
+            Reward(
+                int(reward.get('id', 0)),
+                reward.get('category', '')
+            )
+            for reward in db.Game.find_one({}).get('rewards', [])
+        ]
+        logger.info(f'get rewards: {rewards}')
+        return rewards
+
+    @rewards.setter
+    def rewards(self, rewards: list[Reward]) -> None:
+        """Set the rewards."""
+
+        logger.info(f'set rewards: {rewards}')
+        db.Game.update_one(
+            filter={'_id': self.__id},
+            update={
+                '$set': {
+                    'rewards': [
+                        {
+                            'id': str(reward.player_id),
+                            'category': reward.category
+                        }
+                        for reward in rewards
+                    ]
+                }
+            }
+        )
+
+    @property
+    def rewards_used(self) -> list[RewardUsed]:
+        """Get the rewards already used."""
+
+        rewards_used = []
+
+        for reward_used in db.Game.find_one({}).get('rewards_used', []):
+            date = reward_used.get('date', None)
+            if type(date) is str:
+                date = datetime.fromisoformat(date)
+            rewards_used.append(
+                RewardUsed(
+                    int(reward_used.get('id', 0)),
+                    reward_used.get('category', ''),
+                    int(reward_used.get('target_id', 0)),
+                    date
+                )
+            )
+
+        logger.info(f'get rewards_used: {rewards_used}')
+        return rewards_used
+
+    @rewards_used.setter
+    def rewards_used(self, rewards: list[RewardUsed]) -> None:
+        """Set the rewards already used."""
+
+        logger.info(f'set rewards_used: {rewards}')
+        db.Game.update_one(
+            filter={'_id': self.__id},
+            update={
+                '$set': {
+                    'rewards_used': [
+                        {
+                            'id': str(reward.player_id),
+                            'category': reward.category,
+                            'target_id': str(reward.target_id),
+                            'date': reward.date if reward.date else datetime.now().isoformat()
+                        }
+                        for reward in rewards
+                    ]
+                }
+            }
+        )
+
     def open_joining(self) -> None:
         """Open the joining of the game."""
 
@@ -202,6 +365,22 @@ class GameModel:
         if player_id not in old_value:
             self.ephemerally_imunized_players_id = old_value + [player_id]
 
+    def add_reward(self, reward: Reward) -> None:
+        """Add a reward."""
+
+        old_value = self.rewards
+        if reward.category not in RewardCategoriesList:
+            raise ValueError(f'Invalid reward category: {reward.category}')
+        self.rewards = old_value + [reward]
+
+    def add_reward_used(self, reward: RewardUsed) -> None:
+        """Add a reward already used."""
+
+        old_value = self.rewards_used
+        if reward.category not in RewardCategoriesList:
+            raise ValueError(f'Invalid reward category: {reward.category}')
+        self.rewards_used = old_value + [reward]
+
     def remove_collar_imunized_player_id(self, player_id: int) -> bool:
         """ Remove a player to the collar imunized players."""
 
@@ -221,6 +400,27 @@ class GameModel:
             return True
         else:
             return False
+
+    def remove_reward(self, reward_to_remove: Reward) -> None:
+        """Remove a reward."""
+
+        old_value = self.rewards
+
+        if reward_to_remove in old_value:
+            old_value.remove(reward_to_remove)
+            self.rewards = old_value
+            return True
+        return False
+
+    # CHECK get method
+    def get_blocked_players(self) -> PlayerList:
+        """Get the currently blocked players."""
+
+        return PlayerList(data=[
+            Player(id=reward.target_id).object.__dict__
+            for reward in self.rewards_used
+            if reward.category == 'block' and reward.less_than_a_day_ago
+        ])
 
 
 Game = GameModel()

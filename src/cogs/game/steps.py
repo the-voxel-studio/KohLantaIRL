@@ -60,4 +60,4 @@ async def setup(bot):
     """Setup the cog."""
 
     await bot.add_cog(StepsCog(bot))
-    logger.info('Loaded !')
+    logger.debug('Loaded !')

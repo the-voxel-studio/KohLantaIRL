@@ -9,7 +9,7 @@ EMOJIS_LIST = [
 ]  # Définition de la liste des émojis de réaction pour les votes
 
 # Mode (dev/production)
-MODE = os.environ.get('MODE')
+MODE = os.environ.get('MODE').upper()
 
 # Database URI
 MONGODB_URI = os.environ.get('MongoDB_URI')

@@ -2,6 +2,10 @@ import logging
 from datetime import datetime
 
 from colorama import Fore, Style
+try:
+    from config.values import MODE
+except ImportError:
+    from ..config.values import MODE
 
 CONSOLE_LOG_FORMAT = '%(asctime)s %(levelname)s %(name)s %(message)s'
 FILE_LOG_FORMAT = '[%(asctime)s] [%(levelname)s] [%(name)s]: %(message)s'
@@ -72,7 +76,7 @@ def get_logger(name: str) -> logging.Logger:
     """Get a logger with the specified name."""
 
     logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.INFO if MODE == 'PRODUCTION' else logging.DEBUG)
 
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(

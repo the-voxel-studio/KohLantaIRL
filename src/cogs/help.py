@@ -62,4 +62,4 @@ async def setup(bot):
     """Setup the cog."""
 
     await bot.add_cog(HelpCog(bot))
-    logger.info('Loaded !')
+    logger.debug('Loaded !')

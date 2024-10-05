@@ -159,4 +159,4 @@ async def setup(bot):
     """Setup the cog."""
 
     await bot.add_cog(ImmuniteCollarCog(bot))
-    logger.info('Loaded !')
+    logger.debug('Loaded !')
