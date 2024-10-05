@@ -406,14 +406,9 @@ class GameModel:
 
         old_value = self.rewards
 
-        logger.debug(reward_to_remove)
-        logger.debug(old_value)
-        logger.debug(old_value == reward_to_remove)
-
         if reward_to_remove in old_value:
             old_value.remove(reward_to_remove)
             self.rewards = old_value
-            logger.debug(old_value)
             return True
         return False
 
