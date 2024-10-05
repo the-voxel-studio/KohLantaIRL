@@ -69,8 +69,8 @@ class RewardsCog(commands.Cog):
                     # CHECK reward : block
                     await blocking_reward(interaction, interaction.user, player, target)
                 case 'resurrect':
-                    # CHECK resurect the target
-                    await resurecting_reward(interaction, interaction.user, player, target)
+                    # CHECK resurrect the target
+                    await resurrecting_reward(interaction, interaction.user, player, target)
                 case _:
                     await message_not_an_executable_power(interaction, power)
         else:
@@ -101,15 +101,16 @@ class RewardsCog(commands.Cog):
             raise ValueError(f'Invalid reward category: {reward}')
         Game.add_reward(Reward(user.id, reward))
 
-        await message_give_reward_success(interaction, user, reward)
+        await message_give_reward_success_to_recipient(interaction, user, reward)
+        await message_give_reward_success_to_giver(interaction, user, reward)
 
 
-async def message_give_reward_success(
+async def message_give_reward_success_to_giver(
         interaction: discord.Interaction,
         user: discord.Member,
         reward: Reward
 ) -> None:
-    """Send a message to confirm the reward has been given"""
+    """Send a message to the giver to confirm the reward has been given"""
     # CHECK response
     embed = discord.Embed(
         title=':robot: Pouvoir enregistré :moyai:',
@@ -117,6 +118,30 @@ async def message_give_reward_success(
         color=COLOR_GREEN,
     )
     await interaction.followup.send(embed=embed)
+
+
+async def message_give_reward_success_to_recipient(
+        interaction: discord.Interaction,
+        user: discord.Member,
+        reward: Reward
+) -> None:
+    """Send a message to the recipient to confirm the reward has been given"""
+    # CHECK response
+    embed = discord.Embed(
+        title=f':robot: Tu as reçu le pouvoir {reward} :moyai:',
+        description="Tu peux dès à présent l'utiliser dans le serveur, à condition qu'il n'y ai pas de vote en cours.",
+        color=COLOR_GREEN,
+    )
+    embed.set_author(
+        name=interaction.user.display_name,
+        icon_url=interaction.user.avatar.url,
+    )
+    embed.add_field(
+        name='Comment faire ?',
+        value="Il suffit d'utiliser la commande `/pouvoir` dans un channel du serveur, où bien ici en MP avec moi.",
+        inline=False
+    )
+    await user.send(embed=embed)
 
 
 async def message_you_dont_have_this_power(
