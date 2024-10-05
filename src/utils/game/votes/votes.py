@@ -16,7 +16,7 @@ from utils.punishments import timeout
 from typing import Literal, Optional, TypedDict
 
 
-class ResurectKwArgs(TypedDict):
+class ResurrectKwArgs(TypedDict):
     dm_message: bool
     interaction_response: bool
 
@@ -311,7 +311,7 @@ async def resurrect(
     interaction: discord.Interaction,
     member: discord.Member,
     player: Optional[Player] = None,
-    **kwargs: ResurectKwArgs
+    **kwargs: ResurrectKwArgs
 ) -> None:
     """Resurrect a player."""
 

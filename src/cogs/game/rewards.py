@@ -7,7 +7,7 @@ from database.game import Game, RewardCategories, RewardCategoriesList, Reward
 from utils.logging import get_logger
 from utils.game.rewards.block import blocking_reward
 from utils.game.rewards.mute import muting_reward
-from utils.game.rewards.resurrect import resurecting_reward
+from utils.game.rewards.resurrect import resurrecting_reward
 from utils.control import is_admin
 
 

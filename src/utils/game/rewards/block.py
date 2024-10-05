@@ -10,7 +10,7 @@ from utils.logging import get_logger
 logger = get_logger(__name__)
 
 
-async def resurecting_reward(
+async def blocking_reward(
         interaction: discord.Interaction,
         user: discord.Member,
         player: Player,
@@ -94,7 +94,7 @@ async def message_target_already_attacked(
     # CHECK message
     embed = discord.Embed(
         title=":robot: Cible déjà sous l'effet d'un pouvoir :moyai:",
-        description=f'Le joueur sélectionné a été ciblée par un pouvoir il y a moins de 24h, il est donc impossible de le cibler à nouveau.\n\ncible : <@{target.id}>\ndurée : 24h',
+        description=f'Le joueur sélectionné a été ciblé par un pouvoir il y a moins de 24h, il est donc impossible de le cibler à nouveau.\n\ncible : <@{target.id}>\ndurée : 24h',
         color=COLOR_ORANGE,
     )
     await interaction.followup.send(embed=embed)

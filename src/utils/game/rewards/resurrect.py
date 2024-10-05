@@ -11,7 +11,7 @@ from utils.logging import get_logger
 logger = get_logger(__name__)
 
 
-async def resurecting_reward(
+async def resurrecting_reward(
         interaction: discord.Interaction,
         user: discord.Member,
         player: Player,
@@ -20,13 +20,13 @@ async def resurecting_reward(
 
     """Reusrect the target."""
 
-    logger.info(f'Power execution | Requested by {interaction.user} (id:{interaction.user.id}) | power: resurect | target : {target.name} (id:{target.id})')
+    logger.info(f'Power execution | Requested by {interaction.user} (id:{interaction.user.id}) | power: resurrect | target : {target.name} (id:{target.id})')
 
     # CHECK verify if the target is alive
     # Checking if the target is alive
     # If it's not the case, the power can't be used
     if Player(id=target.id).object.alive:
-        logger.warning(f'Power execution : abort : alive | Requested by {interaction.user} (id:{interaction.user.id}) | power: resurect | target : {target.name} (id:{target.id})')
+        logger.warning(f'Power execution : abort : alive | Requested by {interaction.user} (id:{interaction.user.id}) | power: resurrect | target : {target.name} (id:{target.id})')
         await message_target_alive(interaction, target)
         return
 
@@ -54,11 +54,11 @@ async def resurecting_reward(
 
     # CHECK register the power as used
     # Resgistre the power as used
-    Game.add_reward_used(RewardUsed(player.object.id, 'resurect', target.id))
+    Game.add_reward_used(RewardUsed(player.object.id, 'resurrect', target.id))
 
     # CHECK remove power to the user
     # Remove the power to the user (in order not to be able to use it again)
-    Game.remove_reward(Reward(player.object.id, 'resurect'))
+    Game.remove_reward(Reward(player.object.id, 'resurrect'))
 
     # CHECK inform the target
     await message_succes_to_target(target)
@@ -71,7 +71,7 @@ async def message_succes_to_target(
         user: discord.Member,
         target: discord.Member
 ) -> None:
-    """Inform the target that he has been resurected."""
+    """Inform the target that he has been resurrected."""
     # CHECK message
     embed = discord.Embed(
         title=':robot: Vous avez été réintégré par un joueur ! :moyai:',
