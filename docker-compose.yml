@@ -2,4 +2,4 @@ services:
     kohlantabot:
         container_name: kohlantabot
         build: .
-        restart: "no"
+        restart: "unless-stopped"

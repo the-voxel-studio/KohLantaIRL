@@ -16,7 +16,7 @@ def compte_lignes_code(directory):
                 with open(chemin_fichier, 'r', encoding='utf-8') as f:
                     lignes = f.readlines()
                     total_lignes += len(lignes)
-                    print(f"Le fichier {chemin_fichier.split('KohLanta')[-1]} contient {len(lignes)} lignes.")
+                    print(f"Le fichier {chemin_fichier.split('KohLantaIRL')[-1]} contient {len(lignes)} lignes.")
 
     return total_lignes
 
