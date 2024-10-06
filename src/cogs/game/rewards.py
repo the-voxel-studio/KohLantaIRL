@@ -77,7 +77,7 @@ class RewardsCog(commands.Cog):
             await message_you_dont_have_this_power(interaction, power)
 
     @app_commands.command(
-        name='give_power', description="Ajout d'un pouvoir suite à une activité"
+        name='give_reward', description="Attribution d'une récompense suite à une activité"
     )
     @app_commands.guild_only()
     @app_commands.default_permissions(create_instant_invite=True)
@@ -87,10 +87,10 @@ class RewardsCog(commands.Cog):
         user: discord.Member,
         reward: RewardCategories
     ):
-        """Give the power won after an activity"""
+        """Give the reward won after an activity"""
 
         logger.info(
-            f'Power Giving | Requested by {interaction.user} (id:{interaction.user.id}) | reward: {reward}'
+            f'Reward Giving | Requested by {interaction.user} (id:{interaction.user.id}) | reward: {reward}'
         )
 
         await interaction.response.defer()
@@ -103,6 +103,30 @@ class RewardsCog(commands.Cog):
 
         await message_give_reward_success_to_recipient(interaction, user, reward)
         await message_give_reward_success_to_giver(interaction, user, reward)
+
+    @app_commands.command(
+        name='reset_rewards', description='Remise à zéro des récompenses'
+    )
+    @app_commands.guild_only()
+    @app_commands.default_permissions(create_instant_invite=True)
+    async def reset_reward(
+        self,
+        interaction: discord.Interaction
+    ):
+        """Reset all the rewards"""
+
+        logger.info(
+            f'Rewards Reseting | Requested by {interaction.user} (id:{interaction.user.id})'
+        )
+
+        await interaction.response.defer()
+        if not is_admin(interaction.user):
+            raise commands.MissingPermissions(['Admin'])
+
+        Game.rewards = []
+        Game.rewards_used = []
+
+        await message_reset_rewards_success(interaction)
 
 
 async def message_give_reward_success_to_giver(
@@ -193,6 +217,16 @@ async def message_vote_in_progress(
         title=":robot: Impossible d'utiliser un pouvoir quand un vote est en cours ! :moyai:",
         description=f'pouvoir : {power}',
         color=COLOR_RED,
+    )
+    await interaction.followup.send(embed=embed)
+
+
+async def message_reset_rewards_success(interaction) -> None:
+    """Send a message to inform the user that the rewards have been reset"""
+    # CHECK response
+    embed = discord.Embed(
+        title=':robot: Récompenses réinitialisées :moyai:',
+        color=COLOR_ORANGE,
     )
     await interaction.followup.send(embed=embed)
 
